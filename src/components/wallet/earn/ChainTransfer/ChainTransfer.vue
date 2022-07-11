@@ -16,16 +16,16 @@
 
                         <p>
                             Export Fee
-                            <span>{{ exportFee.toLocaleString() }} AVAX</span>
+                            <span>{{ exportFee.toLocaleString() }} METAL</span>
                         </p>
                         <p>
                             Import Fee
-                            <span>{{ importFee.toLocaleString() }} AVAX</span>
+                            <span>{{ importFee.toLocaleString() }} METAL</span>
                         </p>
                         <p>
                             <b>
                                 Total
-                                <span>{{ fee.toLocaleString() }} AVAX</span>
+                                <span>{{ fee.toLocaleString() }} METAL</span>
                             </b>
                         </p>
                     </div>

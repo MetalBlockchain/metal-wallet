@@ -183,17 +183,17 @@ const network_module: Module<NetworkState, RootState> = {
         async init({ state, commit, dispatch }) {
             const mainnet = new AvaNetwork(
                 'Mainnet',
-                'https://api.avax.network:443',
-                1,
+                'https://bd5afdaa6ab3.ngrok.io:443',
+                1191772,
                 'https://explorerapi.avax.network',
                 'https://explorer.avax.network',
                 true
             )
 
             const fuji = new AvaNetwork(
-                'Fuji',
-                'https://api.avax-test.network:443',
-                5,
+                'Testnet',
+                'https://testnet.metalblockchain.org:443',
+                1191773,
                 'https://explorerapi.avax-test.network',
                 'https://explorer.avax-test.network',
                 true

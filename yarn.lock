@@ -2,10 +2,8 @@
 # yarn lockfile v1
 
 
-"@avalabs/avalanche-wallet-sdk@0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@avalabs/avalanche-wallet-sdk/-/avalanche-wallet-sdk-0.18.0.tgz#038139c176fb306aecf7ad431d687848affe4ba8"
-  integrity sha512-cGhEFzgnH/oVaD+clrJQfEhz11WHO5tlMZ54nIqdQoJPw7ZpxYrplJMug1KYx6EDt3wkgZ5UwUPs3Sdfukbf0g==
+"@avalabs/avalanche-wallet-sdk@file:../avalanche-wallet-sdk":
+  version "0.17.2"
   dependencies:
     "@ethereumjs/common" "2.6.0"
     "@ethereumjs/tx" "3.4.0"
@@ -14,7 +12,7 @@
     "@metamask/eth-sig-util" "4.0.0"
     "@obsidiansystems/hw-app-avalanche" "0.2.2"
     "@openzeppelin/contracts" "4.5.0"
-    avalanche "3.15.1"
+    avalanche "file:../../../../Library/Caches/Yarn/v6/npm-@avalabs-avalanche-wallet-sdk-0.17.2-492448e3-0727-4d31-a77a-e268f6b4459e-1656604807884/node_modules/@avalabs/avalanchejs"
     big.js "^6.1.1"
     bip32 "2.0.6"
     bip32-path "0.4.2"
@@ -34,10 +32,8 @@
     web3-eth-contract "1.7.1"
     xss "1.0.11"
 
-"@avalabs/vue_components@0.10.0":
+"@avalabs/vue_components@file:../vue-components":
   version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@avalabs/vue_components/-/vue_components-0.10.0.tgz#6dcab2079db824711410898b3afafdbc6d1d5bd4"
-  integrity sha512-hQ+Th/5Ra4RWrRIWhIl2dYu+F38u8h1DHCqkfLNIGHRhIBHuQwKadIHh0iE6W1/GEau8dKl1O6QImNw5ZdI32A==
   dependencies:
     "@fortawesome/fontawesome-svg-core" "^1.2.27"
     "@fortawesome/free-solid-svg-icons" "^5.12.1"
@@ -4054,10 +4050,8 @@ available-typed-arrays@^1.0.2:
   dependencies:
     array-filter "^1.0.0"
 
-avalanche@3.15.1:
+"avalanche@file:../avalanchejs":
   version "3.15.1"
-  resolved "https://registry.yarnpkg.com/avalanche/-/avalanche-3.15.1.tgz#a316ef3e94fdd21b39e86366e07659f69f767cc7"
-  integrity sha512-vlKym4WpG4feNQp6S6XyHogeu+IGtClxALOQSCPNoYlhm4UXSw91XfbgwwIningoo1/PhVGhW0IBMuw5VM8w3g==
   dependencies:
     assert "2.0.0"
     axios "0.27.2"
