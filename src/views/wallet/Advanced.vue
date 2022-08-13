@@ -1,7 +1,10 @@
 <template>
     <div>
         <div>
-            <h1>{{ $t('advanced.title') }}</h1>
+            <div class="header_title">
+                <h1>{{ $t('advanced.title') }}</h1>
+                <hr />
+            </div>
         </div>
         <TokenListModal ref="token_list"></TokenListModal>
         <!--        <div class="buts grid_box">-->
@@ -44,6 +47,26 @@ export default class Advanced extends Vue {
 <style scoped lang="scss">
 @use '../../main';
 
+.header_title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 18px;
+    width: 100%;
+
+    h1 {
+        font-size: 20px;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-right: 12px;
+        color: var(--tertiary-color);
+    }
+
+    hr {
+        flex: 0 1 100%;
+        border: 1px solid var(--border-secondary-light);
+    }
+}
 h1 {
     font-weight: normal;
 }
@@ -55,10 +78,10 @@ h1 {
 }
 
 .grid_box {
-    background-color: var(--bg-light);
     padding: 30px;
-    border-radius: 4px;
+    border-radius: 16px;
     overflow: auto;
+    border: 1px solid var(--border-secondary-light);
 }
 
 @include main.mobile-device {

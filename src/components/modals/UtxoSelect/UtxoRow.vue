@@ -113,6 +113,6 @@ tr[locked] {
 
 .amt_col,
 .date_col {
-    font-family: monospace;
+    //font-family: monospace;
 }
 </style>

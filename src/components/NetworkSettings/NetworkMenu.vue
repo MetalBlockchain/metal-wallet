@@ -117,11 +117,11 @@ export default class NetworkMenu extends Vue {
     get connectionColor(): string {
         switch (this.status) {
             case 'connecting':
-                return '#ffaa00'
+                return '#112EBD'
             case 'connected':
-                return '#0f0'
+                return '#20BF55'
             default:
-                return '#f00'
+                return '#992005'
         }
     }
 

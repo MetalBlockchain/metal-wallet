@@ -25,15 +25,15 @@ export default {
 
     getColor(type, amount) {
         // if (this.type === 'operation') return this.operationColor
-        if (type === 'add_validator') return '#008dc5'
-        if (type === 'add_delegator') return '#008dc5'
+        if (type === 'add_validator') return '#112EBD'
+        if (type === 'add_delegator') return '#112EBD'
 
         if (amount > 0) {
-            return '#6BC688'
+            return '#20BF55'
         } else if (amount === 0) {
             return '#999'
         } else {
-            return '#d04c4c'
+            return '#992005'
         }
     },
 

@@ -307,8 +307,9 @@ export default class StakingTx extends Vue {
 .amt {
     text-align: right;
     white-space: nowrap;
-    font-size: 15px;
-    color: var(--info);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--secondary-color);
 }
 
 .time_bar {
@@ -326,7 +327,7 @@ export default class StakingTx extends Vue {
         left: 0;
         top: 0;
         height: 100%;
-        background-color: rgba(var(--info-1), 0.6);
+        background-color: #112ebd;
     }
 
     p {

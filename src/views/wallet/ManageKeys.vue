@@ -3,33 +3,36 @@
         <div>
             <div class="card_body">
                 <header>
-                    <h1>{{ $t('keys.title') }}</h1>
-                    <div class="button_container" v-if="canEncryptWallet">
-                        <button
-                            v-if="!account"
-                            @click="openSaveAccount"
-                            class="save_account ava_button_secondary"
-                        >
-                            <fa icon="exclamation-triangle"></fa>
-                            {{ $t('keys.button1') }}
-                        </button>
-                        <button
-                            v-if="hasVolatile && account"
-                            @click="openAccountSettings"
-                            class="save_account ava_button_secondary"
-                        >
-                            <fa icon="exclamation-triangle"></fa>
-                            {{ $t('keys.button1') }}
-                        </button>
-                        <button class="but_primary ava_button_secondary" @click="exportKeys">
-                            <fa icon="upload"></fa>
-                            {{ $t('keys.button3') }}
-                        </button>
-                        <SaveAccountModal ref="account_modal"></SaveAccountModal>
-                        <AccountSettingsModal ref="account_settings"></AccountSettingsModal>
-                        <ExportKeys ref="export" :wallets="allWallets"></ExportKeys>
+                    <div class="header_title">
+                        <h1>{{ $t('keys.title') }}</h1>
+                        <hr />
                     </div>
                 </header>
+                <div class="button_container" v-if="canEncryptWallet">
+                    <button
+                        v-if="!account"
+                        @click="openSaveAccount"
+                        class="save_account ava_button_secondary"
+                    >
+                        <fa icon="exclamation-triangle"></fa>
+                        {{ $t('keys.button1') }}
+                    </button>
+                    <button
+                        v-if="hasVolatile && account"
+                        @click="openAccountSettings"
+                        class="save_account ava_button_secondary"
+                    >
+                        <fa icon="exclamation-triangle"></fa>
+                        {{ $t('keys.button1') }}
+                    </button>
+                    <button class="but_primary ava_button_secondary" @click="exportKeys">
+                        <img src="@/assets/upload.svg" class="key_logo" />
+                        {{ $t('keys.button3') }}
+                    </button>
+                    <SaveAccountModal ref="account_modal"></SaveAccountModal>
+                    <AccountSettingsModal ref="account_settings"></AccountSettingsModal>
+                    <ExportKeys ref="export" :wallets="allWallets"></ExportKeys>
+                </div>
                 <my-keys></my-keys>
             </div>
         </div>
@@ -114,15 +117,54 @@ export default class ManageKeys extends Vue {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
+
+    button {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--tertiary-color);
+        display: flex;
+        align-items: center;
+
+        img {
+            height: 20px;
+            width: 20px;
+            margin-right: 10px;
+        }
+    }
 }
 header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    .header_title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 18px;
+        width: 100%;
+
+        h1 {
+            font-size: 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            margin-right: 12px;
+            color: var(--tertiary-color);
+        }
+
+        hr {
+            flex: 0 1 100%;
+            border: 1px solid var(--border-secondary-light);
+        }
+    }
 }
 
 h1 {
-    font-weight: lighter;
+    font-size: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--tertiary-color);
 }
 
 .save_account {

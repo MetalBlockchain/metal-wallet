@@ -108,10 +108,10 @@ By default, there are two network options to connect to: `Mainnet` and `Fuji`.
 ##### Mainnet
 
 -   Avalanche API: `https://api.avax.network:443`
--   Explorer API: `https://explorerapi.avax.network`
+-   Explorer API: `https://explorerapi.metalblockchain.org`
 
 ##### Fuji (Testnet)
 
 -   Avalanche API: `https://api.avax-test.network:443`
--   Explorer API: `https://explorerapi.avax-test.network`
+-   Explorer API: `https://testnet-explorerapi.metalblockchain.org`
 

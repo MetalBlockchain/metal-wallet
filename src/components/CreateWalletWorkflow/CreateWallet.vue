@@ -9,7 +9,7 @@
                             <div class="img_container">
                                 <img
                                     v-if="$root.theme === 'day'"
-                                    src="@/assets/diamond-secondary.png"
+                                    src="@/assets/diamond-secondary.svg"
                                     alt
                                 />
                                 <img v-else src="@/assets/diamond-secondary-night.svg" alt />
@@ -46,17 +46,6 @@
                                 </div>
                                 <!-- RIGHT -->
                                 <div class="phrase_disp_col">
-                                    <template v-if="!isVerified">
-                                        <img
-                                            v-if="$root.theme === 'day'"
-                                            src="@/assets/keyphrase.png"
-                                            alt
-                                        />
-                                        <img v-else src="@/assets/keyphrase_night.svg" alt />
-                                    </template>
-                                    <template v-else>
-                                        <img src="@/assets/success.svg" alt />
-                                    </template>
                                     <header v-if="!isVerified">
                                         <h1>
                                             {{ $t('create.mnemonic_title') }}
@@ -99,7 +88,7 @@
                                                 <Spinner v-if="isLoad" class="spinner"></Spinner>
                                                 <div v-else>
                                                     <button
-                                                        class="button_primary ava_button access generate"
+                                                        class="button_secondary ava_button access generate"
                                                         @click="access"
                                                         :disabled="!canSubmit"
                                                     >
@@ -215,7 +204,6 @@ export default class CreateWallet extends Vue {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--bg-light);
     padding: main.$container-padding;
     text-align: center;
     /*min-width: 1000px;*/
@@ -230,8 +218,9 @@ export default class CreateWallet extends Vue {
     h1 {
         margin-top: main.$vertical-padding;
         text-align: left;
-        font-size: main.$m-size;
-        font-weight: 400;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--tertiary-color);
     }
 }
 
@@ -241,7 +230,6 @@ export default class CreateWallet extends Vue {
     align-items: center;
     margin: 15px;
     padding-top: 15px;
-    border-top: 1px solid var(--primary-color-light);
 
     > * {
         margin: 4px;
@@ -271,8 +259,8 @@ export default class CreateWallet extends Vue {
 }
 
 a {
-    color: main.$primary-color-light !important;
-    text-decoration: underline !important;
+    color: var(--secondary-color) !important;
+    text-decoration: none !important;
     margin-top: 10px;
 }
 
@@ -349,13 +337,17 @@ a {
     header {
         h1 {
             margin-top: 10px;
-            font-size: main.$xl-size;
+            margin-bottom: 26px;
+            font-size: 28px;
             line-height: 1.25em;
-            font-weight: 400;
+            font-weight: 700;
+            color: var(--tertiary-color);
         }
 
         p {
             color: main.$primary-color-light;
+            font-weight: 400;
+            font-size: 20px;
         }
     }
 
@@ -364,12 +356,14 @@ a {
 
         span {
             display: block;
-            font-size: main.$s-size;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 500;
             text-transform: uppercase;
+            margin-top: 20px;
+            margin-bottom: 16px;
 
             &.label {
-                color: main.$secondary-color;
+                color: var(--secondary-color);
                 text-transform: uppercase;
             }
 

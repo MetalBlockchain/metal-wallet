@@ -7,6 +7,9 @@
             :wallet="activeWallet"
         ></paper-wallet>
         <p class="addr_info">{{ addressMsg }}</p>
+        <div class="bottom_tabs">
+            <ChainSelect v-model="chainNow"></ChainSelect>
+        </div>
         <div class="bottom">
             <div class="col_qr">
                 <canvas ref="qr"></canvas>
@@ -42,9 +45,6 @@
                     ></CopyText>
                 </div>
             </div>
-        </div>
-        <div class="bottom_tabs">
-            <ChainSelect v-model="chainNow"></ChainSelect>
         </div>
     </div>
 </template>
@@ -289,16 +289,16 @@ export default class AddressCard extends Vue {
 }
 
 .qr_but {
-    background-image: url('/img/qr_icon.png');
+    background-image: url('/img/qr_icon.svg');
 }
 .print_but {
-    background-image: url('/img/faucet_icon.png');
+    background-image: url('/img/faucet_icon.svg');
 }
 .ledger_but {
-    background-image: url('/img/ledger_icon.png');
+    background-image: url('/img/ledger_icon.svg');
 }
 .copy_but {
-    color: var(--primary-color);
+    background-image: url('/img/copy_icon.svg');
 }
 
 .col_qr {
@@ -330,8 +330,8 @@ export default class AddressCard extends Vue {
     margin: 19px !important;
     margin-bottom: 0 !important;
     background-color: var(--bg-light);
-    font-size: 13px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 400;
     text-align: center;
     padding: 12px 16px;
 }
@@ -378,9 +378,10 @@ $qr_width: 110px;
 }
 
 .addr_text {
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 500;
     word-break: break-all;
-    color: var(--primary-color);
+    color: var(--tertiary-color);
     min-height: 55px;
 }
 

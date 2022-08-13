@@ -14,7 +14,7 @@
                                             src="@/assets/diamond-primary.svg"
                                             alt
                                         />
-                                        <img v-else src="@/assets/diamond-primary-night.svg" alt />
+                                        <img v-else src="@/assets/diamond-primary.svg" alt />
                                     </div>
                                     <h2>{{ $t('home.access.title') }}</h2>
                                     <p>{{ $t('home.access.desc') }}</p>
@@ -23,7 +23,7 @@
                                     <router-link
                                         data-cy="access"
                                         to="/access"
-                                        class="ava_button button_primary submit_but"
+                                        class="ava_button button_tertiary submit_but"
                                     >
                                         {{ $t('home.access.submit') }}
                                     </router-link>
@@ -34,14 +34,10 @@
                                     <div class="img_container">
                                         <img
                                             v-if="$root.theme === 'day'"
-                                            src="@/assets/diamond-secondary.png"
+                                            src="@/assets/diamond-secondary.svg"
                                             alt
                                         />
-                                        <img
-                                            v-else
-                                            src="@/assets/diamond-secondary-night.svg"
-                                            alt
-                                        />
+                                        <img v-else src="@/assets/diamond-secondary.svg" alt />
                                     </div>
                                     <h2>{{ $t('home.create.title') }}</h2>
                                     <p>{{ $t('home.create.desc') }}</p>
@@ -104,6 +100,7 @@ export default class Home extends Vue {}
             text-align: center;
             font-size: 22px;
             font-weight: 400;
+            color: var(--primary-color-light);
         }
 
         .login_wrapper {
@@ -116,31 +113,33 @@ export default class Home extends Vue {}
                 display: flex;
                 flex-direction: column;
                 border-radius: 2px;
-                align-items: flex-start;
+                align-items: center;
                 justify-content: space-between;
-                background-color: var(--bg-light);
                 padding: 60px 90px main.$container-padding main.$container-padding;
 
                 header {
-                    margin-bottom: 60px;
+                    margin-bottom: 24px;
+                    text-align: center;
 
                     img {
-                        width: 89px;
-                        height: 89px;
+                        width: 48px;
+                        height: 48px;
                         max-height: none;
                     }
 
                     h2 {
                         padding-top: main.$s-size;
-                        font-family: 'DM Sans', sans-serif;
+                        font-family: 'Inter', sans-serif;
                         font-size: main.$s-size;
-                        text-transform: uppercase;
+                        font-weight: 400;
                         color: var(--primary-color-light);
                     }
 
                     p {
                         margin-top: 10px !important;
                         font-size: main.$l-size;
+                        color: var(--tertiary-color);
+                        font-weight: 700;
                     }
                 }
 

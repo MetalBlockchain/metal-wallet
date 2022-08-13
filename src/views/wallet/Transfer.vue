@@ -56,7 +56,7 @@
                     <div class="fees">
                         <p>
                             {{ $t('transfer.fee_tx') }}
-                            <span>{{ txFee.toLocaleString(9) }} AVAX</span>
+                            <span>{{ txFee.toLocaleString(9) }} METAL</span>
                         </p>
                         <p>
                             {{ $t('transfer.total_avax') }}
@@ -72,7 +72,7 @@
                         <template v-if="!isConfirm">
                             <v-btn
                                 depressed
-                                class="button_primary"
+                                class="button_secondary"
                                 :ripple="false"
                                 @click="confirm"
                                 :disabled="!canSend"
@@ -85,7 +85,7 @@
                             <p class="err">{{ err }}</p>
                             <v-btn
                                 depressed
-                                class="button_primary"
+                                class="button_secondary"
                                 :loading="isAjax"
                                 :ripple="false"
                                 @click="submit"
@@ -98,7 +98,7 @@
                                 text
                                 block
                                 small
-                                style="margin-top: 20px !important; color: var(--primary-color)"
+                                style="margin-top: 20px !important; color: var(--secondary-color)"
                                 @click="cancelConfirm"
                             >
                                 Cancel
@@ -538,6 +538,7 @@ h4 {
     font-size: 12px;
     font-weight: bold;
     margin: 12px 0;
+    color: var(--tertiary-color);
 }
 
 .send_to {
@@ -608,7 +609,7 @@ h4 {
 }
 .lists {
     /*padding-right: 45px;*/
-    border-right: 1px solid var(--bg-light);
+    //border-right: 1px solid var(--bg-light);
     grid-column: 1/3;
 
     /*> div{*/
@@ -629,10 +630,11 @@ h4 {
 .fees p {
     text-align: left;
     font-size: 13px;
-    color: var(--primary-color-light);
+    color: var(--tertiary-color);
 }
 
 .fees span {
+    font-weight: 500;
     float: right;
 }
 

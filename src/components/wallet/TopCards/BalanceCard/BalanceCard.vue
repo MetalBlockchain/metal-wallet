@@ -25,20 +25,13 @@
                 <button @click="showUTXOsModal" class="breakdown_toggle">Show UTXOs</button>
             </div>
             <div class="balance_row">
-                <p class="balance" data-cy="wallet_balance" v-if="!balanceTextRight">
-                    {{ balanceTextLeft }} METAL
-                </p>
-                <p class="balance" data-cy="wallet_balance" v-else>
-                    {{ balanceTextLeft }}
-                    <span>.{{ balanceTextRight }}</span>
-                    METAL
-                </p>
+                <p class="balance" data-cy="wallet_balance">{{ balanceText }} METAL</p>
                 <div style="display: flex; flex-direction: row">
                     <p class="balance_usd">
                         <b>$ {{ totalBalanceUSDText }}</b>
                         USD
                     </p>
-                    <p class="balance_usd" style="background-color: transparent">
+                    <p class="exchange_rate" style="background-color: transparent">
                         <b>1 METAL</b>
                         =
                         <b>${{ avaxPriceText }}</b>
@@ -96,7 +89,6 @@
                 </div>
             </div>
         </div>
-        <NftCol class="nft_card"></NftCol>
     </div>
 </template>
 <script lang="ts">
@@ -374,7 +366,7 @@ export default class BalanceCard extends Vue {
 @use '../../../../main';
 .balance_card {
     display: grid;
-    grid-template-columns: 1fr 230px;
+    //grid-template-columns: 1fr 230px;
     column-gap: 20px;
 }
 
@@ -396,14 +388,16 @@ export default class BalanceCard extends Vue {
 }
 .header {
     display: flex;
+    justify-content: center;
 
     h4 {
-        margin-left: 12px;
         flex-grow: 1;
     }
 }
 h4 {
-    font-weight: normal;
+    font-weight: 700;
+    color: var(--tertiary-color);
+    margin-left: 10px;
 }
 
 .alert_cont {
@@ -414,21 +408,29 @@ h4 {
     align-self: center;
 }
 .balance {
-    font-size: 2.4em;
+    font-size: 2rem;
     white-space: normal;
-    /*font-weight: bold;*/
-    font-family: Rubik !important;
+    color: var(--secondary-color);
 
     span {
-        font-size: 0.8em;
-        /*color: var(--primary-color-light);*/
+        font-size: 2rem;
+        color: var(--secondary-color);
     }
 }
 
 .balance_usd {
     width: max-content;
     background: var(--bg-light);
-    color: var(--primary-color-light);
+    font-size: 13px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px !important;
+    color: var(--tertiary-color);
+}
+
+.exchange_rate {
+    width: max-content;
+    background: var(--bg-light);
     font-size: 13px;
     padding: 1px 6px;
     border-radius: 3px;
@@ -436,9 +438,10 @@ h4 {
 }
 
 .refresh {
-    width: 20px;
-    height: 20px;
-    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    color: var(--tertiary-color);
+    font-weight: 700;
 
     button {
         outline: none !important;
@@ -449,7 +452,9 @@ h4 {
     }
 
     .spinner {
-        color: var(--primary-color) !important;
+        color: var(--tertiary-color) !important;
+        width: 16px;
+        height: 16px;
     }
 }
 .buts {
@@ -504,8 +509,15 @@ h4 {
     }
 
     label {
-        font-size: 13px;
+        font-size: 12px;
+        font-weight: 400;
         color: var(--primary-color-light);
+    }
+
+    p {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--tertiary-color);
     }
 }
 

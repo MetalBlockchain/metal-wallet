@@ -2,7 +2,9 @@
     <div class="access_card">
         <div class="content">
             <h1>{{ $t('keystore.title') }}</h1>
-            <file-input class="file_in" @change="onfile"></file-input>
+            <div class="input_area">
+                <file-input class="file_in" @change="onfile"></file-input>
+            </div>
             <form @submit.prevent="access">
                 <v-text-field
                     class="pass"
@@ -18,7 +20,7 @@
                 <p class="err">{{ error }}</p>
                 <!--                <remember-key class="remember" v-model="rememberPass" v-if="file" @is-valid="isRememberValid"></remember-key>-->
                 <v-btn
-                    class="ava_button button_primary"
+                    class="ava_button button_secondary"
                     @click="access"
                     :loading="isLoading"
                     v-if="file"
@@ -140,7 +142,6 @@ export default class Keystore extends Vue {
 }
 .access_card {
     /*max-width: 80vw;*/
-    background-color: var(--bg-light);
     padding: main.$container-padding;
     width: 100%;
     /*max-width: 240px;*/
@@ -152,6 +153,12 @@ export default class Keystore extends Vue {
     border-radius: 6px;
 }
 
+.input_area {
+    border: 2px dashed var(--gray300);
+    border-radius: 6px;
+    margin-bottom: 24px;
+}
+
 .content {
     width: 340px;
     max-width: 100%;
@@ -160,11 +167,13 @@ export default class Keystore extends Vue {
 
 h1 {
     font-size: main.$m-size;
-    font-weight: 400;
+    font-weight: 700;
+    color: var(--tertiary-color);
+    margin-bottom: 24px;
 }
 
 .file_in {
-    margin: 30px auto 10px;
+    margin: 10px auto 10px;
     font-size: 13px;
     border: none !important;
     background-color: var(--bg) !important;
@@ -178,7 +187,7 @@ a {
 }
 
 .link {
-    color: var(--secondary-color);
+    color: var(--secondary-color) !important;
 }
 
 .remember {

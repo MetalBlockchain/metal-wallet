@@ -116,14 +116,13 @@ export default class Wallet extends Vue {
 .wallet_view {
     padding-bottom: 0;
     display: grid;
-    grid-template-columns: 200px 1fr 300px;
+    grid-template-columns: 256px 1fr 300px;
     column-gap: 15px;
     height: 100%;
-    background-color: var(--bg-wallet);
 }
 
 .sidenav {
-    background-color: var(--bg-wallet-light);
+    background-color: var(--sidebar);
 }
 
 .panel {

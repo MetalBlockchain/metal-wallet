@@ -49,7 +49,7 @@
                             <v-btn
                                 v-if="!isConfirm"
                                 data-cy="confirm"
-                                class="button_primary"
+                                class="button_secondary"
                                 @click="confirm"
                                 :disabled="!canSubmit"
                                 block
@@ -72,7 +72,7 @@
                                 <v-btn
                                     v-if="!isLoading"
                                     data-cy="cancel"
-                                    style="color: var(--primary-color); margin: 12px 0 !important"
+                                    style="color: var(--secondary-color); margin: 12px 0 !important"
                                     @click="cancelConfirm"
                                     depressed
                                     text

@@ -12,7 +12,7 @@
                 />
                 <p class="err">{{ error }}</p>
                 <v-btn
-                    class="ava_button button_primary"
+                    class="ava_button button_secondary"
                     @click="access"
                     :loading="isLoading"
                     :disabled="!canSubmit"

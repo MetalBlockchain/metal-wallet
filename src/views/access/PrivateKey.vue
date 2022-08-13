@@ -15,7 +15,7 @@
                 ></v-text-field>
                 <p class="err">{{ error }}</p>
                 <v-btn
-                    class="ava_button button_primary"
+                    class="ava_button button_secondary"
                     @click="access"
                     :loading="isLoading"
                     :disabled="!canSubmit"
@@ -76,7 +76,8 @@ export default class PrivateKey extends Vue {
 <style scoped lang="scss">
 @use '../../main';
 .pass {
-    background-color: var(--bg) !important;
+    background-color: var(--gray50) !important;
+    margin-bottom: 10px;
 }
 .ava_button {
     width: 100%;
@@ -84,7 +85,6 @@ export default class PrivateKey extends Vue {
 }
 .access_card {
     /*max-width: 80vw;*/
-    background-color: var(--bg-light);
     padding: main.$container-padding;
     width: 100%;
     /*max-width: 240px;*/
@@ -102,7 +102,8 @@ export default class PrivateKey extends Vue {
 }
 h1 {
     font-size: main.$m-size;
-    font-weight: 400;
+    font-weight: 700;
+    color: var(--tertiary-color);
     margin-bottom: 30px;
 }
 .file_in {
@@ -113,7 +114,6 @@ h1 {
     /*min-width: 200px*/
 }
 a {
-    color: main.$primary-color-light !important;
     text-decoration: underline !important;
     margin: 10px 0 20px;
 }

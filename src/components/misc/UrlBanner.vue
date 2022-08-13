@@ -1,5 +1,5 @@
 <template>
-    <v-banner sticky class="url_banner" color="#f00" ref="banner">
+    <v-banner sticky class="url_banner" color="#992005" ref="banner">
         <template v-slot:default>
             <fa icon="exclamation-triangle"></fa>
             Make sure the URL is

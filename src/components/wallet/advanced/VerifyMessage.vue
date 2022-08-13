@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>{{ $t('advanced.verify.title') }}</h2>
-        <p style="margin-bottom: 14px !important">
+        <p style="margin-bottom: 14px !important; font-size: 14px; font-weight: 500">
             {{ $t('advanced.verify.desc') }}
         </p>
         <div>
@@ -95,6 +95,12 @@ export default class VerifyMessage extends Vue {
 }
 </script>
 <style lang="scss" scoped>
+h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--tertiary-color);
+    margin-bottom: 16px;
+}
 textarea,
 input,
 .address {

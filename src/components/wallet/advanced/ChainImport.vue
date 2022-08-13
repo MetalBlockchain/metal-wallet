@@ -1,7 +1,9 @@
 <template>
     <div class="chain_import">
         <h2>{{ $t('advanced.import.title') }}</h2>
-        <p>{{ $t('advanced.import.desc') }}</p>
+        <p style="margin-bottom: 14px !important; font-size: 14px; font-weight: 500">
+            {{ $t('advanced.import.desc') }}
+        </p>
         <div v-if="isSuccess" class="is_success">
             <label>Tx ID</label>
             <p class="tx_id">{{ txId }}</p>
@@ -169,6 +171,12 @@ export default class ChainImport extends Vue {
 }
 </script>
 <style scoped lang="scss">
+h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--tertiary-color);
+    margin-bottom: 16px;
+}
 .v-btn {
     margin: 8px 0;
 }

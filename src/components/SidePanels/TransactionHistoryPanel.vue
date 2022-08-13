@@ -110,7 +110,9 @@ export default class TransactionHistoryPanel extends Vue {
     padding: 8px 16px;
 
     h2 {
-        font-weight: normal;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--tertiary-color);
     }
 
     a {

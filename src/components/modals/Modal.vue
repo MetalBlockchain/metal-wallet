@@ -60,7 +60,7 @@ export default class Modal extends Vue {
     text-align: left;
     flex-grow: 1;
     margin: 0;
-    font-weight: lighter;
+    font-weight: 400;
 }
 
 .modalClose {

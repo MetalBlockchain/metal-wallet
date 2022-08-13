@@ -1,14 +1,17 @@
 <template>
     <div>
         <div class="header">
-            <h1>{{ $t('studio.title') }}</h1>
+            <div class="header_title">
+                <h1>{{ $t('studio.title') }}</h1>
+                <hr />
+            </div>
             <h1 class="subtitle" v-if="pageNow">
                 / {{ subtitle }}
                 <span @click="cancel"><fa icon="times"></fa></span>
             </h1>
         </div>
         <template v-if="!pageNow">
-            <p>{{ $t('studio.desc') }}</p>
+            <p class="studio_desc">{{ $t('studio.desc') }}</p>
             <div class="menu">
                 <h2>{{ $t('studio.collectibles') }}</h2>
                 <div class="options">
@@ -117,14 +120,35 @@ export default class Studio extends Vue {
 }
 </script>
 <style scoped lang="scss">
+.studio_desc {
+    font-size: 14px;
+    font-weight: 400;
+}
 .header {
     display: flex;
     /*justify-content: space-between;*/
     /*align-items: center;*/
     align-items: center;
 
-    h1 {
-        font-weight: lighter;
+    .header_title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 18px;
+        width: 100%;
+
+        h1 {
+            font-size: 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            margin-right: 12px;
+            color: var(--tertiary-color);
+        }
+
+        hr {
+            flex: 0 1 100%;
+            border: 1px solid var(--border-secondary-light);
+        }
     }
 
     .subtitle {

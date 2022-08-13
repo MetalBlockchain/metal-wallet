@@ -10,9 +10,9 @@ export default {}
 </script>
 <style scoped lang="scss">
 .spinner {
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
     text-align: center;
     animation-name: spin;
     animation-duration: 1.5s;

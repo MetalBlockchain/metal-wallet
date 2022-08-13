@@ -1,7 +1,10 @@
 <template>
     <div class="earn_page">
         <div class="header">
-            <h1>{{ $t('earn.title') }}</h1>
+            <div class="header_title">
+                <h1>{{ $t('earn.title') }}</h1>
+                <hr />
+            </div>
             <h1 class="subtitle" v-if="pageNow">
                 / {{ subtitle }}
                 <span @click="cancel"><fa icon="times"></fa></span>
@@ -9,7 +12,7 @@
         </div>
         <transition name="fade" mode="out-in">
             <div v-if="!pageNow">
-                <p>{{ $t('earn.desc') }}</p>
+                <p class="earn_desc">{{ $t('earn.desc') }}</p>
                 <div class="options">
                     <div>
                         <h4 class="title">
@@ -210,14 +213,36 @@ export default class Earn extends Vue {
     display: grid;
     grid-template-rows: max-content 1fr;
 }
+.earn_desc {
+    font-size: 14px;
+    font-weight: 400;
+}
 .header {
-    h1 {
-        font-weight: normal;
-    }
     display: flex;
     /*justify-content: space-between;*/
     /*align-items: center;*/
     align-items: center;
+
+    .header_title {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 18px;
+        width: 100%;
+
+        h1 {
+            font-size: 20px;
+            font-weight: 500;
+            white-space: nowrap;
+            margin-right: 12px;
+            color: var(--tertiary-color);
+        }
+
+        hr {
+            flex: 0 1 100%;
+            border: 1px solid var(--border-secondary-light);
+        }
+    }
 
     .subtitle {
         margin-left: 0.5em;
@@ -253,23 +278,25 @@ export default class Earn extends Vue {
         align-items: flex-start;
         //max-width: 260px;
         padding: 30px;
-        border-radius: 4px;
-        background-color: var(--bg-light);
+        border-radius: 16px;
+        border: 1px solid var(--border-secondary-light);
     }
 
     h4 {
-        font-size: 32px !important;
-        font-weight: lighter;
-        color: var(--primary-color-light);
+        font-size: 20px !important;
+        font-weight: 600;
+        color: var(--tertiary-color);
     }
 
     p {
         /*color: var(--primary-color-light);*/
+        font-size: 14px;
+        font-weight: 400;
         margin: 14px 0 !important;
     }
 
     .no_balance {
-        color: var(--secondary-color);
+        color: var(--error);
     }
 
     .v-btn {

@@ -8,7 +8,7 @@
             <div class="button_container">
                 <p class="err" v-if="err">{{ err }}</p>
                 <v-btn
-                    class="ava_button but_primary button_primary access"
+                    class="ava_button but_primary button_secondary access"
                     @click="access"
                     depressed
                     :loading="isLoading"
@@ -116,15 +116,14 @@ export default class Mnemonic extends Vue {
 .mnemonic_auth {
     margin: 0px auto;
     width: max-content;
-    background-color: var(--bg-light);
     padding: main.$container-padding;
 
     .left,
     .right {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-start;
+        align-items: center;
+        justify-content: center;
     }
     > * {
         //width: 100%;
@@ -132,8 +131,10 @@ export default class Mnemonic extends Vue {
 }
 
 h1 {
-    text-align: left;
-    font-size: main.$m-size;
+    text-align: center;
+    font-weight: 700;
+    color: var(--tertiary-color);
+    margin-bottom: 24px;
 }
 
 textarea {
@@ -194,7 +195,7 @@ input[type='password'] {
 .button_container {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     justify-content: flex-start;
 }
 

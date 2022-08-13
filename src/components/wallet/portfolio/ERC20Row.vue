@@ -9,12 +9,10 @@
             <span>ERC20</span>
         </p>
         <router-link :to="sendLink" class="send_col" v-if="isBalance">
-            <img v-if="$root.theme === 'day'" src="@/assets/sidebar/transfer_nav.png" />
+            <img v-if="$root.theme === 'day'" src="@/assets/sidebar/transfer_nav.svg" />
             <img v-else src="@/assets/sidebar/transfer_nav_night.svg" />
         </router-link>
-        <p class="balance_col">
-            {{ balText }}
-        </p>
+        <p class="balance_col">{{ balText }} {{ token.data.symbol }}</p>
     </div>
 </template>
 <script lang="ts">
@@ -61,9 +59,10 @@ img {
 .balance_col {
     text-align: right;
     font-size: 18px;
+    color: var(--tertiary-color) !important;
 
     span {
-        color: var(--primary-color-light) !important;
+        color: var(--tertiary-color) !important;
     }
 }
 

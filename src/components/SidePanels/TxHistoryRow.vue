@@ -134,7 +134,9 @@ export default class TxHistoryRow extends Vue {
 }
 
 .time {
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tertiary-color);
 
     a {
         float: right;

@@ -75,7 +75,9 @@ img {
 
 h1 {
     font-size: main.$l-size;
-    font-weight: 400;
+    font-weight: 700;
+    color: var(--tertiary-color);
+    margin-bottom: 24px;
 }
 
 hr {
@@ -100,6 +102,9 @@ hr {
 .menu_option {
     justify-content: space-between;
     align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+
     img {
         width: 24px;
         height: 24px;

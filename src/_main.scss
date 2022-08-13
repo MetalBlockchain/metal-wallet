@@ -7,6 +7,7 @@
 
 //@import "node_modules/bootstrap/scss/bootstrap-reboot.scss";
 @import 'node_modules/bootstrap/scss/bootstrap-grid.scss';
+@import url('https://rsms.me/inter/inter.css');
 //@import "node_modules/bootstrap/scss/grid";
 
 //@import "node_modules/bootstrap-vue/src/variables";
@@ -216,10 +217,9 @@ label {
     padding: 10px 24px;
     min-width: 140px;
     border-radius: 6px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
     letter-spacing: 0.5px;
-    text-transform: uppercase !important;
     font-size: $s-size;
 
     &:hover {
@@ -239,7 +239,6 @@ label {
     font-family: 'DM Sans', sans-serif;
     font-weight: 700;
     letter-spacing: 0.5px;
-    text-transform: uppercase !important;
     font-size: $s-size;
 
     &:hover {
@@ -253,7 +252,7 @@ label {
 
 .link {
     font-size: $s-size;
-    text-decoration: underline !important;
+    text-decoration: none !important;
     margin-bottom: 20px;
 
     &:hover {
@@ -286,12 +285,14 @@ $white: #fff;
 $green: #6bc688;
 $green-light: #83f2a6;
 $green-extra-light: #a9efbf;
+$gray-2: #7F8386;
 
 $primary-color: $purple;
 $primary-color-light: $purple-light;
 $secondary-color: $pink;
 $secondary-color-light: $pink-light;
 $secondary-color-extra-light: $pink-extra-light;
+$tertiary-color-light: $gray-2;
 $background-color: $gray;
 
 h1 {
@@ -302,7 +303,7 @@ h1,
 h2,
 h3,
 h4 {
-    font-family: 'Rubik', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .button_primary {
@@ -327,6 +328,11 @@ h4 {
     &:hover {
         opacity: 0.7;
     }
+}
+.button_tertiary {
+    background-color: #2B2F31 !important;
+    color: #fff !important;
+    text-decoration: none;
 }
 
 .button_form_cancel {
@@ -371,6 +377,10 @@ textarea {
 
 .v-messages {
     color: var(--primary-color) !important;
+}
+
+.v-btn {
+    text-transform: none;
 }
 
 .v-text-field {
@@ -442,15 +452,19 @@ textarea {
 html[data-theme='day'] {
     --bg: #fff;
     --bg-1: 255, 255, 255;
+    --bg-2: #EDEDEE;
+    --bg-3: #E7EAF8;
     --bg-light: #f5f6fa;
     --bg-light-1: 245, 246, 250;
 
-    --primary-color: #4c2e56;
+    --primary-color: #7F8386;
     --primary-color-light: #867e89;
-    --secondary-color: #e84970;
+    --secondary-color: #112EBD;
+    --secondary-color-light: #E7EAF8;
+    --tertiary-color: #111827;
     --selection-color: #6a91d8;
     --link-secondary: #6e7479;
-    --error: #f00;
+    --error: #992005;
     --success: #6bc688;
     --info: #2c7490;
     --info-1: 44, 116, 144;
@@ -459,16 +473,25 @@ html[data-theme='day'] {
     --bg-wallet-light: #fff;
 
     --warning: #ef8f4a;
+
+    --gray50: #F9FAFB;
+    --gray300: #D1D5DB;
+    --border-secondary-light: #DADCDC;
+    --sidebar: #EDEDEE;
+    --sidebar-item: #DADCDC;
 }
 
 html[data-theme='night'] {
     --bg: #242729;
     --bg-1: 36, 39, 41;
+    --bg-2: #EDEDEE;
+    --bg-3: #E7EAF8;
     --bg-light: #2e3234;
     --bg-light-1: 46, 50, 52;
     --primary-color: #e5e5e5;
     --primary-color-light: #6e7479;
-    --secondary-color: #e84970;
+    --secondary-color: #112EBD;
+    --secondary-color-light: #E7EAF8;
     --selection-color: #6a91d8;
     --link-secondary: #6e7479;
     --error: #e84970;
@@ -480,6 +503,11 @@ html[data-theme='night'] {
     --bg-wallet-light: #242729;
 
     --warning: #d49534;
+    --gray50: #F9FAFB;
+    --gray300: #D1D5DB;
+    --border-secondary-light: #DADCDC;
+    --sidebar: #2e3234;
+    --sidebar-item: #181b1d;
 }
 
 p.err {
@@ -517,3 +545,5 @@ p.err {
         font-size: 25px;
     }
 }
+
+html { font-family: 'Inter', sans-serif; }
