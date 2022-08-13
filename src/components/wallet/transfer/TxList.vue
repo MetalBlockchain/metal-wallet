@@ -194,8 +194,10 @@ $right_pad: 60px;
 .table_title p {
     display: block;
     text-align: left;
+    font-size: 14px;
     font-weight: bold;
     padding: 12px 0;
+    color: var(--tertiary-color);
 
     &:last-of-type {
         text-align: right;

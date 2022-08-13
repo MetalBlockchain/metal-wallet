@@ -302,7 +302,7 @@ export default class KeyRow extends Vue {
 @use '../../../main';
 
 .addressItem {
-    font-size: 12px;
+    font-size: 14px;
     /*display: grid;*/
     /*grid-template-columns: 1fr max-content;*/
     /*grid-gap: 15px;*/
@@ -419,8 +419,9 @@ export default class KeyRow extends Vue {
     overflow: auto;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: monospace;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tertiary-color);
 
     span {
         font-weight: normal;

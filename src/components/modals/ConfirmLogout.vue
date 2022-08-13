@@ -8,7 +8,7 @@
             <div
                 style="display: flex; flex-direction: column; align-items: center; margin-top: 14px"
             >
-                <v-btn class="ava_button button_primary" @click="submit" :loading="isLoading">
+                <v-btn class="ava_button button_secondary" @click="submit" :loading="isLoading">
                     {{ $t('logout.button_conf') }}
                 </v-btn>
                 <button class="ava_button_secondary" @click="close">

@@ -1,9 +1,9 @@
 <template>
-    <v-banner sticky class="url_banner" color="#f00" ref="banner">
+    <v-banner sticky class="url_banner" color="#992005" ref="banner">
         <template v-slot:default>
             <fa icon="exclamation-triangle"></fa>
             Make sure the URL is
-            <b>wallet.avax.network</b>
+            <b>wallet.metalblockchain.org</b>
             <button @click="dismiss" class="dismiss_but" data-cy="dismiss_banner">
                 <fa icon="times"></fa>
             </button>

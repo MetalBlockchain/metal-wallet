@@ -16,16 +16,16 @@
 
                         <p>
                             Export Fee
-                            <span>{{ exportFee.toLocaleString() }} AVAX</span>
+                            <span>{{ exportFee.toLocaleString() }} METAL</span>
                         </p>
                         <p>
                             Import Fee
-                            <span>{{ importFee.toLocaleString() }} AVAX</span>
+                            <span>{{ importFee.toLocaleString() }} METAL</span>
                         </p>
                         <p>
                             <b>
                                 Total
-                                <span>{{ fee.toLocaleString() }} AVAX</span>
+                                <span>{{ fee.toLocaleString() }} METAL</span>
                             </b>
                         </p>
                     </div>
@@ -49,7 +49,7 @@
                             <v-btn
                                 v-if="!isConfirm"
                                 data-cy="confirm"
-                                class="button_primary"
+                                class="button_secondary"
                                 @click="confirm"
                                 :disabled="!canSubmit"
                                 block
@@ -72,7 +72,7 @@
                                 <v-btn
                                     v-if="!isLoading"
                                     data-cy="cancel"
-                                    style="color: var(--primary-color); margin: 12px 0 !important"
+                                    style="color: var(--secondary-color); margin: 12px 0 !important"
                                     @click="cancelConfirm"
                                     depressed
                                     text

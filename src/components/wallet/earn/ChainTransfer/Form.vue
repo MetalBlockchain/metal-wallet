@@ -42,7 +42,7 @@
         </div>
         <div class="confirmation_val" v-else>
             <label>{{ $t('earn.transfer.amount') }}</label>
-            <p>{{ formAmtText }} AVAX</p>
+            <p>{{ formAmtText }} METAL</p>
         </div>
     </div>
 </template>
@@ -166,10 +166,9 @@ export default class Form extends Vue {
     padding-bottom: 14px;
 }
 label {
-    color: var(--primary-color);
-    font-size: 15px;
-    font-weight: bold;
-    font-family: Roboto, sans-serif;
+    color: var(--tertiary-color);
+    font-size: 14px;
+    font-weight: 500;
     margin-bottom: 4px !important;
 }
 

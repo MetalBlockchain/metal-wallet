@@ -372,7 +372,7 @@ const assets_module: Module<AssetsState, RootState> = {
 
         // What is the AVA coin in the network
         async updateAvaAsset({ state, commit }) {
-            const res = await avm.getAssetDescription('AVAX')
+            const res = await avm.getAssetDescription('METAL')
             const id = bintools.cb58Encode(res.assetID)
             state.AVA_ASSET_ID = id
             const asset = new AvaAsset(id, res.name, res.symbol, res.denomination)

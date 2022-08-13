@@ -1,9 +1,12 @@
 <template>
     <div v-if="isEVMSupported">
-        <label>{{ $t('transfer.source_chain.title') }}</label>
+        <div class="header_title">
+            <label>{{ $t('transfer.source_chain.title') }}</label>
+            <hr />
+        </div>
         <div class="chain_select">
-            <button :active="formType === 'X'" @click="set('X')">X</button>
-            <button :active="formType === 'C'" @click="set('C')">C</button>
+            <button :active="formType === 'X'" @click="set('X')">Exchange</button>
+            <button :active="formType === 'C'" @click="set('C')">Contract</button>
         </div>
     </div>
 </template>
@@ -34,32 +37,49 @@ export default class ChainInput extends Vue {
 <style scoped lang="scss">
 @use '../../../main';
 label {
-    color: var(--primary-color-light);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--tertiary-color);
+}
+.header_title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    label {
+        white-space: nowrap;
+        margin-right: 12px;
+    }
+
+    hr {
+        flex: 0 1 100%;
+        border: 1px solid var(--border-secondary-light);
+    }
 }
 .chain_select {
     display: flex;
     width: max-content;
+    font-size: 13px;
+    color: var(--tertiary-color);
+    margin-top: 32px;
+    margin-bottom: 16px;
+
     > button {
-        //border: 1px solid var(--primary-color);
-        //margin-right: 14px;
-        padding-right: 14px;
-        opacity: 0.2;
-        transition-duration: 0.1s;
-        cursor: pointer;
-        color: var(--primary-color);
-        //background-color: var(--bg-light);
-        display: flex;
-        align-items: center;
-        font-size: 28px;
+        padding: 8px 12px;
+        outline: none !important;
+        font-weight: bold;
+        background-color: none !important;
+        height: 40px;
 
         &:hover {
             opacity: 1;
+            color: var(--secondary-color);
         }
         &[active] {
-            //background-color: var(--secondary-color);
-            color: var(--secondary-color);
-            //border-color: var(--primary-color-light);
             opacity: 1;
+            background-color: var(--bg-3);
+            color: var(--secondary-color);
+            border-radius: 6px;
         }
     }
 }

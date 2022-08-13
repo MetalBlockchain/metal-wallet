@@ -386,7 +386,6 @@ label {
     font-size: 12px;
     color: var(--primary-color-light);
     overflow: hidden;
-    font-family: monospace;
     white-space: nowrap;
 
     p {

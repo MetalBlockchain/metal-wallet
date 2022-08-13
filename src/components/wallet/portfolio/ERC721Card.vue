@@ -129,7 +129,6 @@ img {
     font-size: 12px;
     word-break: break-all;
     color: #0f0;
-    font-family: monospace !important;
 }
 
 .raw_toggle {

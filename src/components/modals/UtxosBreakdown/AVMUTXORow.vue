@@ -146,7 +146,6 @@ tr {
 }
 
 td {
-    font-family: monospace;
     padding: 0;
 }
 

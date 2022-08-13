@@ -25,21 +25,14 @@
                 <button @click="showUTXOsModal" class="breakdown_toggle">Show UTXOs</button>
             </div>
             <div class="balance_row">
-                <p class="balance" data-cy="wallet_balance" v-if="!balanceTextRight">
-                    {{ balanceTextLeft }} AVAX
-                </p>
-                <p class="balance" data-cy="wallet_balance" v-else>
-                    {{ balanceTextLeft }}
-                    <span>.{{ balanceTextRight }}</span>
-                    AVAX
-                </p>
+                <p class="balance" data-cy="wallet_balance">{{ balanceText }} METAL</p>
                 <div style="display: flex; flex-direction: row">
                     <p class="balance_usd">
                         <b>$ {{ totalBalanceUSDText }}</b>
                         USD
                     </p>
-                    <p class="balance_usd" style="background-color: transparent">
-                        <b>1 AVAX</b>
+                    <p class="exchange_rate" style="background-color: transparent">
+                        <b>1 METAL</b>
                         =
                         <b>${{ avaxPriceText }}</b>
                         USD
@@ -51,52 +44,51 @@
                 <div class="alt_non_breakdown" v-if="!isBreakdown">
                     <div>
                         <label>{{ $t('top.balance.available') }}</label>
-                        <p>{{ unlockedText }} AVAX</p>
+                        <p>{{ unlockedText }} METAL</p>
                     </div>
                     <div v-if="hasLocked">
                         <label>{{ $t('top.locked') }}</label>
-                        <p>{{ balanceTextLocked }} AVAX</p>
+                        <p>{{ balanceTextLocked }} METAL</p>
                     </div>
                     <div v-if="hasMultisig">
                         <label>Multisig</label>
-                        <p>{{ balanceTextMultisig }} AVAX</p>
+                        <p>{{ balanceTextMultisig }} METAL</p>
                     </div>
                     <div>
                         <label>{{ $t('top.balance.stake') }}</label>
-                        <p>{{ stakingText }} AVAX</p>
+                        <p>{{ stakingText }} METAL</p>
                     </div>
                 </div>
                 <div class="alt_breakdown" v-else>
                     <div>
                         <label>{{ $t('top.balance.available') }} (X)</label>
-                        <p>{{ avmUnlocked | cleanAvaxBN }} AVAX</p>
+                        <p>{{ avmUnlocked | cleanAvaxBN }} METAL</p>
                         <label>{{ $t('top.balance.available') }} (P)</label>
-                        <p>{{ platformUnlocked | cleanAvaxBN }} AVAX</p>
+                        <p>{{ platformUnlocked | cleanAvaxBN }} METAL</p>
                         <label>{{ $t('top.balance.available') }} (C)</label>
-                        <p>{{ evmUnlocked | cleanAvaxBN }} AVAX</p>
+                        <p>{{ evmUnlocked | cleanAvaxBN }} METAL</p>
                     </div>
                     <div v-if="hasLocked">
                         <label>{{ $t('top.balance.locked') }} (X)</label>
-                        <p>{{ avmLocked | cleanAvaxBN }} AVAX</p>
+                        <p>{{ avmLocked | cleanAvaxBN }} METAL</p>
                         <label>{{ $t('top.balance.locked') }} (P)</label>
-                        <p>{{ platformLocked | cleanAvaxBN }} AVAX</p>
+                        <p>{{ platformLocked | cleanAvaxBN }} METAL</p>
                         <label>{{ $t('top.balance.locked_stake') }} (P)</label>
-                        <p>{{ platformLockedStakeable | cleanAvaxBN }} AVAX</p>
+                        <p>{{ platformLockedStakeable | cleanAvaxBN }} METAL</p>
                     </div>
                     <div v-if="hasMultisig">
                         <label>Multisig (X)</label>
-                        <p>{{ avmMultisig | cleanAvaxBN }} AVAX</p>
+                        <p>{{ avmMultisig | cleanAvaxBN }} METAL</p>
                         <label>Multisig (P)</label>
-                        <p>{{ platformMultisig | cleanAvaxBN }} AVAX</p>
+                        <p>{{ platformMultisig | cleanAvaxBN }} METAL</p>
                     </div>
                     <div>
                         <label>{{ $t('top.balance.stake') }}</label>
-                        <p>{{ stakingText }} AVAX</p>
+                        <p>{{ stakingText }} METAL</p>
                     </div>
                 </div>
             </div>
         </div>
-        <NftCol class="nft_card"></NftCol>
     </div>
 </template>
 <script lang="ts">
@@ -374,7 +366,7 @@ export default class BalanceCard extends Vue {
 @use '../../../../main';
 .balance_card {
     display: grid;
-    grid-template-columns: 1fr 230px;
+    //grid-template-columns: 1fr 230px;
     column-gap: 20px;
 }
 
@@ -396,14 +388,16 @@ export default class BalanceCard extends Vue {
 }
 .header {
     display: flex;
+    justify-content: center;
 
     h4 {
-        margin-left: 12px;
         flex-grow: 1;
     }
 }
 h4 {
-    font-weight: normal;
+    font-weight: 700;
+    color: var(--tertiary-color);
+    margin-left: 10px;
 }
 
 .alert_cont {
@@ -414,21 +408,29 @@ h4 {
     align-self: center;
 }
 .balance {
-    font-size: 2.4em;
+    font-size: 2rem;
     white-space: normal;
-    /*font-weight: bold;*/
-    font-family: Rubik !important;
+    color: var(--secondary-color);
 
     span {
-        font-size: 0.8em;
-        /*color: var(--primary-color-light);*/
+        font-size: 2rem;
+        color: var(--secondary-color);
     }
 }
 
 .balance_usd {
     width: max-content;
     background: var(--bg-light);
-    color: var(--primary-color-light);
+    font-size: 13px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px !important;
+    color: var(--tertiary-color);
+}
+
+.exchange_rate {
+    width: max-content;
+    background: var(--bg-light);
     font-size: 13px;
     padding: 1px 6px;
     border-radius: 3px;
@@ -436,9 +438,10 @@ h4 {
 }
 
 .refresh {
-    width: 20px;
-    height: 20px;
-    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    color: var(--tertiary-color);
+    font-weight: 700;
 
     button {
         outline: none !important;
@@ -449,7 +452,9 @@ h4 {
     }
 
     .spinner {
-        color: var(--primary-color) !important;
+        color: var(--tertiary-color) !important;
+        width: 16px;
+        height: 16px;
     }
 }
 .buts {
@@ -504,8 +509,15 @@ h4 {
     }
 
     label {
-        font-size: 13px;
+        font-size: 12px;
+        font-weight: 400;
         color: var(--primary-color-light);
+    }
+
+    p {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--tertiary-color);
     }
 }
 

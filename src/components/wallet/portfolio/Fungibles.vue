@@ -201,6 +201,13 @@ export default class Fungibles extends Vue {
 }
 .asset {
     border-bottom: 1px solid var(--bg-light);
+
+    .add_token_row {
+        span {
+            font-size: 12px;
+            font-weight: 400;
+        }
+    }
 }
 
 .send_col {

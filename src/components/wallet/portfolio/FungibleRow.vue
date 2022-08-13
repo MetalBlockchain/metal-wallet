@@ -10,14 +10,12 @@
         </p>
         <p class="name_col mobile_only">{{ symbol }}</p>
         <router-link :to="sendLink" class="send_col" v-if="isBalance">
-            <img v-if="$root.theme === 'day'" src="@/assets/sidebar/transfer_nav.png" />
+            <img v-if="$root.theme === 'day'" src="@/assets/sidebar/transfer_nav.svg" />
             <img v-else src="@/assets/sidebar/transfer_nav_night.svg" />
         </router-link>
         <p v-else></p>
         <p class="balance_col" v-if="isBalance">
-            <span>
-                {{ amtBig.toLocaleString() }}
-            </span>
+            <span>{{ amtBig.toLocaleString() }} {{ symbol }}</span>
             <br />
             <span class="fiat" v-if="isAvaxToken">
                 {{ totalUSD.toLocaleString(2) }}
@@ -52,7 +50,7 @@ export default class FungibleRow extends Vue {
         if (!this.asset) return null
 
         if (this.isAvaxToken) {
-            return '/img/avax_icon_circle.png'
+            return '/img/metal_icon_circle.svg'
         }
 
         return null
@@ -148,6 +146,8 @@ export default class FungibleRow extends Vue {
     .balance_col {
         font-size: 18px;
         text-align: right;
+        color: var(--tertiary-color);
+
         .fiat {
             font-size: 12px;
             color: var(--primary-color-light);

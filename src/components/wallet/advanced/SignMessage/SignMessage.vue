@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>{{ $t('advanced.sign.title') }}</h2>
-        <p style="margin-bottom: 14px !important">
+        <p style="margin-bottom: 14px !important; font-size: 14px; font-weight: 500">
             {{ $t('advanced.sign.desc') }}
         </p>
         <div v-if="isHD">
@@ -80,6 +80,12 @@ export default class SignMessage extends Vue {
 }
 </script>
 <style scoped lang="scss">
+h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--tertiary-color);
+    margin-bottom: 16px;
+}
 select,
 textarea,
 .signed {

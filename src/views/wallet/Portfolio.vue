@@ -1,28 +1,34 @@
 <template>
     <div class="home_view">
         <div class="header">
-            <h1>{{ $t('portfolio.assets') }}</h1>
             <div>
-                <button
-                    @click="tab = 'fungibles'"
-                    :active="tab === `fungibles`"
-                    data-cy="wallet_fungible"
-                >
-                    {{ $t('portfolio.assets1') }}
-                </button>
-                <button
-                    @click="tab = 'collectibles'"
-                    :active="tab === `collectibles`"
-                    data-cy="wallet_nft"
-                >
-                    {{ $t('portfolio.assets2') }}
-                </button>
+                <div class="header_title">
+                    <h1>{{ $t('portfolio.assets') }}</h1>
+                    <hr />
+                </div>
             </div>
-            <div style="flex-grow: 1"></div>
-            <div class="search hover_border">
-                <img v-if="$root.theme === 'day'" src="@/assets/search.png" />
-                <img v-else src="@/assets/search_night.svg" />
-                <input :placeholder="$t('portfolio.search')" v-model="search" />
+            <div>
+                <div class="tabs">
+                    <button
+                        @click="tab = 'fungibles'"
+                        :active="tab === `fungibles`"
+                        data-cy="wallet_fungible"
+                    >
+                        {{ $t('portfolio.assets1') }}
+                    </button>
+                    <button
+                        @click="tab = 'collectibles'"
+                        :active="tab === `collectibles`"
+                        data-cy="wallet_nft"
+                    >
+                        {{ $t('portfolio.assets2') }}
+                    </button>
+                </div>
+                <div class="search hover_border">
+                    <img v-if="$root.theme === 'day'" src="@/assets/search.png" />
+                    <img v-else src="@/assets/search_night.svg" />
+                    <input :placeholder="$t('portfolio.search')" v-model="search" />
+                </div>
             </div>
         </div>
         <div class="pages">
@@ -72,30 +78,59 @@ export default {
 }
 .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
     border-bottom: 2px solid transparent;
     flex-wrap: nowrap;
     white-space: nowrap;
 
     h1 {
-        font-weight: normal;
-        margin-right: 30px;
+        font-size: 20px;
+        font-weight: 500;
+        margin-right: 12px;
+        color: var(--tertiary-color);
+    }
+
+    div {
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        width: 100%;
+    }
+
+    .header_title {
+        display: flex;
+
+        hr {
+            width: 100%;
+            border: 1px solid var(--border-secondary-light);
+        }
+
+        margin-bottom: 18px;
     }
 
     button {
-        padding: 8px 24px;
+        padding: 8px 12px;
         font-size: 14px;
         font-weight: bold;
-        margin: 0px 5px;
-        text-transform: uppercase;
         outline: none !important;
-        color: var(--primary-color-light);
+        color: var(--tertiary-color);
 
         &[active] {
             color: var(--secondary-color);
-            border-bottom: 2px solid var(--secondary-color);
+            background-color: var(--bg-3);
+            border-radius: 6px;
         }
     }
+}
+
+.buttons {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    height: 40px;
 }
 
 .search {

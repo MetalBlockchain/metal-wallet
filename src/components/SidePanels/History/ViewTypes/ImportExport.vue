@@ -123,7 +123,7 @@ export default class ImportExport extends Vue {
 
     &[export] {
         .amt {
-            color: #d04c4c;
+            color: #992005;
         }
     }
 }
@@ -131,7 +131,8 @@ export default class ImportExport extends Vue {
 .amt {
     text-align: right;
     white-space: nowrap;
-    font-size: 15px;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--success);
 }
 </style>

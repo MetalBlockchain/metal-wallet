@@ -69,11 +69,12 @@ export default class BaseTxOutput extends Vue {
 .amount {
     text-align: right;
     white-space: nowrap;
-    font-size: 15px;
-    color: #d04c4c;
+    font-size: 12px;
+    font-weight: 500;
+    color: #992005;
 
     &[profit] {
-        color: var(--success);
+        color: #20bf55;
     }
 }
 
@@ -88,7 +89,6 @@ export default class BaseTxOutput extends Vue {
         white-space: nowrap;
         font-size: 12px;
         line-height: 12px;
-        font-family: monospace;
         text-overflow: ellipsis;
     }
 

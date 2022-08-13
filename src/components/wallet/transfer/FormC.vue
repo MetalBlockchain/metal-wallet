@@ -58,7 +58,7 @@
             <div class="fees" v-if="isConfirm">
                 <p>
                     {{ $t('transfer.fee_tx') }}
-                    <span>{{ maxFeeText }} AVAX</span>
+                    <span>{{ maxFeeText }} METAL</span>
                 </p>
                 <p>
                     <span>${{ maxFeeUSD.toLocaleString(2) }} USD</span>
@@ -234,7 +234,7 @@ export default class FormC extends Vue {
     }
 
     get symbol(): string {
-        if (this.formToken === 'native') return 'AVAX'
+        if (this.formToken === 'native') return 'METAL'
         return this.formToken.data.symbol
     }
 
@@ -501,6 +501,7 @@ h4 {
     font-size: 12px;
     font-weight: bold;
     margin: 12px 0;
+    color: var(--tertiary-color);
 }
 
 .cols {
@@ -525,7 +526,9 @@ h4 {
     justify-content: space-between;
     margin: 0;
     p {
+        font-size: 14px;
         font-weight: bold;
+        color: var(--tertiary-color);
         padding: 12px 0;
     }
 }
@@ -557,6 +560,7 @@ label {
     margin-top: 14px;
     border-top: 1px solid var(--bg-light);
     padding-top: 14px;
+    color: var(--tertiary-color);
 }
 .fees p {
     text-align: left;

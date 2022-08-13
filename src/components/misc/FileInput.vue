@@ -1,7 +1,10 @@
 <template>
     <div class="file_input hover_border">
         <input type="file" :multiple="multiple" @input="oninput" ref="input" />
-        <p v-if="fileNum === 0">Select File</p>
+        <p v-if="fileNum === 0">
+            <span class="upload_text">Upload a file</span>
+            or drag and drop
+        </p>
         <p v-else>{{ files[0].name }}</p>
     </div>
 </template>
@@ -75,9 +78,8 @@ export default class FileInput extends Vue {
     border-radius: 6px;
     max-width: 100%;
     border-color: main.$primary-color;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
-    text-transform: uppercase !important;
 }
 
 input {
@@ -96,5 +98,9 @@ p {
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.upload_text {
+    color: var(--secondary-color);
 }
 </style>
