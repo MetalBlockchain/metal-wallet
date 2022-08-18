@@ -37,9 +37,9 @@ import {
     downloadCSVFile,
     parseMemo,
 } from '@/store/modules/history/history_utils'
-import { createCsvNormal, getHistoryForOwnedAddresses } from '@avalabs/avalanche-wallet-sdk'
+import { createCsvNormal, getHistoryForOwnedAddresses } from '@metalblockchain/metal-wallet-sdk'
 import { ava, avm } from '@/AVA'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 
 @Component({
     components: {

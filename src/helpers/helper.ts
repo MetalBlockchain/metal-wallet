@@ -5,12 +5,18 @@ import {
     KeyPair as AVMKeyPair,
     NFTTransferOutput,
     UTXO,
-} from 'avalanche/dist/apis/avm'
+} from '@metalblockchain/metaljs/dist/apis/avm'
 
-import { Defaults, getPreferredHRP, ONEAVAX, PayloadBase, PayloadTypes } from 'avalanche/dist/utils'
+import {
+    Defaults,
+    getPreferredHRP,
+    ONEAVAX,
+    PayloadBase,
+    PayloadTypes,
+} from '@metalblockchain/metaljs/dist/utils'
 import Big from 'big.js'
 
-import { Buffer, BN } from 'avalanche'
+import { Buffer, BN } from '@metalblockchain/metaljs'
 import createHash from 'create-hash'
 
 function bnToBig(val: BN, denomination = 0): Big {

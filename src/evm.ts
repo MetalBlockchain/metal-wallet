@@ -8,7 +8,7 @@ const abiDecoder = require('abi-decoder') // NodeJS
 abiDecoder.addABI(ERC721Abi.abi)
 abiDecoder.addABI(ERC20Abi.abi)
 
-const rpcUrl = `https://api.avax.network/ext/bc/C/rpc`
+const rpcUrl = `https://api.metalblockchain.org/ext/bc/C/rpc`
 
 const web3 = new Web3(rpcUrl)
 

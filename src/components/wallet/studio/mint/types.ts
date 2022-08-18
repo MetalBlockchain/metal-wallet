@@ -1,4 +1,4 @@
-import { UTXO } from 'avalanche/dist/apis/avm'
+import { UTXO } from '@metalblockchain/metaljs/dist/apis/avm'
 
 export interface UrlFormType {
     url: string

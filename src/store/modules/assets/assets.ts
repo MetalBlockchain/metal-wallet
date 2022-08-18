@@ -24,11 +24,14 @@ import {
     UTXO as AVMUTXO,
     UTXO,
     NFTMintOutput,
-} from 'avalanche/dist/apis/avm'
-import { UnixNow } from 'avalanche/dist/utils'
-import { BN } from 'avalanche'
-import { UTXOSet as PlatformUTXOSet } from 'avalanche/dist/apis/platformvm/utxos'
-import { PlatformVMConstants, StakeableLockOut } from 'avalanche/dist/apis/platformvm'
+} from '@metalblockchain/metaljs/dist/apis/avm'
+import { UnixNow } from '@metalblockchain/metaljs/dist/utils'
+import { BN } from '@metalblockchain/metaljs'
+import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
+import {
+    PlatformVMConstants,
+    StakeableLockOut,
+} from '@metalblockchain/metaljs/dist/apis/platformvm'
 import axios from 'axios'
 import Erc20Token from '@/js/Erc20Token'
 import { AvaNetwork } from '@/js/AvaNetwork'

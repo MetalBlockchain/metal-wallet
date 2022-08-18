@@ -49,11 +49,11 @@ import {
     StakeableLockOut,
     UTXO,
     UTXOSet,
-} from 'avalanche/dist/apis/platformvm'
+} from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 import UtxoRow from '@/components/modals/UtxoSelect/UtxoRow.vue'
-import { BN } from 'avalanche'
-import { UnixNow } from 'avalanche/dist/utils'
+import { BN } from '@metalblockchain/metaljs'
+import { UnixNow } from '@metalblockchain/metaljs/dist/utils'
 import { bnToBig } from '@/helpers/helper'
 
 @Component({

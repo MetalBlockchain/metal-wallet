@@ -45,14 +45,14 @@ import { Vue, Component, Prop } from 'vue-property-decorator'
 
 import Spinner from '@/components/misc/Spinner.vue'
 import { WalletType } from '@/js/wallets/types'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 import {
     avaxCtoX,
     ExportChainsC,
     ExportChainsP,
     ExportChainsX,
     GasHelper,
-} from '@avalabs/avalanche-wallet-sdk'
+} from '@metalblockchain/metal-wallet-sdk'
 
 @Component({
     components: { Spinner },

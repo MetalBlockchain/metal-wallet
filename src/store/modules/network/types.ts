@@ -1,5 +1,5 @@
 import { AvaNetwork } from '@/js/AvaNetwork'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 
 export interface NetworkState {
     networks: AvaNetwork[]

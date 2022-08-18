@@ -208,12 +208,17 @@ import ConfirmPage from '@/components/wallet/earn/Delegate/ConfirmPage.vue'
 import Big from 'big.js'
 import moment from 'moment'
 
-import { BN } from 'avalanche'
-import { AmountOutput, PlatformVMConstants, UTXO, UTXOSet } from 'avalanche/dist/apis/platformvm'
+import { BN } from '@metalblockchain/metaljs'
+import {
+    AmountOutput,
+    PlatformVMConstants,
+    UTXO,
+    UTXOSet,
+} from '@metalblockchain/metaljs/dist/apis/platformvm'
 import { ava, avm, bintools, infoApi, pChain } from '@/AVA'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
 import { bnToBig, calculateStakingReward } from '@/helpers/helper'
-import { Defaults, ONEAVAX } from 'avalanche/dist/utils'
+import { Defaults, ONEAVAX } from '@metalblockchain/metaljs/dist/utils'
 import { ValidatorListItem } from '@/store/modules/platform/types'
 import NodeSelection from '@/components/wallet/earn/Delegate/NodeSelection.vue'
 import CurrencySelect from '@/components/misc/CurrencySelect/CurrencySelect.vue'

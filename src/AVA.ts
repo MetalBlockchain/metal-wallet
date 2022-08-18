@@ -1,9 +1,9 @@
-import { KeyChain as AVMKeyChain, AVMAPI } from 'avalanche/dist/apis/avm'
-import { InfoAPI } from 'avalanche/dist/apis/info'
-import Avalanche from 'avalanche'
+import { KeyChain as AVMKeyChain, AVMAPI } from '@metalblockchain/metaljs/dist/apis/avm'
+import { InfoAPI } from '@metalblockchain/metaljs/dist/apis/info'
+import Metal from '@metalblockchain/metaljs'
 //@ts-ignore
-import BinTools from 'avalanche/dist/utils/bintools'
-import { EVMAPI } from 'avalanche/dist/apis/evm'
+import BinTools from '@metalblockchain/metaljs/dist/utils/bintools'
+import { EVMAPI } from '@metalblockchain/metaljs/dist/apis/evm'
 
 // Connect to TestNet by default
 // Doesn't really matter how we initialize, it will get changed by the network module later
@@ -13,7 +13,7 @@ const protocol: string = 'https'
 const network_id: number = 2
 const chain_id: string = 'X'
 const bintools: BinTools = BinTools.getInstance()
-const ava: Avalanche = new Avalanche(ip, port, protocol, network_id, chain_id)
+const ava: Metal = new Metal(ip, port, protocol, network_id, chain_id)
 
 const avm: AVMAPI = ava.XChain()
 const cChain: EVMAPI = ava.CChain()

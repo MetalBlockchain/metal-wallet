@@ -1,7 +1,7 @@
-import { UTXOSet as AVMUTXOSet } from 'avalanche/dist/apis/avm/utxos'
-import { UTXOSet as PlatformUTXOSet } from 'avalanche/dist/apis/platformvm/utxos'
+import { UTXOSet as AVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/avm/utxos'
+import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 import { avm, cChain, pChain } from '@/AVA'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 
 export async function getStakeForAddresses(addrs: string[]): Promise<BN> {
     if (addrs.length <= 256) {

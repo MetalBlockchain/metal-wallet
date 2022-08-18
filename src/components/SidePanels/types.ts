@@ -1,4 +1,4 @@
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 export interface TransactionValueDict {
     [address: string]: number
 }

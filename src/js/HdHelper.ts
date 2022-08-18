@@ -2,17 +2,17 @@ import {
     KeyChain as AVMKeyChain,
     KeyPair as AVMKeyPair,
     UTXOSet as AVMUTXOSet,
-} from 'avalanche/dist/apis/avm'
+} from '@metalblockchain/metaljs/dist/apis/avm'
 
-import { UTXOSet as PlatformUTXOSet } from 'avalanche/dist/apis/platformvm'
-import { getPreferredHRP } from 'avalanche/dist/utils'
+import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { getPreferredHRP } from '@metalblockchain/metaljs/dist/utils'
 import { ava, avm, bintools, cChain, pChain } from '@/AVA'
 import HDKey from 'hdkey'
-import { Buffer } from 'avalanche'
+import { Buffer } from '@metalblockchain/metaljs'
 import {
     KeyChain as PlatformVMKeyChain,
     KeyPair as PlatformVMKeyPair,
-} from 'avalanche/dist/apis/platformvm'
+} from '@metalblockchain/metaljs/dist/apis/platformvm'
 import store from '@/store'
 
 import { getAddressChains } from '@/explorer_api'
