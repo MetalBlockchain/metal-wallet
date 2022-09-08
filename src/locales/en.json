@@ -105,7 +105,7 @@
         "nftcol": "NFTs",
         "nftempty": "You have not collected any non fungible tokens.",
         "locked": "Locked",
-        "info2": "I bought coins in the Token Sale. Where are my AVAX?",
+        "info2": "I bought coins in the Token Sale. Where are my METAL?",
         "info2_desc": "This wallet is connected to the Metal Everest test network. Your purchase will appear in the wallet after the Metal Mainnet launch.",
         "hover1": "View Address QR Code",
         "hover2": "Paper Wallet",
@@ -354,13 +354,13 @@
     },
     "earn": {
         "title": "Earn",
-        "desc": "You can earn more AVAX by staking your existing tokens.",
+        "desc": "You can earn more METAL by staking your existing tokens.",
         "subtitle1": "Validate",
         "subtitle2": "Delegate",
         "subtitle3": "Cross Chain Transfer",
         "subtitle4": "Estimated Rewards",
-        "warning_1": "You must have at least {0} AVAX on the P chain to become a validator.",
-        "warning_2": "You must have at least {0} AVAX on the P chain to become a delegator.",
+        "warning_1": "You must have at least {0} METAL on the P chain to become a validator.",
+        "warning_2": "You must have at least {0} METAL on the P chain to become a delegator.",
         "validate_card": {
             "title": "Validate",
             "desc": "You have a Metal node that you want to stake with.",
@@ -373,7 +373,7 @@
         },
         "transfer_card": {
             "title": "Cross Chain Transfer",
-            "desc": "Staking requires AVAX on the P chain. Transfer tokens between X and P.",
+            "desc": "Staking requires METAL on the P chain. Transfer tokens between X and P.",
             "submit": "Transfer"
         },
         "rewards_card": {
@@ -434,13 +434,13 @@
             "label_1": "Node ID",
             "duration": {
                 "label": "Staking End Date",
-                "desc": "Your AVAX tokens will be locked until this date.",
+                "desc": "Your METAL tokens will be locked until this date.",
                 "start": "Start Date & Time",
                 "end": "End Date & Time"
             },
             "amount": {
                 "label": "Stake Amount",
-                "desc": "The amount of AVAX to lock for staking."
+                "desc": "The amount of METAL to lock for staking."
             },
             "fee": {
                 "label": "Delegation Fee",
@@ -482,7 +482,7 @@
             "errs": {
                 "duration_warn": "WARNING: You must have at least 14 days remaining on your validation period to accept delegations.",
                 "date": "Start date must be in the future and end date must be after start date.",
-                "amount": "Stake amount must be at least {0} AVAX",
+                "amount": "Stake amount must be at least {0} METAL",
                 "id": "Invalid Node ID.",
                 "fee": "Delegation fee must be at least {0}%",
                 "address": "Invalid address. Reward address must be a valid P chain address."
@@ -527,14 +527,14 @@
             "form": {
                 "period": {
                     "label": "Staking End Date",
-                    "desc": "Your AVAX tokens will be locked until this date.",
+                    "desc": "Your METAL tokens will be locked until this date.",
                     "start": "Start Date & Time",
                     "end": "End Date & Time"
                 },
                 "amount": {
                     "label": "Stake Amount",
-                    "desc": "The amount of AVAX to lock for staking.",
-                    "desc2": "The available delegation amount for this node is {0} AVAX"
+                    "desc": "The amount of METAL to lock for staking.",
+                    "desc2": "The available delegation amount for this node is {0} METAL"
                 },
                 "reward": {
                     "label": "Reward Address",
@@ -560,7 +560,7 @@
                 "max_dur": "Maximum staking duration is 1 year.",
                 "no_node": "You must specify a validator.",
                 "val_end": "Delegation end date can not be longer than the validator's end date.",
-                "amt": "Delegation amount must be at least {0} AVAX."
+                "amt": "Delegation amount must be at least {0} METAL."
             },
             "summary": {
                 "duration": "Staking Duration",
