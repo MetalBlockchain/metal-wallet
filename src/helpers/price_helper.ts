@@ -1,7 +1,7 @@
 const axios = require('axios')
 
 const COIN_ID = 'metal-blockchain'
-const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=metal&vs_currencies=usd'
+const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=metal-blockchain&vs_currencies=usd'
 
 const coingeckoApi = axios.create({
     baseURL: 'https://api.coingecko.com/api/v3',
