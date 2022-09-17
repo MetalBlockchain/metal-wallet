@@ -2361,10 +2361,10 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.0.tgz#c012c1ecc1a0e53d50e6af381618dca5268461c1"
   integrity sha512-lLseUPEhSFUXYTKj6q7s2O3s2vW2ebgA11vMAlKodXGf5AFw4zUoEbTz9CoFOC9jS6xY4Qr8BmRnxP/odT4Uuw==
 
-"@metalblockchain/metal-wallet-sdk@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@metalblockchain/metal-wallet-sdk/-/metal-wallet-sdk-0.18.0.tgz#e806599d752fe99fe083aa4447e6572b63a3466c"
-  integrity sha512-vb5DCySMR0/eBWohKUH2J3t9GDXjOPHSuOhrd7axY/f3OmkSxf5scl2KZ1GtxekOrxEZSkzdGnNnyRthUIBwJQ==
+"@metalblockchain/metal-wallet-sdk@^0.18.2":
+  version "0.18.2"
+  resolved "https://registry.yarnpkg.com/@metalblockchain/metal-wallet-sdk/-/metal-wallet-sdk-0.18.2.tgz#0077ac8c9fd65202ab653c7d5b1b64f5af63c2c4"
+  integrity sha512-CPteUG3XbASGZlMdgwAVJJ3kRRO2AxorT3PkOlXIeGBxULRcMF6woAkffS0mk9JyUGU9LrDjp4DDQa2bMdsS2A==
   dependencies:
     "@ethereumjs/common" "2.6.0"
     "@ethereumjs/tx" "3.4.0"
