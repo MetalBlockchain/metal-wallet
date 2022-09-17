@@ -1,6 +1,6 @@
 const axios = require('axios')
 
-const COIN_ID = 'metal'
+const COIN_ID = 'metal-blockchain'
 const COINGECKO_URL = 'https://api.coingecko.com/api/v3/simple/price?ids=metal&vs_currencies=usd'
 
 const coingeckoApi = axios.create({
@@ -10,7 +10,7 @@ const coingeckoApi = axios.create({
 
 export async function getAvaxPriceUSD(): Promise<number> {
     const res = await axios.get(COINGECKO_URL)
-    return res.data['metal']['usd']
+    return res.data['metal-blockchain']['usd']
 }
 
 let priceHistory: [number, number][] = []
