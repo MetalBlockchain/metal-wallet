@@ -1,25 +1,25 @@
-# Avalanche (AVAX) Wallet
+# Metal Blockchain (METAL) Wallet
 
-This is the frontend Vue.js application for the Avalanche (AVAX) Wallet.
+This is the frontend Vue.js application for the Metal Wallet.
 
 ## Prerequisites
 
 -   Yarn (https://classic.yarnpkg.com/en/docs/install/)
 -   Recent version of npm (7.4.0)
 -   Node v15.6.0
--   Gecko, Avalanche client in Golang (https://github.com/ava-labs/avalanchego)
+-   Gecko, Metal client in Golang (https://github.com/MetalBlockchain/metalgo)
 
 ## Installation
 
-1. Clone the repo `git clone https://github.com/ava-labs/avalanche-wallet.git`
-2. Go to root of the project `cd avalanche-wallet`
+1. Clone the repo `git clone https://github.com/MetalBlockchain/metal-wallet.git`
+2. Go to root of the project `cd metal-wallet`
 3. Install javascript dependencies with `yarn install`.
 
 ## Running The Project
 
-In order for the wallet to work, it needs the Avalanche network to operate on. By default the wallet will connect to the Avalanche mainnet.
+In order for the wallet to work, it needs the Metal network to operate on. By default the wallet will connect to the Metal mainnet.
 
-1. If you want to connect to a local network, make sure you have installed and able to run a AvlaancheGo node properly.
+1. If you want to connect to a local network, make sure you have installed and able to run a MetalGo node properly.
 2. Run the project with hot reloading `yarn serve`
 
 When you go to the website on your browser, you might get a warning saying
@@ -38,22 +38,22 @@ When you go to the website on your browser, you might get a warning saying
 
 ## Changing the Network
 
-By default the wallet will connect to the Avalanche tmainnet. You can change to another network by clicking the button labeled `TestNet` on the navigation bar and selecting another network, or add a custom network.
+By default the wallet will connect to the Metal mainnet. You can change to another network by clicking the button labeled `TestNet` on the navigation bar and selecting another network, or add a custom network.
 
 ## Explorer API
 
 A valid explorer API is required to correctly display balances for Mnemonic and Ledger type wallets.
-The wallet uses the Avalanche Explorer API to display wallet transaction history.
+The wallet uses the Metal Explorer API to display wallet transaction history.
 
 WARNING: This history might be out of order and incomplete.
 
 ## Browser Support
 
-We suggest using Google Chrome to view the Avalanche Wallet website.
+We suggest using Google Chrome to view the Metal Wallet website.
 
 ### Firefox and https
 
-Firefox does not allow https requests to localhost. But the Avalanche Wallet uses https by default, so we will need to change this to http. Make this switch by editing the `vue.config.js` file in the root directory and change
+Firefox does not allow https requests to localhost. But the Metal Wallet uses https by default, so we will need to change this to http. Make this switch by editing the `vue.config.js` file in the root directory and change
 
 ```
 devServer: {
@@ -91,7 +91,7 @@ Saved into local storage as a 2 letter code.
 
 # Dependencies
 
-##### Avalanche Node (https://github.com/ava-labs/avalanchego)
+##### Metal Node (https://github.com/MetalBlockchain/metalgo)
 
 To get utxos and to send transactions.
 
@@ -101,17 +101,17 @@ To check if an address was used before, and to get activity history.
 
 # Default Connections
 
-The wallet needs to connect to an Avalanche node, and an explorer node to operate properly.
+The wallet needs to connect to a Metal node, and an explorer node to operate properly.
 
-By default, there are two network options to connect to: `Mainnet` and `Fuji`.
+By default, there are two network options to connect to: `Mainnet` and `Tahoe`.
 
 ##### Mainnet
 
--   Avalanche API: `https://api.avax.network:443`
+-   Metal API: `https://api.metalblockchain.org:443`
 -   Explorer API: `https://explorerapi.metalblockchain.org`
 
-##### Fuji (Testnet)
+##### Tahoe (Testnet)
 
--   Avalanche API: `https://api.avax-test.network:443`
--   Explorer API: `https://testnet-explorerapi.metalblockchain.org`
+-   Metal API: `https://tahoe.metalblockchain.org:443`
+-   Explorer API: `https://tahoe-explorerapi.metalblockchain.org`
 
