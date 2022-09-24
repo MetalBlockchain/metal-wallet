@@ -186,7 +186,7 @@ const network_module: Module<NetworkState, RootState> = {
                 'https://api.metalblockchain.org:443',
                 1,
                 'https://explorerapi.metalblockchain.org',
-                'https://explorer.avax.network',
+                'https://explorer.metalblockchain.org',
                 true
             )
 
@@ -195,7 +195,7 @@ const network_module: Module<NetworkState, RootState> = {
                 'https://tahoe.metalblockchain.org:443',
                 5,
                 'https://testnet-explorerapi.metalblockchain.org',
-                'https://explorer.avax-test.network',
+                'https://tahoe-explorer.metalblockchain.org',
                 true
             )
 
