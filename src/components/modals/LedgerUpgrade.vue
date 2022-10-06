@@ -6,7 +6,7 @@
                 <li>Enter your PIN and access your device.</li>
                 <li>
                     Ensure you have installed the
-                    <b>Avalanche App v0.5.3</b>
+                    <b>Metal App v0.6.0</b>
                     and open it on your device.
                 </li>
             </ol>
