@@ -97,10 +97,10 @@ export default class ValidatorsList extends Vue {
         let metaData: ValidatorMetaData = this.$store.getters['validatorMetaData']
 
         if (metaData && metaData.validators) {
-            for(let validator of list) {
+            for (let validator of list) {
                 const data = metaData.validators.find((s: any) => s.id === validator.nodeID)
 
-                if(data) {
+                if (data) {
                     validator.name = data.name
                     validator.country = data.country
                 }
