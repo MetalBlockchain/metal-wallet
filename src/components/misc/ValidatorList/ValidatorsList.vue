@@ -70,6 +70,7 @@ import Tooltip from '@/components/misc/Tooltip.vue'
 import { ValidatorListItem } from '@/store/modules/platform/types'
 import { ValidatorListFilter } from '@/components/wallet/earn/Delegate/types'
 import { filterValidatorList } from '@/components/wallet/earn/Delegate/helper'
+import { ValidatorMetaData } from '../../../store/types'
 
 @Component({
     components: { Tooltip, ValidatorRow, FilterSettings },
@@ -93,6 +94,18 @@ export default class ValidatorsList extends Vue {
 
     get validators(): ValidatorListItem[] {
         let list: ValidatorListItem[] = this.$store.getters['Platform/validatorListEarn']
+        let metaData: ValidatorMetaData = this.$store.getters['validatorMetaData']
+
+        if (metaData && metaData.validators) {
+            for(let validator of list) {
+                const data = metaData.validators.find((s: any) => s.id === validator.nodeID)
+
+                if(data) {
+                    validator.name = data.name
+                    validator.country = data.country
+                }
+            }
+        }
 
         if (this.search) {
             list = list.filter((v) => {
@@ -102,13 +115,14 @@ export default class ValidatorsList extends Vue {
 
         // order by stake amount
         list = list.sort((a, b) => {
-            let amtA = a.validatorStake
-            let amtB = b.validatorStake
+            console.log(a)
+            let amtA = a.fee
+            let amtB = b.fee
 
-            if (amtA.gt(amtB)) {
-                return -1
-            } else if (amtA.lt(amtB)) {
+            if (amtA > amtB) {
                 return 1
+            } else if (amtA < amtB) {
+                return -1
             } else {
                 return 0
             }

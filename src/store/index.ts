@@ -15,6 +15,7 @@ import {
     ImportKeyfileInput,
     ExportWalletsInput,
     AccessWalletMultipleInput,
+    ValidatorMetaData,
 } from '@/store/types'
 
 import { WalletType } from '@/js/wallets/types'
@@ -39,6 +40,7 @@ import { Buffer } from '@metalblockchain/metaljs'
 import { privateToAddress } from 'ethereumjs-util'
 import { updateFilterAddresses } from '../providers'
 import { getAvaxPriceUSD } from '@/helpers/price_helper'
+import { getValidatorMetaData } from '@/helpers/validator_helper'
 
 export default new Vuex.Store({
     modules: {
@@ -60,6 +62,9 @@ export default new Vuex.Store({
         prices: {
             usd: 0,
         },
+        validatorMetaData: {
+            validators: [],
+        },
     },
     getters: {
         addresses(state: RootState): string[] {
@@ -67,6 +72,9 @@ export default new Vuex.Store({
             if (!wallet) return []
             const addresses = wallet.getDerivedAddresses()
             return addresses
+        },
+        validatorMetaData(state: RootState): ValidatorMetaData {
+            return state.validatorMetaData
         },
     },
     mutations: {
@@ -358,6 +366,11 @@ export default new Vuex.Store({
             store.state.prices = {
                 usd,
             }
+        },
+
+        async loadValidatorMetaData(store) {
+            const data = await getValidatorMetaData()
+            store.state.validatorMetaData = data
         },
     },
 })

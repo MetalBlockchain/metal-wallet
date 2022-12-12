@@ -1,6 +1,9 @@
 <template>
     <tr class="validator_row">
-        <td class="id">{{ validator.nodeID }}</td>
+        <td class="id">
+            <p v-if="validator.name" style="font-weight: 600">{{ validator.name }}</p>
+            <p>{{ validator.nodeID }}</p>
+        </td>
         <td class="amount">{{ amtText }}</td>
         <td class="amount">{{ remainingAmtText }}</td>
         <td style="text-align: center">{{ numDelegators }}</td>
