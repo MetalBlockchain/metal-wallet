@@ -38,9 +38,7 @@ import { AvaNetwork } from '@/js/AvaNetwork'
 import { web3 } from '@/evm'
 // import ERC721Token from '@/js/ERC721Token'
 
-const TOKEN_LISTS = [
-    'https://raw.githubusercontent.com/pangolindex/tokenlists/1896f8607efa01c82a273c0012e3f99eee25db81/43114.tokenlist.json',
-]
+const TOKEN_LISTS: any = []
 
 import ERC721Module from './modules/erc721'
 import ERC20_TOKEN_LIST from '@/ERC20Tokenlist.json'
