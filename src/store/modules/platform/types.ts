@@ -51,6 +51,6 @@ export interface ValidatorListItem {
     endTime: Date
     uptime: number
     fee: number
-    name: string
-    country: string
+    name?: string
+    country?: string
 }
