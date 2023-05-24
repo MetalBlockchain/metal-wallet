@@ -24,8 +24,8 @@ export interface RootState {
 
 export interface ValidatorMetaData {
     validators: Array<{
-        name: string;
-        country: string;
+        name: string
+        country: string
     }>
 }
 
