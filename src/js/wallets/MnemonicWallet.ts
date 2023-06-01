@@ -37,7 +37,7 @@ import { AvmExportChainType, AvmImportChainType, IAvaHdWallet } from '@/js/walle
 import HDKey from 'hdkey'
 import { ITransaction } from '@/components/wallet/transfer/types'
 import { KeyPair as PlatformVMKeyPair } from '@metalblockchain/metaljs/dist/apis/platformvm'
-import { HdWalletCore } from '@/js/wallets/HdWalletCore'
+import { AbstractHdWallet } from '@/js/wallets/AbstractHdWallet'
 import { WalletNameType } from '@/js/wallets/types'
 import { digestMessage } from '@/helpers/helper'
 import { KeyChain } from '@metalblockchain/metaljs/dist/apis/evm'
@@ -63,7 +63,7 @@ const SCAN_RANGE: number = SCAN_SIZE - INDEX_RANGE // How many items are actuall
 // Possible indexes for each request is
 // SCAN_SIZE - INDEX_RANGE
 
-export default class MnemonicWallet extends HdWalletCore implements IAvaHdWallet {
+export default class MnemonicWallet extends AbstractHdWallet implements IAvaHdWallet {
     seed: string
     hdKey: HDKey
     private mnemonic: MnemonicPhrase
@@ -73,7 +73,6 @@ export default class MnemonicWallet extends HdWalletCore implements IAvaHdWallet
     ethKeyBech: string
     ethKeyChain: EVMKeyChain
     ethAddress: string
-    ethBalance: BN
 
     // TODO : Move to hd core class
     onnetworkchange() {
@@ -98,7 +97,6 @@ export default class MnemonicWallet extends HdWalletCore implements IAvaHdWallet
         const ethPrivateKey = ethAccountKey.privateKey
         this.ethKey = ethPrivateKey.toString('hex')
         this.ethAddress = privateToAddress(ethPrivateKey).toString('hex')
-        this.ethBalance = new BN(0)
 
         const cPrivKey = `PrivateKey-` + bintools.cb58Encode(BufferAvalanche.from(ethPrivateKey))
         this.ethKeyBech = cPrivKey
@@ -117,12 +115,6 @@ export default class MnemonicWallet extends HdWalletCore implements IAvaHdWallet
 
     getEvmAddress(): string {
         return this.ethAddress
-    }
-
-    async getEthBalance() {
-        const bal = await WalletHelper.getEthBalance(this)
-        this.ethBalance = bal
-        return bal
     }
 
     async sendEth(to: string, amount: BN, gasPrice: BN, gasLimit: number) {
@@ -175,44 +167,6 @@ export default class MnemonicWallet extends HdWalletCore implements IAvaHdWallet
 
     getMnemonicEncrypted(): MnemonicPhrase {
         return this.mnemonic
-    }
-
-    async validate(
-        nodeID: string,
-        amt: BN,
-        start: Date,
-        end: Date,
-        delegationFee: number = 0,
-        rewardAddress?: string,
-        utxos?: PlatformUTXO[]
-    ): Promise<string> {
-        return await WalletHelper.validate(
-            this,
-            nodeID,
-            amt,
-            start,
-            end,
-            delegationFee,
-            rewardAddress,
-            utxos
-        )
-    }
-
-    // Delegates AVAX to the given node ID
-    async delegate(
-        nodeID: string,
-        amt: BN,
-        start: Date,
-        end: Date,
-        rewardAddress?: string,
-        utxos?: PlatformUTXO[]
-    ): Promise<string> {
-        return await WalletHelper.delegate(this, nodeID, amt, start, end, rewardAddress, utxos)
-    }
-
-    async getStake(): Promise<BN> {
-        this.stakeAmount = await WalletHelper.getStake(this)
-        return this.stakeAmount
     }
 
     async issueBatchTx(

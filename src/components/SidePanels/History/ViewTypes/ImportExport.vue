@@ -1,116 +1,69 @@
 <template>
     <div class="import_row" :export="isExport">
-        <template v-if="isExport">
-            <p>Export ({{ chainAlias }})</p>
-            <p class="amt">{{ isExport ? '-' : '' }}{{ amtText }} METAL</p>
-        </template>
-        <template v-else>
-            <p>Import ({{ chainAlias }})</p>
-            <p class="amt">{{ amtText }} METAL</p>
-        </template>
+        <p class="actionTitle">{{ actionTitle }} ({{ chainAlias }})</p>
+        <div class="flex-column">
+            <p class="amt" v-for="(bal, key) in balances" :key="key">
+                {{ isExport ? '-' : '' }}{{ toLocaleString(bal.amount, bal.decimals) }}
+                {{ bal.symbol }}
+            </p>
+        </div>
     </div>
 </template>
 <script lang="ts">
+import { avm, cChain, pChain } from '@/AVA'
 import { Vue, Component, Prop } from 'vue-property-decorator'
-import { ITransactionData } from '@/store/modules/history/types'
-import { avm, pChain } from '@/AVA'
 import { BN } from '@metalblockchain/metaljs'
 import { bnToBig } from '@/helpers/helper'
-
+import { TransactionType, XChainTransaction } from '@/js/Glacier/models'
+import { getExportBalances } from '@/components/SidePanels/History/ViewTypes/getExportBalances'
 @Component
 export default class ImportExport extends Vue {
-    @Prop() transaction!: ITransactionData
+    @Prop() transaction!: TransactionType
+
+    toLocaleString(val: BN, decimals: number) {
+        return bnToBig(val, decimals).toLocaleString()
+    }
+
+    getAssetFromID(id: string) {
+        return this.$store.state.Assets.assetsDict[id]
+    }
 
     get isExport() {
-        return this.transaction.type === 'export' || this.transaction.type === 'pvm_export'
+        return this.transaction.txType === 'ExportTx'
     }
 
-    get fromChainId() {
-        if (!this.transaction.inputs) return '?'
-        return this.transaction.inputs[0].output.chainID
+    get actionTitle() {
+        return this.isExport ? 'Export' : 'Import'
     }
 
+    /**
+     * Returns the chain id we are exporting/importing to
+     */
     get destinationChainId() {
-        let outs = this.transaction.outputs || []
-
-        for (var i = 0; i < outs.length; i++) {
-            let out = outs[i]
-            let chainId = out.chainID
-            if (chainId !== this.fromChainId) {
-                return chainId
-            }
-        }
-        return this.fromChainId
+        //TODO: Remove type when PChainTx is ready
+        return (this.transaction as XChainTransaction).destinationChain!
     }
 
-    // get chainId() {
-    //     if (!this.isExport) {
-    //         return this.transaction.outputs[0].chainID
-    //     } else {
-    //         return this.transaction.outputs[0].chainID
-    //     }
-    // }
+    get sourceChainId() {
+        //TODO: Remove type when PChainTx is ready
+        return (this.transaction as XChainTransaction).sourceChain
+    }
 
     get chainAlias() {
-        let chainId
-        if (this.isExport) {
-            chainId = this.fromChainId
-        } else {
-            chainId = this.destinationChainId
-        }
+        let chainId = this.isExport ? this.sourceChainId : this.destinationChainId
 
         if (chainId === pChain.getBlockchainID()) {
             return 'P'
         } else if (chainId === avm.getBlockchainID()) {
             return 'X'
+        } else if (chainId === cChain.getBlockchainID()) {
+            return 'C'
         }
         return chainId
     }
 
-    get amt(): BN {
-        if (this.isExport) {
-            let outs = []
-            let allOuts = this.transaction.outputs
-
-            for (var i = 0; i < allOuts.length; i++) {
-                let out = allOuts[i]
-                let chainId = out.chainID
-
-                if (chainId === this.destinationChainId) {
-                    outs.push(out)
-                }
-            }
-
-            let sumAmt = outs.reduce((acc, val) => {
-                let amt = new BN(val.amount)
-                return acc.add(amt)
-            }, new BN(0))
-            return sumAmt
-        } else {
-            let ins = this.transaction.inputs || []
-            let sumAmt = ins.reduce((acc, val) => {
-                let amt = new BN(val.output.amount)
-                return acc.add(amt)
-            }, new BN(0))
-
-            return sumAmt
-        }
-        return new BN(0)
-    }
-
-    get txFee() {
-        return new BN(this.transaction.txFee)
-    }
-
-    get amtText() {
-        let total = this.amt.add(this.txFee)
-
-        if (!this.isExport) {
-            total = this.amt.sub(this.txFee)
-        }
-
-        let big = bnToBig(total, 9)
-        return big.toLocaleString()
+    get balances() {
+        return getExportBalances(this.transaction, this.destinationChainId, this.getAssetFromID)
     }
 }
 </script>
@@ -128,11 +81,16 @@ export default class ImportExport extends Vue {
     }
 }
 
+.actionTitle {
+    white-space: nowrap;
+}
+
 .amt {
     text-align: right;
     white-space: nowrap;
     font-size: 12px;
     font-weight: 500;
     color: var(--success);
+    word-break: normal;
 }
 </style>

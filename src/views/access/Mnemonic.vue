@@ -1,10 +1,17 @@
 <template>
-    <div class="mnemonic_auth">
+    <div class="mnemonic_auth notranslate" translate="no">
         <div class="left">
             <header>
                 <h1>{{ $t('access.mnemonic.title') }}</h1>
             </header>
-            <MnemonicPasswordInput @change="onPhraseIn"></MnemonicPasswordInput>
+            <p>Your mnemonic phrase is 24 words seperated by an empty space.</p>
+            <input
+                type="password"
+                ref="mnemonic_in"
+                placeholder="Type your mnemonic phrase"
+                autocomplete="off"
+                autocapitalize="off"
+            />
             <div class="button_container">
                 <p class="err" v-if="err">{{ err }}</p>
                 <v-btn
@@ -12,7 +19,6 @@
                     @click="access"
                     depressed
                     :loading="isLoading"
-                    :disabled="!canSubmit"
                 >
                     {{ $t('access.mnemonic.submit') }}
                 </v-btn>
@@ -29,7 +35,6 @@ import { Vue, Component, Prop } from 'vue-property-decorator'
 
 import * as bip39 from 'bip39'
 import MnemonicPasswordInput from '@/components/misc/MnemonicPasswordInput.vue'
-import { CypherAES } from '@/js/CypherAES'
 
 @Component({
     components: {
@@ -37,22 +42,20 @@ import { CypherAES } from '@/js/CypherAES'
     },
 })
 export default class Mnemonic extends Vue {
-    phrase: CypherAES | undefined = undefined
     isLoading: boolean = false
     err: string = ''
     canSubmit = false
 
-    beforeDestroy() {
-        this.phrase = undefined
+    $refs!: {
+        mnemonic_in: HTMLInputElement
     }
 
-    onPhraseIn(val: string) {
-        this.phrase = new CypherAES(val)
-        this.formCheck()
+    beforeDestroy() {
+        this.$refs.mnemonic_in.value = ''
     }
 
     errCheck() {
-        let phrase = this.phrase?.getValue()
+        let phrase = this.getMnemonic()
 
         if (!phrase) {
             return
@@ -76,20 +79,18 @@ export default class Mnemonic extends Vue {
     }
 
     getWordCount() {
-        const phrase = this.phrase?.getValue() || ''
+        const phrase = this.getMnemonic() || ''
         return phrase.trim().split(' ').length
     }
 
-    formCheck() {
-        if (this.getWordCount() !== 24) {
-            this.canSubmit = false
-            return
-        }
-        this.canSubmit = true
+    getMnemonic() {
+        const inputVal = this.$refs['mnemonic_in'].value
+        return inputVal.trim()
     }
 
     async access() {
-        const phrase = (this.phrase?.getValue() || '').trim()
+        this.err = ''
+        const phrase = this.getMnemonic()
 
         this.isLoading = true
 
@@ -125,9 +126,6 @@ export default class Mnemonic extends Vue {
         align-items: center;
         justify-content: center;
     }
-    > * {
-        //width: 100%;
-    }
 }
 
 h1 {
@@ -135,9 +133,6 @@ h1 {
     font-weight: 700;
     color: var(--tertiary-color);
     margin-bottom: 24px;
-}
-
-textarea {
 }
 
 label {
@@ -149,13 +144,12 @@ label {
 
 textarea,
 input[type='password'] {
-    margin: 20px 0;
-    margin-bottom: main.$vertical-padding;
+    margin: 1em 0;
+    max-width: 440px;
     width: 100%;
     background-color: var(--bg) !important;
     resize: none;
-    min-height: 120px;
-    padding: 8px 16px;
+    padding: 1em 16px;
     font-size: 14px;
     color: var(--primary-color);
 }
@@ -188,7 +182,6 @@ input[type='password'] {
 }
 
 .but_primary {
-    margin-top: 20px;
     margin-bottom: 15px;
 }
 

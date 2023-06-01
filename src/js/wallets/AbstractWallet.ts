@@ -12,7 +12,6 @@ import {
     TxHelper,
     GasHelper,
     chainIdFromAlias,
-    xChain,
 } from '@metalblockchain/metal-wallet-sdk'
 import { ava, avm, bintools, cChain, pChain } from '@/AVA'
 import { UTXOSet as EVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/evm/utxos'
@@ -24,14 +23,22 @@ import {
 import { Tx as AVMTx, UnsignedTx as AVMUnsignedTx } from '@metalblockchain/metaljs/dist/apis/avm/tx'
 import { AvmImportChainType, WalletType } from '@/js/wallets/types'
 import { issueC, issueP, issueX } from '@/helpers/issueTx'
+import { sortUTxoSetP } from '@/helpers/sortUTXOs'
+import { getStakeForAddresses } from '@/helpers/utxo_helper'
+import glacier from '@/js/Glacier/Glacier'
+import { isMainnetNetworkID } from '@/store/modules/network/isMainnetNetworkID'
+import { isTestnetNetworkID } from '@/store/modules/network/isTestnetNetworkID'
+import { web3 } from '@/evm'
+import { UTXO as PlatformUTXO } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 const uniqid = require('uniqid')
 
-abstract class WalletCore {
+abstract class AbstractWallet {
     id: string
 
     utxoset: AVMUTXOSet
     platformUtxoset: PlatformUTXOSet
     stakeAmount: BN
+    ethBalance: BN
 
     isFetchUtxos: boolean
     isInit: boolean
@@ -43,6 +50,8 @@ abstract class WalletCore {
     abstract getCurrentAddressPlatform(): string
     abstract getAllAddressesP(): string[]
     abstract getAllAddressesX(): string[]
+    abstract getAllChangeAddressesX(): string[]
+    abstract getAllExternalAddressesX(): string[]
 
     abstract async signC(unsignedTx: EVMUnsignedTx): Promise<EVMTx>
     abstract async signX(unsignedTx: AVMUnsignedTx): Promise<AVMTx>
@@ -60,14 +69,51 @@ abstract class WalletCore {
         this.utxoset = new AVMUTXOSet()
         this.platformUtxoset = new PlatformUTXOSet()
         this.stakeAmount = new BN(0)
+        this.ethBalance = new BN(0)
 
         this.isInit = false
         this.isFetchUtxos = false
     }
 
+    /**
+     * Get change address to use with P Chain transactions. Uses current address.
+     */
+    getChangeAddressPlatform() {
+        return this.getCurrentAddressPlatform()
+    }
+
+    /**
+     * Address to use for staking rewards. Uses current P chain address.
+     */
+    getPlatformRewardAddress() {
+        return this.getCurrentAddressPlatform()
+    }
+
     async evmGetAtomicUTXOs(sourceChain: ExportChainsC) {
         const addrs = [this.getEvmAddressBech()]
         return await UtxoHelper.evmGetAtomicUTXOs(addrs, sourceChain)
+    }
+
+    async getEthBalance() {
+        const netID = ava.getNetworkID()
+        const isMainnet = isMainnetNetworkID(netID)
+        const isFuji = isTestnetNetworkID(netID)
+
+        let bal
+        // Can't use glacier if not mainnet/fuji
+        if (!isMainnet && !isFuji) {
+            bal = new BN(await web3.eth.getBalance(this.getEvmAddress()))
+        } else {
+            const chainId = isMainnet ? '43114' : '43113'
+            const res = await glacier.evm.getNativeBalance({
+                chainId: chainId,
+                address: '0x' + this.getEvmAddress(),
+            })
+            bal = new BN(res.nativeTokenBalance.balance)
+        }
+
+        this.ethBalance = bal
+        return bal
     }
 
     async createImportTxC(sourceChain: ExportChainsC, utxoSet: EVMUTXOSet, fee: BN) {
@@ -124,6 +170,12 @@ abstract class WalletCore {
         return issueC(tx)
     }
 
+    async getStake() {
+        const addrs = this.getAllAddressesP()
+        this.stakeAmount = await getStakeForAddresses(addrs)
+        return this.stakeAmount
+    }
+
     async exportFromXChain(amt: BN, destinationChain: ExportChainsX, importFee?: BN) {
         if (destinationChain === 'C' && !importFee)
             throw new Error('Exports to C chain must specify an import fee.')
@@ -161,6 +213,8 @@ abstract class WalletCore {
 
     async exportFromPChain(amt: BN, destinationChain: ExportChainsP, importFee?: BN) {
         const utxoSet = this.getPlatformUTXOSet()
+        // Sort by amount
+        const sortedSet = sortUTxoSetP(utxoSet, false)
 
         const pChangeAddr = this.getCurrentAddressPlatform()
         const fromAddrs = this.getAllAddressesP()
@@ -183,7 +237,7 @@ abstract class WalletCore {
             destinationChain === 'C' ? this.getEvmAddressBech() : this.getCurrentAddressAvm()
 
         const exportTx = await TxHelper.buildPlatformExportTransaction(
-            utxoSet,
+            sortedSet,
             fromAddrs,
             destinationAddr,
             amtFee,
@@ -329,5 +383,131 @@ abstract class WalletCore {
         const tx = await this.signX(unsignedTx)
         return this.issueX(tx)
     }
+
+    /**
+     * Create and issue an AddValidatorTx
+     * @param nodeID Node ID to add as a valdiator
+     * @param amt Stake amount in nAVAX
+     * @param start Stake Start Date
+     * @param end Stake End Date
+     * @param delegationFee
+     * @param rewardAddress Address which will receive the rewards
+     * @param utxos UTXOs to use for the transaction
+     */
+    async validate(
+        nodeID: string,
+        amt: BN,
+        start: Date,
+        end: Date,
+        delegationFee: number,
+        rewardAddress?: string,
+        utxos?: PlatformUTXO[]
+    ): Promise<string> {
+        let utxoSet = this.getPlatformUTXOSet()
+
+        // If given custom UTXO set use that
+        if (utxos) {
+            utxoSet = new PlatformUTXOSet()
+            utxoSet.addArray(utxos)
+        }
+
+        // Sort utxos high to low
+        const sortedSet = sortUTxoSetP(utxoSet, false)
+
+        const pAddressStrings = this.getAllAddressesP()
+
+        const stakeAmount = amt
+
+        // If reward address isn't given use index 0 address
+        if (!rewardAddress) {
+            rewardAddress = this.getPlatformRewardAddress()
+        }
+
+        // For change address use first available on the platform chain
+        const changeAddress = this.getChangeAddressPlatform()
+
+        const stakeReturnAddr = this.getCurrentAddressPlatform()
+
+        // Convert dates to unix time
+        const startTime = new BN(Math.round(start.getTime() / 1000))
+        const endTime = new BN(Math.round(end.getTime() / 1000))
+
+        const unsignedTx = await pChain.buildAddValidatorTx(
+            sortedSet,
+            [stakeReturnAddr],
+            pAddressStrings, // from
+            [changeAddress], // change
+            nodeID,
+            startTime,
+            endTime,
+            stakeAmount,
+            [rewardAddress],
+            delegationFee
+        )
+
+        const tx = await this.signP(unsignedTx)
+        return issueP(tx)
+    }
+
+    /**
+     * Create and issue an AddDelegatorTx
+     * @param nodeID
+     * @param amt
+     * @param start
+     * @param end
+     * @param rewardAddress
+     * @param utxos
+     */
+    async delegate(
+        nodeID: string,
+        amt: BN,
+        start: Date,
+        end: Date,
+        rewardAddress?: string,
+        utxos?: PlatformUTXO[]
+    ): Promise<string> {
+        let utxoSet = this.getPlatformUTXOSet()
+        const pAddressStrings = this.getAllAddressesP()
+
+        const stakeAmount = amt
+
+        // If given custom UTXO set use that
+        if (utxos) {
+            utxoSet = new PlatformUTXOSet()
+            utxoSet.addArray(utxos)
+        }
+
+        // Sort utxos high to low
+        const sortedSet = sortUTxoSetP(utxoSet, false)
+
+        // If reward address isn't given use index 0 address
+        if (!rewardAddress) {
+            rewardAddress = this.getPlatformRewardAddress()
+        }
+
+        const stakeReturnAddr = this.getPlatformRewardAddress()
+
+        // For change address use first available on the platform chain
+        const changeAddress = this.getChangeAddressPlatform()
+
+        // Convert dates to unix time
+        const startTime = new BN(Math.round(start.getTime() / 1000))
+        const endTime = new BN(Math.round(end.getTime() / 1000))
+
+        const unsignedTx = await pChain.buildAddDelegatorTx(
+            sortedSet,
+            [stakeReturnAddr],
+            pAddressStrings,
+            [changeAddress],
+            nodeID,
+            startTime,
+            endTime,
+            stakeAmount,
+            [rewardAddress] // reward address
+        )
+
+        const tx = await this.signP(unsignedTx)
+        return issueP(tx)
+    }
 }
-export { WalletCore }
+export { AbstractWallet }

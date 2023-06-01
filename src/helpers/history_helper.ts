@@ -1,8 +1,3 @@
-// interface IHistoryParsedBaseTx{
-//     sent:
-//     received:
-// }
-
 import { ITransactionData, UTXO } from '@/store/modules/history/types'
 import { WalletType } from '@/js/wallets/types'
 import { BN } from '@metalblockchain/metaljs'
@@ -292,10 +287,6 @@ function getTransactionSummary(tx: ITransactionData, wallet: WalletType) {
     const profits = getProfit(tx, wallet)
 
     const nftSummary = getNFTsSummary(tx, wallet)
-
-    // let nftLoss = getLossNFT(tx, wallet)
-    // let nftGain = getGainNFT()NFT(tx, wallet)
-    // console.log(nftLoss)
 
     const sum: BaseTxSummary = {
         tokens: {},

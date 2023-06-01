@@ -6,7 +6,7 @@ This is the frontend Vue.js application for the Metal Wallet.
 
 -   Yarn (https://classic.yarnpkg.com/en/docs/install/)
 -   Recent version of npm (7.4.0)
--   Node v15.6.0
+-   Node v16
 -   Gecko, Metal client in Golang (https://github.com/MetalBlockchain/metalgo)
 
 ## Installation
@@ -29,12 +29,6 @@ When you go to the website on your browser, you might get a warning saying
 
 1.  Compile and minify to have a production ready application with `yarn build`.
 2.  Serve from the `/dist` directory.
-
-## Releases
-
-1.  Generate a [personal access token](https://github.com/settings/tokens/new?scopes=repo&description=release-it)
-2.  Save it in your local env as RELEASE_IT_GITHUB_TOKEN
-3.  Run `yarn release`
 
 ## Changing the Network
 

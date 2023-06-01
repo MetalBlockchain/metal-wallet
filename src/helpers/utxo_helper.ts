@@ -1,6 +1,6 @@
 import { UTXOSet as AVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/avm/utxos'
 import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
-import { avm, cChain, pChain } from '@/AVA'
+import { avm, pChain } from '@/AVA'
 import { BN } from '@metalblockchain/metaljs'
 
 export async function getStakeForAddresses(addrs: string[]): Promise<BN> {

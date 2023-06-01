@@ -11,6 +11,7 @@ import router from '@/router'
 import { web3 } from '@/evm'
 import { setSocketNetwork } from '../../../providers'
 import { getConfigFromUrl, setNetworkAsync } from '@metalblockchain/metal-wallet-sdk'
+import { MainnetConfig, TestnetConfig } from '@/store/modules/network/constants'
 const network_module: Module<NetworkState, RootState> = {
     namespaced: true,
     state: {
@@ -181,24 +182,6 @@ const network_module: Module<NetworkState, RootState> = {
         },
 
         async init({ state, commit, dispatch }) {
-            const mainnet = new AvaNetwork(
-                'Mainnet',
-                'https://api.metalblockchain.org:443',
-                1,
-                'https://explorerapi.metalblockchain.org',
-                'https://explorer.metalblockchain.org',
-                true
-            )
-
-            const fuji = new AvaNetwork(
-                'Testnet',
-                'https://tahoe.metalblockchain.org:443',
-                5,
-                'https://testnet-explorerapi.metalblockchain.org',
-                'https://tahoe-explorer.metalblockchain.org',
-                true
-            )
-
             // Load custom networks if any
             try {
                 await dispatch('load')
@@ -206,8 +189,8 @@ const network_module: Module<NetworkState, RootState> = {
                 console.error(e)
             }
 
-            commit('addNetwork', mainnet)
-            commit('addNetwork', fuji)
+            commit('addNetwork', MainnetConfig)
+            commit('addNetwork', TestnetConfig)
 
             try {
                 const isSet = await dispatch('loadSelectedNetwork')

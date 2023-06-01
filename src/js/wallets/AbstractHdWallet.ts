@@ -8,15 +8,16 @@ import { UTXOSet as AVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/avm/ut
 import HDKey from 'hdkey'
 import { HdHelper } from '@/js/HdHelper'
 import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
-import { buildCreateNftFamilyTx, buildMintNftTx, buildUnsignedTransaction } from '../TxHelper'
-import { WalletCore } from '@/js/wallets/WalletCore'
+import { buildUnsignedTransaction } from '../TxHelper'
+import { AbstractWallet } from '@/js/wallets/AbstractWallet'
 import { updateFilterAddresses } from '../../providers'
 import { digestMessage } from '@/helpers/helper'
 
-// A base class other HD wallets are based on.
-// Mnemonic Wallet and LedgerWallet uses this
-
-abstract class HdWalletCore extends WalletCore {
+/**
+ * A base class other HD wallets are based on.
+ * Mnemonic Wallet and LedgerWallet uses this
+ */
+abstract class AbstractHdWallet extends AbstractWallet {
     chainId: string
 
     internalHelper: HdHelper
@@ -66,10 +67,6 @@ abstract class HdWalletCore extends WalletCore {
 
         const joined = setInternal.merge(setExternal)
         this.utxoset = joined
-    }
-
-    getFirstAvailableAddressPlatform(): string {
-        return this.platformHelper.getFirstAvailableAddress()
     }
 
     updateFetchState() {
@@ -123,6 +120,14 @@ abstract class HdWalletCore extends WalletCore {
         return this.externalHelper.getAllDerivedAddresses()
     }
 
+    getAllChangeAddressesX(): string[] {
+        return this.internalHelper.getAllDerivedAddresses()
+    }
+
+    getAllExternalAddressesX(): string[] {
+        return this.externalHelper.getAllDerivedAddresses()
+    }
+
     getDerivedAddresses(): string[] {
         const internal = this.internalHelper.getAllDerivedAddresses()
         const external = this.externalHelper.getAllDerivedAddresses()
@@ -159,10 +164,6 @@ abstract class HdWalletCore extends WalletCore {
         return this.internalHelper.getCurrentAddress()
     }
 
-    getChangeAddressPlatform() {
-        return this.platformHelper.getCurrentAddress()
-    }
-
     getChangePath(chainId?: ChainAlias): string {
         switch (chainId) {
             case 'P':
@@ -193,10 +194,6 @@ abstract class HdWalletCore extends WalletCore {
             default:
                 return this.internalHelper.getAddressForIndex(idx)
         }
-    }
-
-    getPlatformRewardAddress(): string {
-        return this.platformHelper.getCurrentAddress()
     }
 
     getCurrentAddressPlatform(): string {
@@ -284,4 +281,4 @@ abstract class HdWalletCore extends WalletCore {
 
     abstract async signHashByExternalIndex(index: number, hash: Buffer): Promise<string>
 }
-export { HdWalletCore }
+export { AbstractHdWallet }
