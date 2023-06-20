@@ -43,7 +43,10 @@
 <script lang="ts">
 import { Vue, Component, Watch } from 'vue-property-decorator'
 import Form from '@/components/wallet/earn/ChainTransfer/Form.vue'
-import { PublicMnemonicWallet, getEthAddressKeyFromAccountKey } from '@avalabs/avalanche-wallet-sdk'
+import {
+    PublicMnemonicWallet,
+    getEthAddressKeyFromAccountKey,
+} from '@metalblockchain/metal-wallet-sdk'
 import WalletReadonly from '@/views/WalletReadonly.vue'
 import { ethers } from 'ethers'
 

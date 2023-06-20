@@ -6,7 +6,7 @@ import {
     isTransactionX,
     TransactionType,
 } from '@/js/Glacier/models'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 import { Utxo, PChainConsumedUtxo, PChainEmittedUtxo } from '@avalabs/glacier-sdk'
 import AvaAsset from '@/js/AvaAsset'
 export function getExportBalances(tx: TransactionType, destinationChainId: string, getAsset: any) {
@@ -22,12 +22,7 @@ export function getExportBalances(tx: TransactionType, destinationChainId: strin
     // For exported utxo, createdOnChainId is source chain, and consumedOnChainId is destination chain.
     let exportedUTXOs: Array<Utxo | PChainEmittedUtxo> = []
 
-    if (isTransactionP(tx) || isTransactionX(tx) || isCChainExportTransaction(tx)) {
-        const utxosOut: Array<Utxo | PChainEmittedUtxo> = tx.emittedUtxos || []
-        exportedUTXOs = utxosOut.filter((utxo) => {
-            return utxo.consumedOnChainId === destinationChainId
-        })
-    } else if (isCChainImportTransaction(tx)) {
+    if (isCChainImportTransaction(tx)) {
         exportedUTXOs = tx.evmOutputs.map((out) => {
             return {
                 assetId: out.asset.assetId,
@@ -41,7 +36,14 @@ export function getExportBalances(tx: TransactionType, destinationChainId: strin
                 staked: false,
             } as PChainEmittedUtxo
         })
+    } else if (isTransactionP(tx) || isTransactionX(tx) || isCChainExportTransaction(tx)) {
+        const utxosOut: Array<Utxo | PChainEmittedUtxo> = tx.emittedUtxos || []
+        exportedUTXOs = utxosOut.filter((utxo) => {
+            return utxo.consumedOnChainId === destinationChainId
+        })
     }
+
+    console.log(exportedUTXOs)
 
     exportedUTXOs.forEach((utxo) => {
         let assetId, amount, decimals, symbol

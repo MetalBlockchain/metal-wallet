@@ -52,7 +52,13 @@ import {
     SelectCredentialClass as EVMSelectCredentialClass,
 } from '@metalblockchain/metaljs/dist/apis/evm'
 
-import { Credential, SigIdx, Signature, UTXOResponse, Address } from '@metalblockchain/metaljs/dist/common'
+import {
+    Credential,
+    SigIdx,
+    Signature,
+    UTXOResponse,
+    Address,
+} from '@metalblockchain/metaljs/dist/common'
 import { getPreferredHRP, PayloadBase } from '@metalblockchain/metaljs/dist/utils'
 import { AbstractHdWallet } from '@/js/wallets/AbstractHdWallet'
 import { WalletNameType } from '@/js/wallets/types'

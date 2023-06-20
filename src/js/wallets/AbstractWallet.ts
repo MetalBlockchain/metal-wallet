@@ -104,7 +104,7 @@ abstract class AbstractWallet {
         if (!isMainnet && !isFuji) {
             bal = new BN(await web3.eth.getBalance(this.getEvmAddress()))
         } else {
-            const chainId = isMainnet ? '43114' : '43113'
+            const chainId = isMainnet ? '381931' : '381932'
             const res = await glacier.evm.getNativeBalance({
                 chainId: chainId,
                 address: '0x' + this.getEvmAddress(),

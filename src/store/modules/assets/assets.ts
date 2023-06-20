@@ -18,11 +18,19 @@ import Vue from 'vue'
 import AvaAsset from '@/js/AvaAsset'
 import { WalletType } from '@/js/wallets/types'
 import { AvaNftFamily } from '@/js/AvaNftFamily'
-import { AmountOutput, UTXOSet as AVMUTXOSet, UTXO, NFTMintOutput } from '@metalblockchain/metaljs/dist/apis/avm'
+import {
+    AmountOutput,
+    UTXOSet as AVMUTXOSet,
+    UTXO,
+    NFTMintOutput,
+} from '@metalblockchain/metaljs/dist/apis/avm'
 import { UnixNow } from '@metalblockchain/metaljs/dist/utils'
 import { BN } from '@metalblockchain/metaljs'
 import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
-import { PlatformVMConstants, StakeableLockOut } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import {
+    PlatformVMConstants,
+    StakeableLockOut,
+} from '@metalblockchain/metaljs/dist/apis/platformvm'
 import axios from 'axios'
 import Erc20Token from '@/js/Erc20Token'
 import { AvaNetwork } from '@/js/AvaNetwork'

@@ -28,6 +28,8 @@
         "@ledgerhq/hw-transport-u2f": "5.36.0-deprecated",
         "@ledgerhq/hw-transport-webhid": "5.51.1",
         "@ledgerhq/hw-transport-webusb": "5.51.1",
+        "@metalblockchain/metal-wallet-sdk": "0.20.0-alpha.11",
+        "@metalblockchain/metaljs": "^3.15.5",
         "@openzeppelin/contracts": "4.7.3",
         "abi-decoder": "2.4.0",
         "axios": "0.21.2",

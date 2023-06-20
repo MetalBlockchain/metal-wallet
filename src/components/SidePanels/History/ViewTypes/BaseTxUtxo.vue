@@ -15,8 +15,8 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import { Utxo } from '@avalabs/glacier-sdk'
-import { BN } from 'avalanche'
-import { bnToLocaleString } from '@avalabs/avalanche-wallet-sdk'
+import { BN } from '@metalblockchain/metaljs'
+import { bnToLocaleString } from '@metalblockchain/metal-wallet-sdk'
 
 @Component
 export default class BaseTxUtxo extends Vue {
@@ -75,7 +75,6 @@ export default class BaseTxUtxo extends Vue {
         white-space: nowrap;
         font-size: 12px;
         line-height: 12px;
-        font-family: monospace;
         text-overflow: ellipsis;
     }
 
@@ -89,11 +88,12 @@ export default class BaseTxUtxo extends Vue {
 .token {
     text-align: right;
     white-space: nowrap;
-    font-size: 15px;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--success);
 
     &[sent] {
-        color: #d04c4c;
+        color: #992005;
     }
 }
 </style>

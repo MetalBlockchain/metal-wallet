@@ -4,29 +4,61 @@
             <p>{{ actionText }}</p>
             <p class="amt">{{ amtText }} METAL</p>
         </div>
-        <!--If received validator reward and validator tx-->
-        <div class="data_row" v-if="isValidator && receivedValidatorReward">
-            <p>
-                <span class="rewarded"><fa icon="check-square"></fa></span>
-                {{ $t('transactions.reward_amount') }}
-            </p>
-            <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} AVAX</p>
-        </div>
-        <!--If received validator reward and delegator tx-->
-        <div class="data_row" v-if="!isValidator && receivedValidatorReward">
-            <p>
-                <span class="rewarded"><fa icon="check-square"></fa></span>
-                {{ $t('transactions.fee_amount') }}
-            </p>
-            <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} AVAX</p>
-        </div>
-        <!--If received delegator reward and delegator tx-->
-        <div class="data_row" v-if="!isValidator && receivedDelegatorReward">
-            <p>
-                <span class="rewarded"><fa icon="check-square"></fa></span>
-                {{ $t('transactions.reward_amount') }}
-            </p>
-            <p class="amt">{{ formatRewardAmount(delegatorRewardAmount) }} AVAX</p>
+        <template v-if="isRewarded">
+            <!--If received validator reward and validator tx-->
+            <div class="data_row" v-if="isValidator && receivedValidatorReward">
+                <p>
+                    <span class="rewarded"><fa icon="check-square"></fa></span>
+                    {{ $t('transactions.reward_amount') }}
+                </p>
+                <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} METAL</p>
+            </div>
+            <!--If received validator reward and delegator tx-->
+            <div class="data_row" v-if="!isValidator && receivedValidatorReward">
+                <p>
+                    <span class="rewarded"><fa icon="check-square"></fa></span>
+                    {{ $t('transactions.fee_amount') }}
+                </p>
+                <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} METAL</p>
+            </div>
+            <!--If received delegator reward and delegator tx-->
+            <div class="data_row" v-if="!isValidator && receivedDelegatorReward">
+                <p>
+                    <span class="rewarded"><fa icon="check-square"></fa></span>
+                    {{ $t('transactions.reward_amount') }}
+                </p>
+                <p class="amt">{{ formatRewardAmount(delegatorRewardAmount) }} METAL</p>
+            </div>
+        </template>
+        <div v-else>
+            <div class="time_bar" v-if="isStarted">
+                <div
+                    class="bar_row"
+                    :style="{
+                        width: `${timeBarPerc}%`,
+                    }"
+                ></div>
+            </div>
+            <div v-if="!isStarted" class="data_row date_row">
+                <p>{{ $t('transactions.start') }}</p>
+                <p>
+                    {{ startDate.toLocaleDateString() }}
+                    {{ startDate.toLocaleTimeString() }}
+                </p>
+            </div>
+            <template v-else>
+                <div class="data_row reward_row">
+                    <p>{{ $t('transactions.end') }}</p>
+                    <p>
+                        {{ endDate.toLocaleDateString() }}
+                        {{ endDate.toLocaleTimeString() }}
+                    </p>
+                </div>
+                <div class="data_row reward_row">
+                    <p>{{ $t('transactions.reward_pending') }}</p>
+                    <p class="amt">{{ formatRewardAmount(potentialReward) }} METAL</p>
+                </div>
+            </template>
         </div>
     </div>
 </template>
@@ -46,6 +78,45 @@ import { filterOwnedAddresses } from './filterOwnedAddresses'
 export default class StakingTx extends Vue {
     @Prop() transaction!: PChainTransaction
     isStarted = false
+    mounted() {
+        this.updateStartStatus()
+    }
+
+    updateStartStatus() {
+        let now = UnixNow()
+        this.isStarted = now.toNumber() > this.startTime
+
+        if (!this.isStarted) {
+            setTimeout(() => {
+                this.updateStartStatus()
+            }, 5000)
+        }
+    }
+
+    get startTime() {
+        return this.transaction.startTimestamp || 0
+    }
+
+    get endtime() {
+        return this.transaction.endTimestamp || 0
+    }
+
+    get startDate() {
+        return new Date(this.startTime * 1000)
+    }
+
+    get endDate() {
+        return new Date(this.endtime * 1000)
+    }
+
+    get timeBarPerc() {
+        if (!this.isStarted) return 0
+        let now = UnixNow()
+        // if (this.endtime) {
+        let dur = this.endtime - this.startTime
+        return ((now.toNumber() - this.startTime) / dur) * 100
+        // }
+    }
 
     get isValidator() {
         return this.transaction.txType === 'AddValidatorTx'
@@ -107,7 +178,11 @@ export default class StakingTx extends Vue {
     }
 
     get delegatorRewardAmount() {
-        return this.validatorReward?.amount
+        return this.delegatorReward?.amount
+    }
+
+    get potentialReward() {
+        return this.transaction.estimatedReward || 0
     }
 
     /**
@@ -124,10 +199,14 @@ export default class StakingTx extends Vue {
      * Returns true if this wallet received validator reward
      */
     get receivedValidatorReward() {
-        if (this.isValidator || !this.validatorReward) return false
+        if (!this.isValidator || !this.validatorReward) return false
 
         const addrs = filterOwnedAddresses(this.pAddrsClean, this.validatorReward.addresses)
         return addrs.length
+    }
+
+    get isRewarded() {
+        return this.transaction.rewardTx !== undefined
     }
 
     // TODO: Add missing stake info for staking transactions, start/end date, potential reward, reward date, reward USD price

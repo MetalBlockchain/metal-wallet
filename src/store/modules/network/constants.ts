@@ -2,7 +2,7 @@ import { AvaNetwork } from '@/js/AvaNetwork'
 
 export const MainnetConfig = new AvaNetwork(
     'Mainnet',
-    'https://api.avax.network:443',
+    'http://localhost:9650',
     1,
     'https://explorerapi.avax.network',
     'https://explorer-xp.avax.network',
