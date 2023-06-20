@@ -36,7 +36,7 @@ export async function getGlacierHistory(
         {
             addresses: avmAddrs,
             blockchainId: BlockchainId.X_CHAIN,
-            network: isMainnet ? Network.MAINNET : Network.FUJI,
+            network: isMainnet ? Network.MAINNET : 'tahoe',
             pageSize: PAGE_SIZE,
             sortOrder: SORT,
         },
@@ -47,7 +47,7 @@ export async function getGlacierHistory(
         {
             addresses: pvmAddrs,
             blockchainId: BlockchainId.P_CHAIN,
-            network: isMainnet ? Network.MAINNET : Network.FUJI,
+            network: isMainnet ? Network.MAINNET : 'tahoe',
             pageSize: PAGE_SIZE,
             sortOrder: SORT,
         },
@@ -60,7 +60,7 @@ export async function getGlacierHistory(
         {
             addresses: [wallet.getEvmAddressBech(), ...externalAddrs],
             blockchainId: BlockchainId.C_CHAIN,
-            network: isMainnet ? Network.MAINNET : Network.FUJI,
+            network: isMainnet ? Network.MAINNET : 'tahoe',
             pageSize: PAGE_SIZE,
             sortOrder: SORT,
         },

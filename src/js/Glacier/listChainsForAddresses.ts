@@ -13,7 +13,7 @@ export async function listChainsForAddresses(addrs: string[]) {
 
     // Cannot use glacier for other networks
     if (!isMainnetNetworkID(netID) && !isTestnetNetworkID(netID)) return []
-    const network = isMainnetNetworkID(netID) ? Network.MAINNET : Network.FUJI
+    const network: any = isMainnetNetworkID(netID) ? Network.MAINNET : 'tahoe'
 
     const promises = addrParts.map((addresses) => {
         return Glacier.primaryNetwork.getChainAddresses({

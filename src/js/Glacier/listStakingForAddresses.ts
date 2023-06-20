@@ -12,7 +12,7 @@ export async function listStakingForAddresses(addrs: string[]) {
 
     const netID = ava.getNetworkID()
 
-    const network = isMainnetNetworkID(netID) ? Network.MAINNET : Network.FUJI
+    const network: any = isMainnetNetworkID(netID) ? Network.MAINNET : 'tahoe'
 
     // Cannot use glacier for other networks
     if (!isMainnetNetworkID(netID) && !isTestnetNetworkID(netID)) return []

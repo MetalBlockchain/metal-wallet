@@ -84,7 +84,7 @@ export type CChainTransaction = CChainImportTransaction | CChainExportTransactio
 export interface GetTransactionsParams {
     addresses: string[]
     blockchainId: BlockchainId
-    network: Network
+    network: any
     pageSize?: number
     pageToken?: string
     sortOrder?: SortOrder
