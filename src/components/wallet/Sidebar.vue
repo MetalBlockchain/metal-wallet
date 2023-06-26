@@ -54,7 +54,6 @@
             <div class="bottom">
                 <AccountMenu class="wallet_link"></AccountMenu>
                 <LanguageSelect></LanguageSelect>
-                <AnalyticsCheckbox></AnalyticsCheckbox>
             </div>
         </div>
     </div>
@@ -62,12 +61,10 @@
 <script>
 import LanguageSelect from '@/components/misc/LanguageSelect/LanguageSelect'
 import AccountMenu from '@/components/wallet/sidebar/AccountMenu'
-import AnalyticsCheckbox from '@/components/wallet/sidebar/AnalyticsCheckbox'
 export default {
     components: {
         AccountMenu,
         LanguageSelect,
-        AnalyticsCheckbox,
     },
 }
 </script>

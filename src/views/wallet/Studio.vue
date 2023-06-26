@@ -134,8 +134,6 @@ export default class Studio extends Vue {
         display: flex;
         flex-direction: row;
         align-items: center;
-        margin-bottom: 18px;
-        width: 100%;
 
         h1 {
             font-size: 20px;
@@ -153,9 +151,9 @@ export default class Studio extends Vue {
 
     .subtitle {
         margin-left: 0.5em;
-        /*font-size: 20px;*/
+        font-size: 20px;
         color: var(--primary-color-light);
-        font-weight: lighter;
+        font-weight: 400;
     }
 
     span {

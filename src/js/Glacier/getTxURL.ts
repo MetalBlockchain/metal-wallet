@@ -1,10 +1,10 @@
 import { ChainIdType } from '@/constants'
 
-const mainnetBase = 'https://subnets.avax.network/'
-const fujiBase = 'https://subnets-test.avax.network/'
+const mainnetBase = 'https://explorer.metalblockchain.org/'
+const fujiBase = 'https://tahoe-explorer.metalblockchain.org/'
 
-const avascanMainnet = `https://avascan.info`
-const avascanFuji = `https://testnet.avascan.info`
+const avascanMainnet = `https://metalscan.io`
+const avascanFuji = `https://tahoe.metalscan.io`
 /**
  * Get the URL for the given transaction hash on subnets.avax.network
  * @param txHash
@@ -20,6 +20,7 @@ export function getTxURL(txHash: string, chain: ChainIdType, isMainnet: boolean)
     }
 
     const base = isMainnet ? mainnetBase : fujiBase
+    return `${base}tx/${txHash}`
     const chainPath = chain.toLowerCase() + '-chain'
     return `${base}${chainPath}/tx/${txHash}`
 }
