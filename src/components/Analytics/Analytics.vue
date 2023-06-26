@@ -3,14 +3,6 @@
         <div class="analytics_item">
             <p class="analytics_msg">
                 {{ $t('analytics.cookie_desc') }}
-                <a
-                    href="https://www.avalabs.org/privacy-policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {{ $t('analytics.privacy_policy') }}
-                </a>
-                .
             </p>
             <div class="analytics_actions">
                 <button class="button_form_cancel" @click="onReject" data-cy="reject_analytics">
