@@ -29,7 +29,7 @@ export default {
         if (type === 'add_delegator') return '#112EBD'
 
         if (amount > 0) {
-            return '#20BF55'
+            return '#6bc688'
         } else if (amount === 0) {
             return '#999'
         } else {

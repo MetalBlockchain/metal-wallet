@@ -1,4 +1,4 @@
-import { ava, avm, bintools, cChain, pChain } from '@/AVA'
+import { ava, cChain, pChain } from '@/AVA'
 import {
     UTXOSet as PlatformUTXOSet,
     UTXO as PlatformUTXO,
@@ -19,16 +19,12 @@ import { ITransaction } from '@/components/wallet/transfer/types'
 
 import { web3 } from '@/evm'
 import Erc20Token from '@/js/Erc20Token'
-import { getStakeForAddresses } from '@/helpers/utxo_helper'
 import ERC721Token from '@/js/ERC721Token'
 import { issueP, issueX } from '@/helpers/issueTx'
+import { sortUTxoSetP } from '@/helpers/sortUTXOs'
+import glacier from '@/js/Glacier/Glacier'
 
 class WalletHelper {
-    static async getStake(wallet: WalletType): Promise<BN> {
-        const addrs = wallet.getAllAddressesP()
-        return await getStakeForAddresses(addrs)
-    }
-
     static async createNftFamily(
         wallet: WalletType,
         name: string,
@@ -92,114 +88,6 @@ class WalletHelper {
         const txId: string = await issueX(tx)
 
         return txId
-    }
-
-    static async validate(
-        wallet: WalletType,
-        nodeID: string,
-        amt: BN,
-        start: Date,
-        end: Date,
-        delegationFee: number,
-        rewardAddress?: string,
-        utxos?: PlatformUTXO[]
-    ): Promise<string> {
-        let utxoSet = wallet.getPlatformUTXOSet()
-
-        // If given custom UTXO set use that
-        if (utxos) {
-            utxoSet = new PlatformUTXOSet()
-            utxoSet.addArray(utxos)
-        }
-
-        const pAddressStrings = wallet.getAllAddressesP()
-
-        const stakeAmount = amt
-
-        // If reward address isn't given use index 0 address
-        if (!rewardAddress) {
-            rewardAddress = wallet.getPlatformRewardAddress()
-        }
-
-        // For change address use first available on the platform chain
-        const changeAddress = wallet.getFirstAvailableAddressPlatform()
-
-        const stakeReturnAddr = wallet.getCurrentAddressPlatform()
-
-        // Convert dates to unix time
-        const startTime = new BN(Math.round(start.getTime() / 1000))
-        const endTime = new BN(Math.round(end.getTime() / 1000))
-
-        const unsignedTx = await pChain.buildAddValidatorTx(
-            utxoSet,
-            [stakeReturnAddr],
-            pAddressStrings, // from
-            [changeAddress], // change
-            nodeID,
-            startTime,
-            endTime,
-            stakeAmount,
-            [rewardAddress],
-            delegationFee
-        )
-
-        const tx = await wallet.signP(unsignedTx)
-        return issueP(tx)
-    }
-
-    static async delegate(
-        wallet: WalletType,
-        nodeID: string,
-        amt: BN,
-        start: Date,
-        end: Date,
-        rewardAddress?: string,
-        utxos?: PlatformUTXO[]
-    ): Promise<string> {
-        let utxoSet = wallet.getPlatformUTXOSet()
-        const pAddressStrings = wallet.getAllAddressesP()
-
-        const stakeAmount = amt
-
-        // If given custom UTXO set use that
-        if (utxos) {
-            utxoSet = new PlatformUTXOSet()
-            utxoSet.addArray(utxos)
-        }
-
-        // If reward address isn't given use index 0 address
-        if (!rewardAddress) {
-            rewardAddress = wallet.getPlatformRewardAddress()
-        }
-
-        const stakeReturnAddr = wallet.getPlatformRewardAddress()
-
-        // For change address use first available on the platform chain
-        const changeAddress = wallet.getFirstAvailableAddressPlatform()
-
-        // Convert dates to unix time
-        const startTime = new BN(Math.round(start.getTime() / 1000))
-        const endTime = new BN(Math.round(end.getTime() / 1000))
-
-        const unsignedTx = await pChain.buildAddDelegatorTx(
-            utxoSet,
-            [stakeReturnAddr],
-            pAddressStrings,
-            [changeAddress],
-            nodeID,
-            startTime,
-            endTime,
-            stakeAmount,
-            [rewardAddress] // reward address
-        )
-
-        const tx = await wallet.signP(unsignedTx)
-        return issueP(tx)
-    }
-
-    static async getEthBalance(wallet: WalletType) {
-        const bal = await web3.eth.getBalance(wallet.ethAddress)
-        return new BN(bal)
     }
 
     static async sendEth(

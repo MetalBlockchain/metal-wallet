@@ -21,7 +21,6 @@ import { AvaNftFamily } from '@/js/AvaNftFamily'
 import {
     AmountOutput,
     UTXOSet as AVMUTXOSet,
-    UTXO as AVMUTXO,
     UTXO,
     NFTMintOutput,
 } from '@metalblockchain/metaljs/dist/apis/avm'
@@ -36,16 +35,15 @@ import axios from 'axios'
 import Erc20Token from '@/js/Erc20Token'
 import { AvaNetwork } from '@/js/AvaNetwork'
 import { web3 } from '@/evm'
-// import ERC721Token from '@/js/ERC721Token'
 
-const TOKEN_LISTS: any = []
+const TOKEN_LISTS: string[] = []
 
 import ERC721Module from './modules/erc721'
-import ERC20_TOKEN_LIST from '@/ERC20Tokenlist.json'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
 import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { getPayloadFromUTXO } from '@/helpers/helper'
 import { isUrlBanned } from '@/components/misc/NftPayloadView/blacklist'
+import { fetchTokenList } from '@/store/modules/assets/fetchTokenList'
 
 const assets_module: Module<AssetsState, RootState> = {
     namespaced: true,
@@ -126,7 +124,7 @@ const assets_module: Module<AssetsState, RootState> = {
             state.evmChainId = id
         },
         // Called on a logout event
-        onlogout({ state, commit }) {
+        onLogout({ state, commit }) {
             // state.isUpdateBalance = false
             commit('removeAllAssets')
         },
@@ -148,6 +146,10 @@ const assets_module: Module<AssetsState, RootState> = {
             await dispatch('addUnknownAssets')
         },
 
+        /**
+         * Updates X-Chain NFT utxos in 2 categories, nftUTXOs
+         * and nftMintUTXOs
+         */
         updateUtxoArrays({ state, rootState, getters }) {
             const utxoSet = getters.walletAvmUtxoSet
             if (utxoSet === null) return {}
@@ -285,7 +287,7 @@ const assets_module: Module<AssetsState, RootState> = {
 
         async initErc20List({ state, dispatch, commit }) {
             // Load default erc20 token contracts
-            const erc20Tokens = ERC20_TOKEN_LIST as TokenList
+            const erc20Tokens = await fetchTokenList()
             erc20Tokens.readonly = true
             erc20Tokens.url = 'Default'
             await dispatch('addTokenList', erc20Tokens)
@@ -371,7 +373,7 @@ const assets_module: Module<AssetsState, RootState> = {
             })
         },
 
-        // What is the AVA coin in the network
+        // What is the AVAX coin in the network
         async updateAvaAsset({ state, commit }) {
             const res = await avm.getAssetDescription('METAL')
             const id = bintools.cb58Encode(res.assetID)
@@ -380,6 +382,10 @@ const assets_module: Module<AssetsState, RootState> = {
             commit('addAsset', asset)
         },
 
+        /**
+         * Update the X-Chain asset dictionary, split balances into categories.
+         * (locked, available, multisig)
+         */
         updateBalanceDict({ state, rootState, getters }): IWalletBalanceDict {
             const utxoSet = getters.walletAvmUtxoSet
             if (utxoSet === null) return {}
@@ -402,6 +408,7 @@ const assets_module: Module<AssetsState, RootState> = {
                 const utxoOut = utxo.getOutput() as AmountOutput
 
                 const locktime = utxoOut.getLocktime()
+                const threhsold = utxoOut.getThreshold()
                 const amount = utxoOut.getAmount()
                 const assetIdBuff = utxo.getAssetID()
                 const assetId = bintools.cb58Encode(assetIdBuff)
@@ -409,13 +416,13 @@ const assets_module: Module<AssetsState, RootState> = {
                 const owners = utxoOut.getAddresses()
 
                 // Which category should the utxo fall under
-                const isMultisig = owners.length > 1
+                const isMultisig = threhsold > 1
                 const isLocked = locktime.gt(unixNox)
 
                 if (isMultisig) {
                     if (!dict[assetId]) {
                         dict[assetId] = {
-                            locked: ZERO,
+                            locked: ZERO.clone(),
                             available: ZERO.clone(),
                             multisig: amount.clone(),
                         }
@@ -426,7 +433,7 @@ const assets_module: Module<AssetsState, RootState> = {
                 } else if (!isLocked) {
                     if (!dict[assetId]) {
                         dict[assetId] = {
-                            locked: ZERO,
+                            locked: ZERO.clone(),
                             available: amount.clone(),
                             multisig: ZERO.clone(),
                         }
@@ -440,8 +447,8 @@ const assets_module: Module<AssetsState, RootState> = {
                     if (!dict[assetId]) {
                         dict[assetId] = {
                             locked: amount.clone(),
-                            available: ZERO,
-                            multisig: ZERO,
+                            available: ZERO.clone(),
+                            multisig: ZERO.clone(),
                         }
                     } else {
                         const amt = dict[assetId].locked
@@ -453,7 +460,9 @@ const assets_module: Module<AssetsState, RootState> = {
             return dict
         },
 
-        // Adds an unknown asset id to the assets dictionary
+        /**
+         * Adds an unknown asset id to the assets dictionary
+         */
         async addUnknownAsset({ state, commit }, assetId: string) {
             // get info about the asset
             const desc = await ava.XChain().getAssetDescription(assetId)
@@ -562,6 +571,9 @@ const assets_module: Module<AssetsState, RootState> = {
             return res
         },
 
+        /**
+         * Get the X-Chain (AVM) UTXO Set currently loaded in the wallet
+         */
         walletAvmUtxoSet(state, getters, rootState): AVMUTXOSet | null {
             const wallet = rootState.activeWallet
             if (!wallet) return null
@@ -603,17 +615,19 @@ const assets_module: Module<AssetsState, RootState> = {
                 multisig: new BN(0),
             }
 
-            if (!wallet) return balances
+            if (!wallet || !state.AVA_ASSET_ID) return balances
 
             const utxoSet: PlatformUTXOSet = wallet.getPlatformUTXOSet()
 
             const now = UnixNow()
 
-            // The only type of asset is AVAX on the P chain
-
             const utxos = utxoSet.getAllUTXOs()
-            for (let n = 0; n < utxos.length; n++) {
-                const utxo = utxos[n]
+            // Only use AVAX UTXOs
+            const avaxID = bintools.cb58Decode(state.AVA_ASSET_ID)
+            const avaxUTXOs = utxos.filter((utxo) => utxo.getAssetID().equals(avaxID))
+
+            for (let n = 0; n < avaxUTXOs.length; n++) {
+                const utxo = avaxUTXOs[n]
                 const utxoOut = utxo.getOutput()
                 const outId = utxoOut.getOutputID()
                 const threshold = utxoOut.getThreshold()

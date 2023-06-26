@@ -17,10 +17,12 @@
         <LedgerWalletLoading></LedgerWalletLoading>
         <NetworkLoadingBlock></NetworkLoadingBlock>
         <notifications></notifications>
+        <analytics></analytics>
         <TestNetBanner></TestNetBanner>
     </v-app>
 </template>
 <script>
+import Analytics from '@/components/Analytics/Analytics'
 import Notifications from '@/components/Notifications'
 import Navbar from './components/Navbar'
 import SaveAccountModal from '@/components/modals/SaveAccount/SaveAccountModal'
@@ -43,6 +45,7 @@ export default {
         SaveAccountModal,
         Navbar,
         Notifications,
+        Analytics,
         TestNetBanner,
     },
     async created() {
@@ -60,7 +63,10 @@ export default {
         this.$store.dispatch('loadValidatorMetaData')
 
         if (this.$store.state.Accounts.accounts.length > 0) {
-            this.$router.push('/access')
+            // Do not route for legal pages
+            if (this.$route.name !== 'legal') {
+                this.$router.push('/access')
+            }
         }
     },
     computed: {

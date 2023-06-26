@@ -4,6 +4,12 @@
     "private_key": "Private Key",
     "address": "Address",
     "add_pk": "Add Private Key",
+    "analytics": {
+        "accept": "Accept",
+        "reject": "Reject",
+        "privacy_policy": "Privacy Policy",
+        "cookie_desc": "We use cookies to develop improvements and enhance your experience. To find out more, read our"
+    },
     "home": {
         "desc": "Metal Wallet is a simple, secure, non-custodial wallet for storing Metal assets.",
         "access": {
@@ -287,7 +293,7 @@
         "save_account": {
             "title": "Save Account",
             "desc": "Encode your wallet with a password and store securely on this browser.",
-            "submit":  "Save",
+            "submit": "Save",
             "placeholder_1": "Account Name",
             "placeholder_2": "Password",
             "placeholder_3": "Confirm Password"
@@ -328,7 +334,7 @@
         "remove_success_msg": "Private key and assets removed from the wallet.",
         "password_validation": "Password must be at least 9 characters long.",
         "password_validation2": "Password do not match.",
-        "account_name_required" : "Account Name Required."
+        "account_name_required": "Account Name Required."
     },
     "portfolio": {
         "assets": "Assets",
@@ -657,7 +663,7 @@
         "start": "Stake Start Date",
         "end": "Stake End Date",
         "date_reward": "Reward Date",
-        "reward_amount": "Reward Received",
+        "reward_amount": "Rewarded",
         "fee_amount": "Fee Received",
         "reward_pending": "Reward Pending"
     },

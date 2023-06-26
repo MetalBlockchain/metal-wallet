@@ -98,6 +98,7 @@ import AccountMenu from '@/components/wallet/sidebar/AccountMenu.vue'
 })
 export default class Navbar extends Vue {
     isDrawer: boolean = false
+    popupOpen: boolean = false
 
     get isAuth(): boolean {
         return this.$store.state.isAuth
@@ -106,6 +107,10 @@ export default class Navbar extends Vue {
     logout(): void {
         // @ts-ignore
         this.$refs.logout.open()
+    }
+
+    togglePopup(): void {
+        this.popupOpen = !this.popupOpen
     }
 }
 </script>
@@ -126,6 +131,23 @@ a {
 
 button {
     font-weight: normal;
+}
+
+.popup-wrapper {
+    position: relative;
+}
+
+.popup {
+    position: absolute;
+    top: 18px;
+    right: 0;
+    padding: 8px;
+    padding-bottom: 10px;
+    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.4);
+    min-width: 280px;
+    border: 1px solid var(--bg-light);
+    background: var(--bg);
+    border-radius: 3px;
 }
 
 .daynight {

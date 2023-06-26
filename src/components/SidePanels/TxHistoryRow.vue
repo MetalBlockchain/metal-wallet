@@ -31,53 +31,88 @@ import 'reflect-metadata'
 import { Vue, Component, Prop } from 'vue-property-decorator'
 
 import moment from 'moment'
-// import TxHistoryValue from '@/components/SidePanels/TxHistoryValue.vue'
 import TxHistoryNftFamilyGroup from '@/components/SidePanels/TxHistoryNftFamilyGroup.vue'
-import { ITransactionData, TransactionType, UTXO } from '@/store/modules/history/types'
-import { AvaNetwork } from '@/js/AvaNetwork'
-import { Buffer } from '@metalblockchain/metaljs'
+import {
+    isTransactionX,
+    isTransactionC,
+    TransactionTypeName,
+    XChainTransaction,
+} from '@/js/Glacier/models'
 import ImportExport from '@/components/SidePanels/History/ViewTypes/ImportExport.vue'
 import BaseTx from '@/components/SidePanels/History/ViewTypes/BaseTx.vue'
 import StakingTx from '@/components/SidePanels/History/ViewTypes/StakingTx.vue'
-import getMemoFromByteString from '@/services/history/utils'
+import { PChainEmittedUtxo, Utxo, PChainTransaction } from '@avalabs/glacier-sdk'
+import { getUrlFromTransaction } from '@/js/Glacier/getUrlFromTransaction'
+import { ava } from '@/AVA'
+import { isOwnedUTXO } from '@/js/Glacier/isOwnedUtxo'
+import { WalletType } from '@/js/wallets/types'
 
 @Component({
     components: {
-        // TxHistoryValue,
         TxHistoryNftFamilyGroup,
-        // TxHistoryValueFunctional,
     },
 })
 export default class TxHistoryRow extends Vue {
-    @Prop() transaction!: ITransactionData
+    @Prop() transaction!: XChainTransaction | PChainTransaction
 
     get explorerUrl(): string | null {
-        let network: AvaNetwork = this.$store.state.Network.selectedNetwork
-        if (network.explorerSiteUrl) {
-            return `${network.explorerSiteUrl}/tx/${this.transaction.id}`
-        }
-        return null
+        const netID = ava.getNetworkID()
+        return getUrlFromTransaction(netID, this.transaction)
     }
 
+    /**
+     * True if this tx contains a multi owner output
+     */
     get hasMultisig() {
-        return (
-            this.transaction.outputs?.filter((utxo) => utxo.addresses.length > 1).length > 0 ||
-            false
-        )
+        if (!this.ownedOutputs) return false
+        let totMultiSig = 0
+        this.ownedOutputs.forEach((utxo: Utxo | PChainEmittedUtxo) => {
+            if (utxo.addresses.length > 1) {
+                totMultiSig++
+            }
+        })
+        return totMultiSig > 0
+    }
+
+    get outputUTXOs(): (Utxo | PChainEmittedUtxo)[] {
+        return this.transaction.emittedUtxos || []
+    }
+
+    get addresses() {
+        let wallet: WalletType | null = this.$store.state.activeWallet
+        if (!wallet) return []
+        return wallet.getHistoryAddresses()
+    }
+
+    /**
+     * Outputs owned by this wallet
+     */
+    get ownedOutputs() {
+        return this.outputUTXOs.filter((utxo: Utxo | PChainEmittedUtxo) => {
+            return isOwnedUTXO(utxo, this.addresses)
+        })
     }
 
     get memo(): string | null {
-        const memo = this.transaction.memo
-        return getMemoFromByteString(memo)
+        // TODO: Is Memo supported
+        return ''
+    }
+
+    get timestamp() {
+        if (isTransactionX(this.transaction) || isTransactionC(this.transaction)) {
+            return this.transaction.timestamp * 1000
+        } else {
+            return this.transaction.blockTimestamp * 1000
+        }
     }
 
     get time() {
-        return moment(this.transaction.timestamp)
+        return moment(this.timestamp)
     }
 
     get timeText(): string {
         let now = Date.now()
-        let diff = now - new Date(this.transaction.timestamp).getTime()
+        let diff = now - new Date(this.timestamp).getTime()
 
         let dayMs = 1000 * 60 * 60 * 24
 
@@ -88,16 +123,14 @@ export default class TxHistoryRow extends Vue {
     }
 
     get viewComponent() {
-        let type = this.transaction.type
+        let type = this.transaction.txType as TransactionTypeName
 
         switch (type) {
-            case 'export':
-            case 'import':
-            case 'pvm_export':
-            case 'pvm_import':
+            case 'ExportTx':
+            case 'ImportTx':
                 return ImportExport
-            case 'add_delegator':
-            case 'add_validator':
+            case 'AddDelegatorTx':
+            case 'AddValidatorTx':
                 return StakingTx
             default:
                 return BaseTx
@@ -119,9 +152,6 @@ export default class TxHistoryRow extends Vue {
 
 .tx_history_row {
     padding: 10px 0px;
-    /*padding-right: 0;*/
-    /*display: grid;*/
-    /*grid-template-columns: 40px 1fr;*/
 
     > div {
         align-self: center;
