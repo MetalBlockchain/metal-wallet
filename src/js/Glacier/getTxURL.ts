@@ -12,15 +12,7 @@ const avascanFuji = `https://tahoe.metalscan.io`
  * @param isMainnet
  */
 export function getTxURL(txHash: string, chain: ChainIdType, isMainnet: boolean) {
-    // For C chain use avascan
-    //TODO: Switch to glacier when ready
-    if (chain === 'C') {
-        const base = isMainnet ? avascanMainnet : avascanFuji
-        return base + `/blockchain/c/tx/${txHash}`
-    }
-
     const base = isMainnet ? mainnetBase : fujiBase
-    return `${base}tx/${txHash}`
     const chainPath = chain.toLowerCase() + '-chain'
     return `${base}${chainPath}/tx/${txHash}`
 }

@@ -57,7 +57,9 @@ export type UtxoType = Utxo | PChainEmittedUtxo | PChainConsumedUtxo
 export function isTransactionX(tx: TransactionType): tx is XChainTransaction {
     return (
         (tx as XChainTransaction).amountUnlocked !== undefined &&
-        (tx as XChainTransaction).memo !== undefined
+        (tx as XChainTransaction).memo !== undefined &&
+        (tx as CChainImportTransaction).evmOutputs == undefined &&
+        (tx as CChainExportTransaction).evmInputs == undefined
     )
 }
 
