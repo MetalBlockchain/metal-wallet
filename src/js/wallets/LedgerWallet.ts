@@ -11,7 +11,7 @@ import Transport from '@ledgerhq/hw-transport'
 import moment from 'moment'
 import { Buffer as BufferAvax, BN } from '@metalblockchain/metaljs'
 import HDKey from 'hdkey'
-import { ava, avm, bintools, cChain, pChain } from '@/AVA'
+import { ava, bintools } from '@/AVA'
 //@ts-ignore
 import bippath from 'bip32-path'
 import createHash from 'create-hash'
@@ -62,7 +62,8 @@ import {
 import { getPreferredHRP, PayloadBase } from '@metalblockchain/metaljs/dist/utils'
 import { AbstractHdWallet } from '@/js/wallets/AbstractHdWallet'
 import { WalletNameType } from '@/js/wallets/types'
-import { abiDecoder, web3 } from '@/evm'
+import { AbiParsed, decodeTxData } from '@/js/AbiDecoder'
+import { web3 } from '@/evm'
 import { AVA_ACCOUNT_PATH, ETH_ACCOUNT_PATH, LEDGER_ETH_ACCOUNT_PATH } from './MnemonicWallet'
 import { ChainIdType } from '@/constants'
 import { ParseableAvmTxEnum, ParseablePlatformEnum, ParseableEvmTxEnum } from '../TxHelper'
@@ -405,7 +406,7 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
             store.commit('Ledger/openModal', {
                 title: 'Sign Hash',
                 warning:
-                    'Signing hashes are dangerous, continue at your own risk. Ledger is unable display this transaction because it is too large.',
+                    'Ledger is unable display this transaction because it is too large. Try entering a lower amount.',
                 messages: [],
                 info: msg.toString('hex').toUpperCase(),
             })
@@ -701,11 +702,15 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
 
         let msgs: ILedgerBlockMessage[] = []
         try {
-            const test = '0x' + tx.data.toString('hex')
-            const data = abiDecoder.decodeMethod(test)
+            const txData = '0x' + tx.data.toString('hex')
+            const data: AbiParsed = decodeTxData(txData, tx.value)
 
+            const contractAddr: ILedgerBlockMessage = {
+                title: 'Contract',
+                value: tx.to ? tx.to.toString() : 'unknown',
+            }
             const callMsg: ILedgerBlockMessage = {
-                title: 'Contract Call',
+                title: 'Method',
                 value: data.name,
             }
             const paramMsgs: ILedgerBlockMessage[] = data.params.map((param: any) => {
@@ -720,7 +725,7 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
                 value: feeNano.toLocaleString() + ' nMETAL',
             }
 
-            msgs = [callMsg, ...paramMsgs, feeMsg]
+            msgs = [contractAddr, callMsg, ...paramMsgs, feeMsg]
         } catch (e) {
             console.log(e)
         }
@@ -821,7 +826,6 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
             Buffer.from([]),
         ])
 
-        console.log(tx)
         try {
             const msgs = this.getEvmTransactionMessages(tx)
 
