@@ -46,14 +46,7 @@ export function getExportBalances(tx: TransactionType, destinationChainId: strin
                 utxoType: UtxoType.TRANSFER,
             } as PChainUtxo
         })
-    } else if (isTransactionP(tx) || isTransactionX(tx) || isCChainExportTransaction(tx)) {
-        const utxosOut: Array<Utxo | PChainEmittedUtxo> = tx.emittedUtxos || []
-        exportedUTXOs = utxosOut.filter((utxo) => {
-            return utxo.consumedOnChainId === destinationChainId
-        })
     }
-
-    console.log(exportedUTXOs)
 
     exportedUTXOs.forEach((utxo) => {
         let assetId, amount, decimals, symbol

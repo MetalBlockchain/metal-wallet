@@ -242,7 +242,7 @@ import { AmountOutput, UTXO, UTXOSet } from '@metalblockchain/metaljs/dist/apis/
 import { WalletType } from '@/js/wallets/types'
 import { sortUTxoSetP } from '@/helpers/sortUTXOs'
 import { selectMaxUtxoForStaking } from '@/helpers/utxoSelection/selectMaxUtxoForStaking'
-import { bnToAvaxP } from '@avalabs/avalanche-wallet-sdk'
+import { bnToAvaxP } from '@metalblockchain/metal-wallet-sdk'
 
 const MIN_MS = 60000
 const HOUR_MS = MIN_MS * 60

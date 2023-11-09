@@ -1,6 +1,6 @@
-import { UTXO, UTXOSet, Tx, AmountOutput } from 'avalanche/dist/apis/platformvm'
+import { UTXO, UTXOSet, Tx, AmountOutput } from '@metalblockchain/metaljs/dist/apis/platformvm'
 import { bintools, pChain } from '@/AVA'
-import { BN } from 'avalanche'
+import { BN } from '@metalblockchain/metaljs'
 import { getCredentialBytes } from '@/helpers/utxoSelection/getCredentialBytes'
 import { getTxSize } from '@/helpers/utxoSelection/getTxSize'
 import { sumUtxos } from '@/helpers/utxoSelection/sumUtxos'

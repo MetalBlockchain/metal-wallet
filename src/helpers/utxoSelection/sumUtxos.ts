@@ -1,6 +1,6 @@
-import { AmountOutput as AmountOutputX, UTXO as UTXOX } from 'avalanche/dist/apis/avm'
-import { AmountOutput as AmountOutputP, UTXO as UTXOP } from 'avalanche/dist/apis/platformvm'
-import { BN } from 'avalanche'
+import { AmountOutput as AmountOutputX, UTXO as UTXOX } from '@metalblockchain/metaljs/dist/apis/avm'
+import { AmountOutput as AmountOutputP, UTXO as UTXOP } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { BN } from '@metalblockchain/metaljs'
 
 type UTXO = UTXOX | UTXOP
 type AmountOutput = AmountOutputX | AmountOutputP
