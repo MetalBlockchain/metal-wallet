@@ -160,7 +160,7 @@ export default class StakingTx extends Vue {
      */
     get validatorReward(): PChainUtxo | undefined {
         return (this.transaction.emittedUtxos || []).filter((utxo) => {
-            return utxo.rewardType === RewardType.VALIDATOR
+            return utxo.rewardType?.toLowerCase() === RewardType.VALIDATOR.toLowerCase()
         })[0]
     }
 
@@ -169,7 +169,7 @@ export default class StakingTx extends Vue {
      */
     get delegatorReward(): PChainUtxo | undefined {
         return (this.transaction.emittedUtxos || []).filter((utxo) => {
-            return utxo.rewardType === RewardType.DELEGATOR
+            return utxo.rewardType?.toLowerCase() === RewardType.DELEGATOR.toLowerCase()
         })[0]
     }
 
