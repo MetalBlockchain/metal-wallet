@@ -115,7 +115,7 @@ export default class AddERC20TokenModal extends Vue {
                 message: token.data.name,
             })
             this.close()
-        } catch (e) {
+        } catch (e: any) {
             this.err = e.message
             console.error(e)
         }

@@ -14,6 +14,27 @@
                             />
                         </div>
                         <div style="margin: 30px 0">
+                            <h4>Proof of Possession</h4>
+                            <p class="desc">
+                                The public key portion of the proof of possession:
+                            </p>
+                            <input
+                                type="text"
+                                v-model="signerPublicKey"
+                                style="width: 100%; margin-bottom: 10px;"
+                                placeholder="Public Key"
+                            />
+                            <p class="desc">
+                                The signature portion of the proof of possession:
+                            </p>
+                            <input
+                                type="text"
+                                v-model="signerSignature"
+                                style="width: 100%"
+                                placeholder="Signature"
+                            />
+                        </div>
+                        <div style="margin: 30px 0">
                             <h4>{{ $t('earn.validate.duration.label') }}</h4>
                             <p class="desc">
                                 {{ $t('earn.validate.duration.desc') }}
@@ -271,6 +292,8 @@ export default class AddValidator extends Vue {
     endDate: string = new Date().toISOString()
     delegationFee: string = '2.0'
     nodeId = ''
+    signerPublicKey = ''
+    signerSignature = ''
     rewardIn: string = ''
     rewardDestination = 'local' // local || custom
     isLoading = false
@@ -281,6 +304,8 @@ export default class AddValidator extends Vue {
     minFee = 2
 
     formNodeId = ''
+    formSignerPublicKey = ''
+    formSignerSignature = ''
     formAmt: BN = new BN(0)
     formEnd: Date = new Date()
     formFee: number = 0
@@ -487,6 +512,8 @@ export default class AddValidator extends Vue {
 
     updateFormData() {
         this.formNodeId = this.nodeId.trim()
+        this.formSignerPublicKey = this.signerPublicKey.trim()
+        this.formSignerSignature = this.signerSignature.trim()
         this.formAmt = this.stakeAmt
         this.formEnd = new Date(this.endDate)
         this.formRewardAddr = this.rewardIn
@@ -507,7 +534,7 @@ export default class AddValidator extends Vue {
     }
 
     get canSubmit() {
-        if (!this.nodeId) {
+        if (!this.nodeId || !this.signerPublicKey || !this.signerSignature) {
             return false
         }
 
@@ -589,6 +616,8 @@ export default class AddValidator extends Vue {
                 startDate,
                 this.formEnd,
                 this.formFee,
+                this.formSignerPublicKey,
+                this.formSignerSignature,
                 this.formRewardAddr,
                 this.formUtxos
             )

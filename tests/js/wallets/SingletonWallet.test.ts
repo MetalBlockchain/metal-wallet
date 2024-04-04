@@ -1,5 +1,6 @@
 import { SingletonWallet } from '@/js/wallets/SingletonWallet'
 import { isValidChecksumAddress } from 'ethereumjs-util'
+import {describe, expect, test} from '@jest/globals';
 const TEST_KEY = 'PrivateKey-r6yxM4MiGc93hZ4QxSHhixLEH5RtPjGw6Y85gzg8mgaia6HT3'
 const ADDR_X = 'X-tahoe1np2h3agqvgxc29sqfh0dy2nvmedus0saj06cfx'
 const ADDR_C = '506433b9338e2a5706e3c0d6bce041d30688935f'

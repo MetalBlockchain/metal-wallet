@@ -101,7 +101,9 @@ export default class TxRow extends Vue {
             case 'ImportTx':
                 return ImportExport
             case 'AddDelegatorTx':
+            case 'AddPermissionlessDelegatorTx':
             case 'AddValidatorTx':
+            case 'AddPermissionlessValidatorTx':
                 return StakingTx
             default:
                 return BaseTx

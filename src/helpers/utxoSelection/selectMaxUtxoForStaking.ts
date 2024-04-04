@@ -1,4 +1,4 @@
-import { UTXO, UTXOSet, Tx, AmountOutput } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { UTXO, UTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 import { bintools, pChain } from '@/AVA'
 import { BN } from '@metalblockchain/metaljs'
 import { getCredentialBytes } from '@/helpers/utxoSelection/getCredentialBytes'

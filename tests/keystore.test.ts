@@ -1,4 +1,5 @@
 import { readKeyFile } from '../src/js/Keystore'
+import {describe, expect, test} from '@jest/globals';
 
 // A 2.0 and 3.0 Keystore version of the same keys
 // Passwords are: 111111111

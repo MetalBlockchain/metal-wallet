@@ -119,7 +119,7 @@ export default class StakingTx extends Vue {
     }
 
     get isValidator() {
-        return this.transaction.txType === 'AddValidatorTx'
+        return ['AddValidatorTx', 'AddPermissionlessValidatorTx'].includes(this.transaction.txType)
     }
 
     get actionText() {

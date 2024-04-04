@@ -120,7 +120,7 @@ export default class AddERC721TokenModal extends Vue {
                 message: token.name,
             })
             this.close()
-        } catch (e) {
+        } catch (e: any) {
             this.err = e.message
             console.error(e)
         }

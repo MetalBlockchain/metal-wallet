@@ -260,6 +260,8 @@ export default class Activity extends Vue {
             'OperationTx',
             'AddValidatorTx',
             'AddDelegatorTx',
+            'AddPermissionlessDelegatorTx',
+            'AddPermissionlessValidatorTx',
             'CreateAssetTx',
         ]
         return this.$store.state.History.allTransactions.filter((tx: TransactionType) => {
@@ -378,7 +380,7 @@ export default class Activity extends Vue {
     }
 
     get txsStake(): TransactionType[] {
-        let stakeTypes: TransactionTypeName[] = ['AddValidatorTx', 'AddDelegatorTx']
+        let stakeTypes: TransactionTypeName[] = ['AddValidatorTx', 'AddDelegatorTx', 'AddPermissionlessValidatorTx', 'AddPermissionlessDelegatorTx']
         return this.allTxs.filter((tx) => {
             return stakeTypes.includes(tx.txType)
         })

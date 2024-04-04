@@ -54,7 +54,7 @@ export default class VerifyMessage extends Vue {
         this.error = ''
         try {
             this.verify()
-        } catch (e) {
+        } catch (e: any) {
             this.error = e
         }
     }

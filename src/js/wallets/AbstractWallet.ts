@@ -3,7 +3,7 @@ The base wallet class used for common functionality
 */
 import { BN } from '@metalblockchain/metaljs'
 import { UTXOSet as AVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/avm'
-import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { UTXOSet as PlatformUTXOSet, PlatformVMAPI, PlatformVMConstants, ProofOfPossession, Signer } from '@metalblockchain/metaljs/dist/apis/platformvm'
 import {
     ExportChainsC,
     ExportChainsP,
@@ -36,6 +36,7 @@ import {
     PrimaryNetworkOptions,
 } from '@avalabs/glacier-sdk'
 import { toChecksumAddress } from 'ethereumjs-util'
+import { PrimaryNetworkID } from '@metalblockchain/metaljs/dist/utils'
 
 const uniqid = require('uniqid')
 
@@ -416,8 +417,10 @@ abstract class AbstractWallet {
         start: Date,
         end: Date,
         delegationFee: number,
+        signerPublicKey: string,
+        signerSignature: string,
         rewardAddress?: string,
-        utxos?: PlatformUTXO[]
+        utxos?: PlatformUTXO[],
     ): Promise<string> {
         let utxoSet = this.getPlatformUTXOSet()
 
@@ -448,17 +451,21 @@ abstract class AbstractWallet {
         const startTime = new BN(Math.round(start.getTime() / 1000))
         const endTime = new BN(Math.round(end.getTime() / 1000))
 
-        const unsignedTx = await pChain.buildAddValidatorTx(
+        const signer = new Signer(28, new ProofOfPossession(signerPublicKey, signerSignature))
+
+        const unsignedTx = await pChain.buildAddPermissionlessValidatorTx(
             sortedSet,
             [stakeReturnAddr],
-            pAddressStrings, // from
-            [changeAddress], // change
+            pAddressStrings,
+            [changeAddress],
             nodeID,
             startTime,
             endTime,
             stakeAmount,
             [rewardAddress],
-            delegationFee
+            delegationFee,
+            PrimaryNetworkID,
+            signer
         )
 
         const tx = await this.signP(unsignedTx)
@@ -535,7 +542,7 @@ abstract class AbstractWallet {
         const startTime = new BN(Math.round(start.getTime() / 1000))
         const endTime = new BN(Math.round(end.getTime() / 1000))
 
-        const unsignedTx = await pChain.buildAddDelegatorTx(
+        const unsignedTx = await pChain.buildAddPermissionlessDelegatorTx(
             sortedSet,
             [stakeReturnAddr],
             pAddressStrings,
@@ -544,7 +551,8 @@ abstract class AbstractWallet {
             startTime,
             endTime,
             stakeAmount,
-            [rewardAddress] // reward address
+            [rewardAddress], // reward address
+            pChain.getBlockchainID()
         )
 
         const tx = await this.signP(unsignedTx)

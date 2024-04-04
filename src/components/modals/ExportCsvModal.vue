@@ -227,7 +227,7 @@ export default class ExportCsvModal extends Vue {
         try {
             this.error = null
             this.generateCSVData()
-        } catch (e) {
+        } catch (e: any) {
             this.error = e
         }
     }

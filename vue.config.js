@@ -2,13 +2,13 @@ process.env.VUE_APP_VERSION = process.env.npm_package_version
 
 module.exports = {
     productionSourceMap: false,
-    transpileDependencies: ['vuetify'],
+    transpileDependencies: ['vuetify', '@noble/curves'],
     devServer: {
         /**
          * For e2e testing we turn this off using vue cli --mode e2e
          * @link https://cli.vuejs.org/guide/mode-and-env.html#modes
          */
-        https: !process.env.USE_HTTP,
+        https: false,
         port: 5000,
     },
     configureWebpack: {

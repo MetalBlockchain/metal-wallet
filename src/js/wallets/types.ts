@@ -102,6 +102,8 @@ export interface AvaWalletCore extends IAddressManager {
         start: Date,
         end: Date,
         delegationFee: number,
+        signerPublicKey: string,
+        signerSignature: string,
         rewardAddress?: string,
         utxos?: PlatformUTXO[]
     ): Promise<string>

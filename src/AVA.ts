@@ -4,6 +4,7 @@ import Metal from '@metalblockchain/metaljs'
 //@ts-ignore
 import BinTools from '@metalblockchain/metaljs/dist/utils/bintools'
 import { EVMAPI } from '@metalblockchain/metaljs/dist/apis/evm'
+import { PlatformVMAPI } from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 // Connect to TestNet by default
 // Doesn't really matter how we initialize, it will get changed by the network module later
@@ -17,7 +18,7 @@ const ava: Metal = new Metal(ip, port, protocol, network_id, chain_id)
 
 const avm: AVMAPI = ava.XChain()
 const cChain: EVMAPI = ava.CChain()
-const pChain = ava.PChain()
+const pChain: PlatformVMAPI = ava.PChain()
 const infoApi: InfoAPI = ava.Info()
 const keyChain: AVMKeyChain = avm.keyChain()
 
