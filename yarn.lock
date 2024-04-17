@@ -2984,10 +2984,10 @@
     web3-eth-contract "1.8.1"
     xss "1.0.11"
 
-"@metalblockchain/metaljs@3.16.7":
-  version "3.16.7"
-  resolved "https://registry.yarnpkg.com/@metalblockchain/metaljs/-/metaljs-3.16.7.tgz#0800251f625f905c7b59b8f5df7e04fcabcfbc74"
-  integrity sha512-jwmjo0ABpSA2roiiB8FLpGs5C3nEh57wdmUSxTZICFvHnmO3xZWU7ZzC8EYmSh7GalEOPFJVQfYsLC3qUtI+QQ==
+"@metalblockchain/metaljs@3.16.8":
+  version "3.16.8"
+  resolved "https://registry.yarnpkg.com/@metalblockchain/metaljs/-/metaljs-3.16.8.tgz#ed8cf855d73de8f3e10ce826cc854da6b66433bf"
+  integrity sha512-3UQiSjQZsXvUcLNSJ4PxDPfWLbZ89jJCopDt2WuLNpAGhRTzZkaiGTKCfoa7ppzY4tvr1M/JZzFhVmL63vmkSA==
   dependencies:
     "@noble/curves" "^1.3.0"
     assert "2.0.0"
