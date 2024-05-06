@@ -74,11 +74,11 @@ export default class UserRewards extends Vue {
     }
 
     get validatorTxs() {
-        return this.stakingTxs.filter((tx) => tx.txType === 'AddValidatorTx')
+        return this.stakingTxs.filter((tx) => ['AddValidatorTx', 'AddPermissionlessValidatorTx'].includes(tx.txType))
     }
 
     get delegatorTxs() {
-        return this.stakingTxs.filter((tx) => tx.txType === 'AddDelegatorTx')
+        return this.stakingTxs.filter((tx) => ['AddDelegatorTx', 'AddPermissionlessDelegatorTx'].includes(tx.txType))
     }
 
     get totLength() {

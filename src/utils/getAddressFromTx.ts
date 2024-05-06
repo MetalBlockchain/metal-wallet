@@ -1,7 +1,7 @@
 import { BaseTx as AVMBaseTx, TransferableOutput } from '@metalblockchain/metaljs/dist/apis/avm'
 import { BaseTx as PlatformBaseTx } from '@metalblockchain/metaljs/dist/apis/platformvm'
 import { EVMBaseTx } from '@metalblockchain/metaljs/dist/apis/evm'
-import { AddDelegatorTx, AddValidatorTx } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { AddDelegatorTx, AddValidatorTx, AddPermissionlessValidatorTx, AddPermissionlessDelegatorTx } from '@metalblockchain/metaljs/dist/apis/platformvm/validationtx'
 import { bintools, ava as avalanche } from '@/AVA'
 
 import { UnsignedTx as AVMUnsignedTx } from '@metalblockchain/metaljs/dist/apis/avm/tx'
@@ -13,7 +13,7 @@ import { UnsignedTx as EVMUnsignedTx } from '@metalblockchain/metaljs/dist/apis/
  * @param tx
  */
 export function getStakeOutAddresses(tx: AVMBaseTx | PlatformBaseTx | EVMBaseTx): string[] {
-    if (tx instanceof AddValidatorTx || tx instanceof AddDelegatorTx) {
+    if (tx instanceof AddValidatorTx || tx instanceof AddDelegatorTx || tx instanceof AddPermissionlessValidatorTx || tx instanceof AddPermissionlessDelegatorTx) {
         const allAddrs = tx
             .getStakeOuts()
             .map((out) =>

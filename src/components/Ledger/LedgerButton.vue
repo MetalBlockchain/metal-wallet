@@ -162,7 +162,7 @@ export default class LedgerButton extends Vue {
                 this.$store
                     .dispatch('accessWalletLedger', wallet)
                     .then(() => {
-                        resolve()
+                        resolve(true)
                     })
                     .catch((err) => {
                         reject(err)

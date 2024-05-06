@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
+import Vuetify from 'vuetify'
 import '@fortawesome/fontawesome-free/css/all.css' // Ensure you are using css-loader
 
 import { library } from '@fortawesome/fontawesome-svg-core'

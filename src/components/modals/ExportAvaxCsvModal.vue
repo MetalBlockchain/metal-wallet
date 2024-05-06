@@ -82,7 +82,7 @@ export default class ExportAvaxCsvModal extends Vue {
             const encoding = 'data:text/csv;charset=utf-8,'
             const csvContent = createCsvNormal(hist)
             downloadCSVFile(encoding + csvContent, 'avax_transfers')
-        } catch (e) {
+        } catch (e: any) {
             this.error = e
         }
         this.isLoading = false
@@ -92,7 +92,7 @@ export default class ExportAvaxCsvModal extends Vue {
         try {
             this.error = null
             this.generateCSVFile()
-        } catch (e) {
+        } catch (e: any) {
             this.error = e
         }
     }

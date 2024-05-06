@@ -81,7 +81,7 @@ export default class ChainImport extends Vue {
         try {
             let txId = await this.wallet.importToXChain(sourceChain)
             this.onSuccess(txId)
-        } catch (e) {
+        } catch (e: any) {
             if (this.isSuccess) return
             this.onError(e)
         }
@@ -93,7 +93,7 @@ export default class ChainImport extends Vue {
         try {
             let txId = await this.wallet.importToPlatformChain(source)
             this.onSuccess(txId)
-        } catch (e) {
+        } catch (e: any) {
             this.onError(e)
         }
     }
@@ -122,7 +122,7 @@ export default class ChainImport extends Vue {
             const totFee = baseFee.mul(new BN(gas))
             let txId = await this.wallet.importToCChain(source, avaxCtoX(totFee))
             this.onSuccess(txId)
-        } catch (e) {
+        } catch (e: any) {
             this.onError(e)
         }
     }

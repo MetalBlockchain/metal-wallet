@@ -3,7 +3,7 @@ The base wallet class used for common functionality
 */
 import { BN } from '@metalblockchain/metaljs'
 import { UTXOSet as AVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/avm'
-import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { UTXOSet as PlatformUTXOSet, PlatformVMAPI, PlatformVMConstants, ProofOfPossession, Signer } from '@metalblockchain/metaljs/dist/apis/platformvm'
 import {
     ExportChainsC,
     ExportChainsP,
@@ -30,6 +30,14 @@ import { isMainnetNetworkID } from '@/store/modules/network/isMainnetNetworkID'
 import { isTestnetNetworkID } from '@/store/modules/network/isTestnetNetworkID'
 import { web3 } from '@/evm'
 import { UTXO as PlatformUTXO } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
+import {
+    BlockchainId,
+    CreatePrimaryNetworkTransactionExportRequest,
+    PrimaryNetworkOptions,
+} from '@avalabs/glacier-sdk'
+import { toChecksumAddress } from 'ethereumjs-util'
+import { PrimaryNetworkID } from '@metalblockchain/metaljs/dist/utils'
+
 const uniqid = require('uniqid')
 
 abstract class AbstractWallet {
@@ -52,13 +60,21 @@ abstract class AbstractWallet {
     abstract getAllAddressesX(): string[]
     abstract getAllChangeAddressesX(): string[]
     abstract getAllExternalAddressesX(): string[]
+    abstract getHistoryAddresses(): string[]
+    abstract signC(unsignedTx: EVMUnsignedTx): Promise<EVMTx>
+    abstract signX(unsignedTx: AVMUnsignedTx): Promise<AVMTx>
+    abstract signP(unsignedTx: PlatformUnsignedTx): Promise<PlatformTx>
 
-    abstract async signC(unsignedTx: EVMUnsignedTx): Promise<EVMTx>
-    abstract async signX(unsignedTx: AVMUnsignedTx): Promise<AVMTx>
-    abstract async signP(unsignedTx: PlatformUnsignedTx): Promise<PlatformTx>
-
-    abstract async signMessage(msg: string, address?: string): Promise<string>
+    abstract signMessage(msg: string, address?: string): Promise<string>
     abstract getPlatformUTXOSet(): PlatformUTXOSet
+
+    /**
+     *
+     * @returns Returns the checksum encoded EVM hex address per ERC-55.
+     */
+    getEvmChecksumAddress() {
+        return toChecksumAddress('0x' + this.getEvmAddress())
+    }
 
     getUTXOSet(): AVMUTXOSet {
         return this.utxoset
@@ -246,6 +262,7 @@ abstract class AbstractWallet {
         )
 
         const tx = await this.signP(exportTx)
+
         return await this.issueP(tx)
     }
 
@@ -386,7 +403,7 @@ abstract class AbstractWallet {
 
     /**
      * Create and issue an AddValidatorTx
-     * @param nodeID Node ID to add as a valdiator
+     * @param nodeID Node ID to add as a validator
      * @param amt Stake amount in nAVAX
      * @param start Stake Start Date
      * @param end Stake End Date
@@ -400,8 +417,10 @@ abstract class AbstractWallet {
         start: Date,
         end: Date,
         delegationFee: number,
+        signerPublicKey: string,
+        signerSignature: string,
         rewardAddress?: string,
-        utxos?: PlatformUTXO[]
+        utxos?: PlatformUTXO[],
     ): Promise<string> {
         let utxoSet = this.getPlatformUTXOSet()
 
@@ -432,21 +451,50 @@ abstract class AbstractWallet {
         const startTime = new BN(Math.round(start.getTime() / 1000))
         const endTime = new BN(Math.round(end.getTime() / 1000))
 
-        const unsignedTx = await pChain.buildAddValidatorTx(
+        const signer = new Signer(28, new ProofOfPossession(signerPublicKey, signerSignature))
+
+        const unsignedTx = await pChain.buildAddPermissionlessValidatorTx(
             sortedSet,
             [stakeReturnAddr],
-            pAddressStrings, // from
-            [changeAddress], // change
+            pAddressStrings,
+            [changeAddress],
             nodeID,
             startTime,
             endTime,
             stakeAmount,
             [rewardAddress],
-            delegationFee
+            delegationFee,
+            PrimaryNetworkID,
+            signer
         )
 
         const tx = await this.signP(unsignedTx)
         return issueP(tx)
+    }
+
+    /**
+     * Use Glacier to start a transaction history export job.
+     * Excluding EVM for now.
+     */
+    async startTxExportJob(startDate: Date, endDate: Date, chains: BlockchainId[]) {
+        const addresses = this.getHistoryAddresses()
+        const stripped = addresses.map((addr) => addr.split('-')[1] || addr)
+
+        const res = await glacier.operations.postTransactionExportJob({
+            requestBody: {
+                type:
+                    CreatePrimaryNetworkTransactionExportRequest.type
+                        .TRANSACTION_EXPORT_PRIMARY_NETWORK,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+                options: {
+                    // X/P/C and EVM addresses
+                    addresses: [...stripped, this.getEvmChecksumAddress()],
+                    includeChains: chains,
+                },
+            },
+        })
+        return res
     }
 
     /**
@@ -494,7 +542,7 @@ abstract class AbstractWallet {
         const startTime = new BN(Math.round(start.getTime() / 1000))
         const endTime = new BN(Math.round(end.getTime() / 1000))
 
-        const unsignedTx = await pChain.buildAddDelegatorTx(
+        const unsignedTx = await pChain.buildAddPermissionlessDelegatorTx(
             sortedSet,
             [stakeReturnAddr],
             pAddressStrings,
@@ -503,7 +551,8 @@ abstract class AbstractWallet {
             startTime,
             endTime,
             stakeAmount,
-            [rewardAddress] // reward address
+            [rewardAddress], // reward address
+            pChain.getBlockchainID()
         )
 
         const tx = await this.signP(unsignedTx)

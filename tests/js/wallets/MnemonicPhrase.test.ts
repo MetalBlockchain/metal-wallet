@@ -1,4 +1,5 @@
 import MnemonicPhrase from '@/js/wallets/MnemonicPhrase'
+import {describe, expect, test, it} from '@jest/globals';
 import * as bip39 from 'bip39'
 
 describe('MnemonicPhrase', () => {

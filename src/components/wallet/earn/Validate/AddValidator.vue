@@ -14,6 +14,27 @@
                             />
                         </div>
                         <div style="margin: 30px 0">
+                            <h4>Proof of Possession</h4>
+                            <p class="desc">
+                                The public key portion of the proof of possession:
+                            </p>
+                            <input
+                                type="text"
+                                v-model="signerPublicKey"
+                                style="width: 100%; margin-bottom: 10px;"
+                                placeholder="Public Key"
+                            />
+                            <p class="desc">
+                                The signature portion of the proof of possession:
+                            </p>
+                            <input
+                                type="text"
+                                v-model="signerSignature"
+                                style="width: 100%"
+                                placeholder="Signature"
+                            />
+                        </div>
+                        <div style="margin: 30px 0">
                             <h4>{{ $t('earn.validate.duration.label') }}</h4>
                             <p class="desc">
                                 {{ $t('earn.validate.duration.desc') }}
@@ -25,7 +46,15 @@
                             <p class="desc">
                                 {{ $t('earn.validate.amount.desc') }}
                             </p>
-                            <AvaxInput v-model="stakeAmt" :max="maxAmt" class="amt_in"></AvaxInput>
+                            <p v-if="showMaxTxSizeWarning" class="desc amount_warning">
+                                The maximum amount that fits into this transaction is
+                                <b>{{ bnToAvaxP(maxTxSizeAmount) }} AVAX</b>
+                            </p>
+                            <AvaxInput
+                                v-model="stakeAmt"
+                                :max="maxFormAmount"
+                                class="amt_in"
+                            ></AvaxInput>
                         </div>
                         <div style="margin: 30px 0">
                             <h4>{{ $t('earn.validate.fee.label') }}</h4>
@@ -49,26 +78,18 @@
                             <div class="reward_tabs">
                                 <button
                                     @click="rewardSelect('local')"
-                                    :selected="this.rewardDestination === 'local'"
+                                    :selected="rewardDestination === 'local'"
                                 >
                                     {{ $t('earn.delegate.form.reward.chip_1') }}
                                 </button>
                                 <span>or</span>
                                 <button
                                     @click="rewardSelect('custom')"
-                                    :selected="this.rewardDestination === 'custom'"
+                                    :selected="rewardDestination === 'custom'"
                                 >
                                     {{ $t('earn.delegate.form.reward.chip_2') }}
                                 </button>
                             </div>
-                            <!--                            <v-chip-group mandatory @change="rewardSelect">-->
-                            <!--                                <v-chip small value="local">-->
-                            <!--                                    {{ $t('earn.validate.reward.chip_1') }}-->
-                            <!--                                </v-chip>-->
-                            <!--                                <v-chip small value="custom">-->
-                            <!--                                    {{ $t('earn.validate.reward.chip_2') }}-->
-                            <!--                                </v-chip>-->
-                            <!--                            </v-chip-group>-->
                             <QrInput
                                 style="height: 40px; border-radius: 2px"
                                 v-model="rewardIn"
@@ -238,8 +259,11 @@ import Spinner from '@/components/misc/Spinner.vue'
 import DateForm from '@/components/wallet/earn/DateForm.vue'
 import UtxoSelectForm from '@/components/wallet/earn/UtxoSelectForm.vue'
 import Expandable from '@/components/misc/Expandable.vue'
-import { AmountOutput, UTXO } from '@metalblockchain/metaljs/dist/apis/platformvm'
+import { AmountOutput, UTXO, UTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm'
 import { WalletType } from '@/js/wallets/types'
+import { sortUTxoSetP } from '@/helpers/sortUTXOs'
+import { selectMaxUtxoForStaking } from '@/helpers/utxoSelection/selectMaxUtxoForStaking'
+import { bnToAvaxP } from '@metalblockchain/metal-wallet-sdk'
 
 const MIN_MS = 60000
 const HOUR_MS = MIN_MS * 60
@@ -249,6 +273,7 @@ const MIN_STAKE_DURATION = DAY_MS * 14
 const MAX_STAKE_DURATION = DAY_MS * 365
 
 @Component({
+    methods: { bnToAvaxP },
     name: 'add_validator',
     components: {
         Tooltip,
@@ -267,6 +292,8 @@ export default class AddValidator extends Vue {
     endDate: string = new Date().toISOString()
     delegationFee: string = '2.0'
     nodeId = ''
+    signerPublicKey = ''
+    signerSignature = ''
     rewardIn: string = ''
     rewardDestination = 'local' // local || custom
     isLoading = false
@@ -277,6 +304,8 @@ export default class AddValidator extends Vue {
     minFee = 2
 
     formNodeId = ''
+    formSignerPublicKey = ''
+    formSignerSignature = ''
     formAmt: BN = new BN(0)
     formEnd: Date = new Date()
     formFee: number = 0
@@ -290,6 +319,8 @@ export default class AddValidator extends Vue {
     isSuccess = false
 
     currency_type = 'AVAX'
+
+    maxTxSizeAmount = new BN(0)
 
     mounted() {
         this.rewardSelect('local')
@@ -375,9 +406,7 @@ export default class AddValidator extends Vue {
     }
 
     get maxAmt(): BN {
-        // let pAmt = this.platformUnlocked.add(this.platformLockedStakeable)
         let pAmt = this.utxosBalance
-        // let fee = this.feeAmt;
 
         // absolute max stake
         let mult = new BN(10).pow(new BN(6 + 9))
@@ -395,6 +424,41 @@ export default class AddValidator extends Vue {
         } else {
             return ZERO
         }
+    }
+
+    get wallet(): WalletType {
+        return this.$store.state.activeWallet
+    }
+
+    @Watch('formUtxos')
+    @Watch('maxAmt')
+    onFormUtxosChange() {
+        // Amount of the biggest transaction that can be created with the selected UTXOs
+        const set = new UTXOSet()
+        set.addArray(this.formUtxos)
+
+        const fromAddresses = this.wallet.getAllAddressesP()
+        const changeAddress = this.wallet.getChangeAddressPlatform()
+        const sorted = sortUTxoSetP(set, false)
+        selectMaxUtxoForStaking(
+            sorted,
+            this.maxAmt,
+            fromAddresses,
+            changeAddress,
+            changeAddress,
+            changeAddress,
+            true
+        ).then((res) => {
+            this.maxTxSizeAmount = res.amount
+        })
+    }
+
+    get showMaxTxSizeWarning() {
+        return this.maxTxSizeAmount.lt(this.maxAmt)
+    }
+
+    get maxFormAmount() {
+        return this.showMaxTxSizeWarning ? this.maxTxSizeAmount : this.maxAmt
     }
 
     get maxDelegationAmt(): BN {
@@ -448,6 +512,8 @@ export default class AddValidator extends Vue {
 
     updateFormData() {
         this.formNodeId = this.nodeId.trim()
+        this.formSignerPublicKey = this.signerPublicKey.trim()
+        this.formSignerSignature = this.signerSignature.trim()
         this.formAmt = this.stakeAmt
         this.formEnd = new Date(this.endDate)
         this.formRewardAddr = this.rewardIn
@@ -468,7 +534,7 @@ export default class AddValidator extends Vue {
     }
 
     get canSubmit() {
-        if (!this.nodeId) {
+        if (!this.nodeId || !this.signerPublicKey || !this.signerSignature) {
             return false
         }
 
@@ -550,6 +616,8 @@ export default class AddValidator extends Vue {
                 startDate,
                 this.formEnd,
                 this.formFee,
+                this.formSignerPublicKey,
+                this.formSignerSignature,
                 this.formRewardAddr,
                 this.formUtxos
             )
@@ -769,6 +837,10 @@ label {
     span {
         margin: 0px 12px;
     }
+}
+
+.amount_warning {
+    color: var(--warning);
 }
 
 .tx_status {

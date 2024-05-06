@@ -22,7 +22,7 @@ import NftPayloadView from '@/components/misc/NftPayloadView/NftPayloadView.vue'
 
 @Component
 export default class TxHistoryValue extends Vue {
-    @Prop() amount!: number | string
+    @Prop() amount!: number
     @Prop() assetId!: string
     @Prop() type!: TransactionType
     // @Prop() operationColor!: string

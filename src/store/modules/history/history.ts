@@ -92,7 +92,7 @@ const history_module: Module<HistoryState, RootState> = {
     getters: {
         stakingTxs(state) {
             return state.allTransactions.filter((tx) => {
-                const types = ['AddValidatorTx', 'AddDelegatorTx']
+                const types = ['AddValidatorTx', 'AddDelegatorTx', 'AddPermissionlessValidatorTx', 'AddPermissionlessDelegatorTx']
                 if (types.includes(tx.txType)) {
                     return true
                 }
