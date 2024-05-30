@@ -15,7 +15,7 @@
         "resolveJsonModule": true,
         "baseUrl": ".",
         "typeRoots": ["./node_modules/@types", "./node_modules/vuetify/types", "./types"],
-        "types": ["webpack-env", "vuetify", "ts-jest", "cypress"],
+        "types": ["webpack-env"],
         "paths": {
             "@/*": ["src/*"]
         },
@@ -29,5 +29,5 @@
         "tests/**/*.ts",
         "tests/**/*.tsx"
     ],
-    "exclude": ["**/node_modules/*", "../avalanche.js/*"]
+    "exclude": ["node_modules", "../avalanche.js/*"]
 }

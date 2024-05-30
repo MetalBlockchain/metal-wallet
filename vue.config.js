@@ -2,7 +2,7 @@ process.env.VUE_APP_VERSION = process.env.npm_package_version
 
 module.exports = {
     productionSourceMap: false,
-    transpileDependencies: ['vuetify', '@noble/curves'],
+    transpileDependencies: ['vuetify', '@noble/curves', '@ledgerhq/hw-transport-webusb'],
     devServer: {
         /**
          * For e2e testing we turn this off using vue cli --mode e2e
@@ -21,6 +21,9 @@ module.exports = {
         },
         resolve: {
             symlinks: false,
+            alias: {
+                "@ledgerhq/devices": "@ledgerhq/devices/lib-es",
+            },
         },
     },
     pwa: {

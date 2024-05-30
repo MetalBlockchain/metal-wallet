@@ -18,7 +18,7 @@
 import 'reflect-metadata'
 import { Component, Prop, Vue } from 'vue-property-decorator'
 import TransportU2F from '@ledgerhq/hw-transport-u2f'
-//@ts-ignore
+// @ts-ignore
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb'
 // @ts-ignore
 import TransportWebHID from '@ledgerhq/hw-transport-webhid'

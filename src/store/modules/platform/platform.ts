@@ -46,7 +46,6 @@ const platform_module: Module<PlatformState, RootState> = {
 
         async update({ dispatch }) {
             dispatch('updateValidators')
-            dispatch('updateValidatorsPending')
             dispatch('updateCurrentSupply')
         },
 
@@ -55,16 +54,6 @@ const platform_module: Module<PlatformState, RootState> = {
             const validators = res.validators
 
             commit('setValidators', validators)
-        },
-
-        async updateValidatorsPending({ state, commit }) {
-            const res = (await pChain.getPendingValidators()) as GetPendingValidatorsResponse
-            const validators = res.validators
-            const delegators = res.delegators
-
-            //@ts-ignore
-            state.validatorsPending = validators
-            state.delegatorsPending = delegators
         },
     },
     getters: {

@@ -28,6 +28,7 @@ import {
     Tx as AVMTx,
     UnsignedTx as AVMUnsignedTx,
     ImportTx as AVMImportTx,
+    ExportTx,
 } from '@metalblockchain/metaljs/dist/apis/avm'
 
 import {
@@ -38,8 +39,9 @@ import {
     UnsignedTx as PlatformUnsignedTx,
     PlatformVMConstants,
     SelectCredentialClass as PlatformSelectCredentialClass,
-    AddDelegatorTx,
-    AddValidatorTx,
+    AddPermissionlessDelegatorTx,
+    AddPermissionlessValidatorTx,
+    ParseableOutput,
 } from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 import {
@@ -75,6 +77,7 @@ import {
     bnToBig,
     chainIdFromAlias,
     getLedgerProvider,
+    isObsidianApp,
     LedgerProvider,
 } from '@metalblockchain/metal-wallet-sdk'
 import { getTxOutputAddresses } from '@/utils/getAddressFromTx'
@@ -464,22 +467,17 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
             P: ParseablePlatformEnum,
             C: ParseableEvmTxEnum,
         }[chainId]
-
         const title = `Sign ${parseableTxs[txType]}`
-
         const bip32Paths = this.pathsToUniqueBipPaths(paths)
-
         const accountPath =
             chainId === 'C'
                 ? bippath.fromString(`${ETH_ACCOUNT_PATH}`)
                 : bippath.fromString(`${AVA_ACCOUNT_PATH}`)
         const txbuff = unsignedTx.toBuffer()
-
         const outputAddrs = getTxOutputAddresses<UnsignedTx>(unsignedTx)
 
         // Get their paths, for owned ones
         const changePaths = this.getAddressPaths(outputAddrs)
-
         const messages = this.getTransactionMessages<UnsignedTx>(
             unsignedTx,
             chainId,
@@ -499,7 +497,6 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
                 bip32Paths,
                 changePaths
             )
-
             const sigMap = ledgerSignedTx.signatures
             const creds = this.getCredentials<UnsignedTx>(unsignedTx, paths, sigMap, chainId)
 
@@ -595,13 +592,13 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
         const tx =
             ((unsignedTx as
                 | AVMUnsignedTx
-                | PlatformUnsignedTx).getTransaction() as AddValidatorTx) || AddDelegatorTx
+                | PlatformUnsignedTx).getTransaction() as AddPermissionlessValidatorTx) || AddPermissionlessDelegatorTx
         const txType = tx.getTxType()
         const messages: ILedgerBlockMessage[] = []
 
         if (
-            (txType === PlatformVMConstants.ADDDELEGATORTX && chainId === 'P') ||
-            (txType === PlatformVMConstants.ADDVALIDATORTX && chainId === 'P')
+            (txType === PlatformVMConstants.ADDPERMISSIONLESSDELEGATORTX && chainId === 'P') ||
+            (txType === PlatformVMConstants.ADDPERMISSIONLESSVALIDATORTX && chainId === 'P')
         ) {
             const format = 'YYYY-MM-DD H:mm:ss UTC'
 
@@ -614,9 +611,16 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
                 .utc()
                 .format(format)
 
-            const stakeAmt = bnToBig(tx.getStakeAmount(), 9)
+            const stakeAmt = bnToBig(tx.getStakeOutsTotal(), 9)
 
-            const rewardOwners = tx.getRewardOwners()
+            let rewardOwners: ParseableOutput;
+
+            if (txType == PlatformVMConstants.ADDPERMISSIONLESSDELEGATORTX) {
+                rewardOwners = ((unsignedTx as PlatformUnsignedTx).getTransaction() as AddPermissionlessDelegatorTx).getRewardOwners()
+            } else {
+                rewardOwners = ((unsignedTx as PlatformUnsignedTx).getTransaction() as AddPermissionlessValidatorTx).getValidatorRewardsOwner()
+            }
+
             const hrp = ava.getHRP()
             const rewardAddrs = rewardOwners
                 .getOutput()
