@@ -338,6 +338,8 @@ export enum ParseablePlatformEnum {
     'Add Delegator' = PlatformVMConstants.ADDDELEGATORTX,
     'Import' = PlatformVMConstants.IMPORTTX,
     'Export' = PlatformVMConstants.EXPORTTX,
+    'Add Permissionless Validator' = PlatformVMConstants.ADDPERMISSIONLESSVALIDATORTX,
+    'Add Permissionless Delegator' = PlatformVMConstants.ADDPERMISSIONLESSDELEGATORTX
 }
 
 export enum ParseableEvmTxEnum {
