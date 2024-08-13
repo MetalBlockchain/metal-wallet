@@ -126,6 +126,7 @@ const platform_module: Module<PlatformState, RootState> = {
             }
 
             res = res.filter((v) => {
+                if (v.uptime < 80) return false;
                 // Remove if remaining space is less than minimum
                 const min = state.minStakeDelegation
                 if (v.remainingStake.lt(min)) return false
