@@ -5,6 +5,8 @@ import { getCredentialBytes } from '@/helpers/utxoSelection/getCredentialBytes'
 import { getTxSize } from '@/helpers/utxoSelection/getTxSize'
 import { sumUtxos } from '@/helpers/utxoSelection/sumUtxos'
 import { DUMMY_NODE_ID, MAX_TX_SIZE_P } from './constants'
+import { PrimaryNetworkID } from '@metalblockchain/metaljs/dist/utils'
+import { PlatformVMConstants, ProofOfPossession, Signer } from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 /**
  * Selects the max number of utxos that will fit in a staking transaction.
@@ -40,7 +42,7 @@ export async function selectMaxUtxoForStaking(
     try {
         // Generate the dummy tx
         const unsignedTx = isAddValidator
-            ? await pChain.buildAddValidatorTx(
+            ? await pChain.buildAddPermissionlessValidatorTx(
                   tempSet,
                   [stakeReturnAddr],
                   fromAddresses, // from
@@ -50,9 +52,11 @@ export async function selectMaxUtxoForStaking(
                   endTime,
                   stakeAmoutClone,
                   [rewardAddress],
-                  1
+                  1,
+                  PrimaryNetworkID,
+                  new Signer()
               )
-            : await pChain.buildAddDelegatorTx(
+            : await pChain.buildAddPermissionlessDelegatorTx(
                   tempSet,
                   [stakeReturnAddr],
                   fromAddresses, // from
@@ -61,7 +65,8 @@ export async function selectMaxUtxoForStaking(
                   startTime,
                   endTime,
                   stakeAmoutClone,
-                  [rewardAddress]
+                  [rewardAddress],
+                  PrimaryNetworkID,
               )
 
         // What is to total size of the transaction

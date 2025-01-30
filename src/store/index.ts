@@ -39,7 +39,6 @@ import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { SingletonWallet } from '@/js/wallets/SingletonWallet'
 import { Buffer } from '@metalblockchain/metaljs'
 import { privateToAddress } from 'ethereumjs-util'
-import { updateFilterAddresses } from '../providers'
 import { getAvaxPriceUSD } from '@/helpers/price_helper'
 import { getValidatorMetaData } from '@/helpers/validator_helper'
 
@@ -86,9 +85,6 @@ export default new Vuex.Store({
             } else {
                 const addrNow = state.activeWallet.getCurrentAddressAvm()
                 state.address = addrNow
-
-                // Update the websocket addresses
-                updateFilterAddresses()
             }
         },
     },
@@ -272,7 +268,6 @@ export default new Vuex.Store({
             dispatch('Assets/updateAvaAsset')
             commit('updateActiveAddress')
             dispatch('History/updateTransactionHistory')
-            updateFilterAddresses()
         },
 
         async exportWallets({ state, dispatch }, input: ExportWalletsInput) {

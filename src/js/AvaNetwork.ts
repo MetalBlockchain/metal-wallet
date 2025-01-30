@@ -106,11 +106,6 @@ class AvaNetwork {
         return `${this.protocol}://${this.ip}:${this.port}`
     }
 
-    getWsUrlX(): string {
-        const protocol = this.protocol === 'https' ? 'wss' : 'ws'
-        return `${protocol}://${this.ip}:${this.port}/ext/bc/X/events`
-    }
-
     getWsUrlC(): string {
         const protocol = this.protocol === 'https' ? 'wss' : 'ws'
         return `${protocol}://${this.ip}:${this.port}/ext/bc/C/ws`

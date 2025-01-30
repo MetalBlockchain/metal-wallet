@@ -121,7 +121,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator'
 import Dropdown from '@/components/misc/Dropdown.vue'
 import AvaxInput from '@/components/misc/AvaxInput.vue'
 import AvaAsset from '@/js/AvaAsset'
-import { BN } from '@metalblockchain/metaljs'
+import { BN, platformvm } from '@metalblockchain/metaljs'
 import { avm, cChain, pChain } from '@/AVA'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
 import Spinner from '@/components/misc/Spinner.vue'
@@ -149,6 +149,7 @@ import {
 } from '@metalblockchain/metal-wallet-sdk'
 import { sortUTxoSetP } from '@/helpers/sortUTXOs'
 import { selectMaxUtxoForExportP } from '@/helpers/utxoSelection/selectMaxUtxoForExportP'
+import { FeeConfig, FeeState } from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 const IMPORT_DELAY = 5000 // in ms
 const BALANCE_DELAY = 2000 // in ms
@@ -195,6 +196,9 @@ export default class ChainTransfer extends Vue {
 
     txMaxAmount: BN | undefined = undefined
 
+    feeConfig: FeeConfig | undefined = undefined
+    feeState: FeeState | undefined = undefined
+
     @Watch('sourceChain')
     @Watch('targetChain')
     onChainChange() {
@@ -205,6 +209,7 @@ export default class ChainTransfer extends Vue {
 
     created() {
         this.updateBaseFee()
+        this.getFeeVariables()
     }
 
     get ava_asset(): AvaAsset | null {
@@ -260,7 +265,7 @@ export default class ChainTransfer extends Vue {
         if (chain === 'X') {
             return bnToBigAvaxX(avm.getTxFee())
         } else if (chain === 'P') {
-            return bnToBigAvaxX(pChain.getTxFee())
+            return bnToBigAvaxX(new BN(0))
         } else {
             const fee = isExport
                 ? GasHelper.estimateExportGasFeeFromMockTx(
@@ -366,6 +371,15 @@ export default class ChainTransfer extends Vue {
 
     async updateBaseFee() {
         this.baseFee = await GasHelper.getBaseFeeRecommended()
+    }
+
+    async getFeeVariables() {
+        pChain.getFeeConfig().then((feeConfig) => {
+            this.feeConfig = feeConfig;
+        })
+        pChain.getFeeState().then((feeState) => {
+            this.feeState = feeState
+        })
     }
 
     async submit() {

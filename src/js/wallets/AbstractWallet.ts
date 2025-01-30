@@ -227,6 +227,43 @@ abstract class AbstractWallet {
         return this.issueX(tx)
     }
 
+    async estimatePChainExportFee(amt: BN, destinationChain: ExportChainsP, importFee?: BN) {
+        const utxoSet = this.getPlatformUTXOSet()
+        // Sort by amount
+        const sortedSet = sortUTxoSetP(utxoSet, false)
+
+        const pChangeAddr = this.getCurrentAddressPlatform()
+        const fromAddrs = this.getAllAddressesP()
+
+        if (destinationChain === 'C' && !importFee)
+            throw new Error('Exports to C chain must specify an import fee.')
+
+        // Calculate C chain import fee
+        let amtFee = amt.clone()
+        if (importFee) {
+            amtFee = amt.add(importFee)
+        } else if (destinationChain === 'X') {
+            // We can add the import fee for X chain
+            const fee = avm.getTxFee()
+            amtFee = amt.add(fee)
+        }
+
+        // Get the destination address for the right chain
+        const destinationAddr =
+            destinationChain === 'C' ? this.getEvmAddressBech() : this.getCurrentAddressAvm()
+
+        const exportTx = await TxHelper.buildPlatformExportTransaction(
+            sortedSet,
+            fromAddrs,
+            destinationAddr,
+            amtFee,
+            pChangeAddr,
+            destinationChain
+        )
+
+        return exportTx.getBurn(await pChain.getAVAXAssetID());
+    }
+
     async exportFromPChain(amt: BN, destinationChain: ExportChainsP, importFee?: BN) {
         const utxoSet = this.getPlatformUTXOSet()
         // Sort by amount

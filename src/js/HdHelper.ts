@@ -18,7 +18,6 @@ import store from '@/store'
 import { AvaNetwork } from '@/js/AvaNetwork'
 import { ChainAlias } from './wallets/types'
 import { avmGetAllUTXOs, platformGetAllUTXOs } from '@/helpers/utxo_helper'
-import { updateFilterAddresses } from '../providers'
 import { listChainsForAddresses } from '@/js/Glacier/listChainsForAddresses'
 
 const INDEX_RANGE: number = 20 // a gap of at least 20 indexes is needed to claim an index unused
@@ -113,9 +112,6 @@ class HdHelper {
         }
 
         this.hdIndex = newIndex
-
-        // Update websocket addresses with the new one
-        updateFilterAddresses()
 
         return newIndex
     }

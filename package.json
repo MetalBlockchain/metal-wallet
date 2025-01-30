@@ -29,7 +29,7 @@
         "@ledgerhq/hw-transport-webhid": "6.28.6",
         "@ledgerhq/hw-transport-webusb": "6.28.6",
         "@metalblockchain/metal-wallet-sdk": "0.19.0-alpha.6",
-        "@metalblockchain/metaljs": "3.16.8",
+        "@metalblockchain/metaljs": "3.16.12",
         "@openzeppelin/contracts": "4.9.2",
         "abi-decoder": "2.4.0",
         "axios": "0.21.2",
