@@ -9,7 +9,7 @@ function mapTokenInfo(token: any) {
  */
 export async function fetchTokenList(): Promise<TokenList> {
     const res = await fetch(
-        'https://glacier-api-dev.metalblockchain.org/proxy/chain-assets/main/core-wallet/token-list.erc20.json'
+        'https://glacier-api.metalblockchain.org/proxy/chain-assets/main/core-wallet/token-list.erc20.json'
     )
     const json = await res.json()
 

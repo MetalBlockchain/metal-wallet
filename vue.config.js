@@ -21,9 +21,6 @@ module.exports = {
         },
         resolve: {
             symlinks: false,
-            alias: {
-                "@ledgerhq/devices": "@ledgerhq/devices/lib-es",
-            },
         },
     },
     pwa: {

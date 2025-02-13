@@ -243,7 +243,7 @@ class HdHelper {
 
         const addrs = this.getAllDerivedAddresses(startIndex + upTo, startIndex)
         const addrChainsGlacier = await listChainsForAddresses(addrs)
-        const seenAddrs = addrChainsGlacier.map((addrData) => addrData.address)
+        const seenAddrs = addrChainsGlacier.map((addrData: any) => addrData.address)
 
         for (let i = 0; i < addrs.length - INDEX_RANGE; i++) {
             let gapSize: number = 0

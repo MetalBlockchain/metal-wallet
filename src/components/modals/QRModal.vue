@@ -16,7 +16,6 @@ import CopyText from '../misc/CopyText.vue'
 import QRCode from 'qrcode'
 import { KeyPair as AVMKeyPair } from '@metalblockchain/metaljs/dist/apis/avm'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 
 @Component({
     components: {

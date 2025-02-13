@@ -6,8 +6,6 @@ import MnemonicWallet from '@/js/wallets/MnemonicWallet'
 import { ITransaction } from '@/components/wallet/transfer/types'
 import { AllKeyFileTypes, AllKeyFileDecryptedTypes } from '@/js/IKeystore'
 import { UTXO } from '@metalblockchain/metaljs/dist/apis/avm'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
-import { SingletonWallet } from '@/js/wallets/SingletonWallet'
 import { UTXO as TxUTXO } from './modules/history/types'
 import { WalletNameType, WalletType } from '@/js/wallets/types'
 

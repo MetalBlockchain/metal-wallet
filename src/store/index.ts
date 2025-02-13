@@ -35,7 +35,6 @@ import {
     makeKeyfile,
     readKeyFile,
 } from '@/js/Keystore'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { SingletonWallet } from '@/js/wallets/SingletonWallet'
 import { Buffer } from '@metalblockchain/metaljs'
 import { privateToAddress } from 'ethereumjs-util'
@@ -122,14 +121,6 @@ export default new Vuex.Store({
             }
 
             await dispatch('activateWallet', state.wallets[activeIndex])
-
-            dispatch('onAccess')
-        },
-
-        async accessWalletLedger({ state, dispatch }, wallet: LedgerWallet) {
-            state.wallets = [wallet]
-
-            await dispatch('activateWallet', wallet)
 
             dispatch('onAccess')
         },
@@ -262,7 +253,7 @@ export default new Vuex.Store({
             }
         },
 
-        async activateWallet({ state, dispatch, commit }, wallet: MnemonicWallet | LedgerWallet) {
+        async activateWallet({ state, dispatch, commit }, wallet: MnemonicWallet) {
             state.activeWallet = wallet
 
             dispatch('Assets/updateAvaAsset')

@@ -7,7 +7,7 @@ import {
     TransactionType,
 } from '@/js/Glacier/models'
 import { BN } from '@metalblockchain/metaljs'
-import { Utxo, PChainUtxo, UtxoType } from '@avalabs/glacier-sdk'
+import { Utxo, PChainUtxo, UtxoType } from '@metalblockchain/glacier-sdk'
 import AvaAsset from '@/js/AvaAsset'
 export function getExportBalances(tx: TransactionType, destinationChainId: string, getAsset: any) {
     const balances: {
@@ -44,6 +44,7 @@ export function getExportBalances(tx: TransactionType, destinationChainId: strin
                 blockTimestamp: 0,
                 blockNumber: '0',
                 utxoType: UtxoType.TRANSFER,
+                asset: out.asset,
             } as PChainUtxo
         })
     }

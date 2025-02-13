@@ -15,7 +15,6 @@
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import { WalletType } from '@/js/wallets/types'
 
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { ava } from '@/AVA'
 import { getPreferredHRP } from '@metalblockchain/metaljs/dist/utils'
 import { AVA_ACCOUNT_PATH } from '@/js/wallets/MnemonicWallet'
@@ -32,12 +31,6 @@ export default class HdEmptyAddressRow extends Vue {
 
     get walletType() {
         return this.wallet.type
-    }
-
-    async verifyLedgerAddress() {
-        const wallet = this.wallet as LedgerWallet
-        const isInternal = this.path == 1
-        wallet.verifyAddress(this.index, isInternal)
     }
 }
 </script>

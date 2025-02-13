@@ -40,7 +40,6 @@ const TOKEN_LISTS: string[] = []
 
 import ERC721Module from './modules/erc721'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { getPayloadFromUTXO } from '@/helpers/helper'
 import { isUrlBanned } from '@/components/misc/NftPayloadView/blacklist'
 import { fetchTokenList } from '@/store/modules/assets/fetchTokenList'
@@ -349,8 +348,8 @@ const assets_module: Module<AssetsState, RootState> = {
                 return false
             }
 
-            if (wallet.type === 'ledger' || wallet.type === 'mnemonic') {
-                await (wallet as MnemonicWallet | LedgerWallet).updateUTXOsExternal()
+            if (wallet.type === 'mnemonic') {
+                await (wallet as MnemonicWallet).updateUTXOsExternal()
             } else {
                 await wallet.updateUTXOsX()
             }

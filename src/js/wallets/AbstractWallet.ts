@@ -32,9 +32,7 @@ import { web3 } from '@/evm'
 import { UTXO as PlatformUTXO } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 import {
     BlockchainId,
-    CreatePrimaryNetworkTransactionExportRequest,
-    PrimaryNetworkOptions,
-} from '@avalabs/glacier-sdk'
+} from '@metalblockchain/glacier-sdk'
 import { toChecksumAddress } from 'ethereumjs-util'
 import { PrimaryNetworkID } from '@metalblockchain/metaljs/dist/utils'
 
@@ -121,7 +119,7 @@ abstract class AbstractWallet {
             bal = new BN(await web3.eth.getBalance(this.getEvmAddress()))
         } else {
             const chainId = isMainnet ? '381931' : '381932'
-            const res = await glacier.evm.getNativeBalance({
+            const res = await glacier.evmBalances.getNativeBalance({
                 chainId: chainId,
                 address: '0x' + this.getEvmAddress(),
             })
@@ -514,7 +512,7 @@ abstract class AbstractWallet {
      * Excluding EVM for now.
      */
     async startTxExportJob(startDate: Date, endDate: Date, chains: BlockchainId[]) {
-        const addresses = this.getHistoryAddresses()
+        /*const addresses = this.getHistoryAddresses()
         const stripped = addresses.map((addr) => addr.split('-')[1] || addr)
 
         const res = await glacier.operations.postTransactionExportJob({
@@ -531,7 +529,7 @@ abstract class AbstractWallet {
                 },
             },
         })
-        return res
+        return res*/
     }
 
     /**

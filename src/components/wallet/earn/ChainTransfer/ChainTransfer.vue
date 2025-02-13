@@ -146,6 +146,7 @@ import {
     bigToBN,
     avaxCtoX,
     bnToAvaxP,
+    TxHelper,
 } from '@metalblockchain/metal-wallet-sdk'
 import { sortUTxoSetP } from '@/helpers/sortUTXOs'
 import { selectMaxUtxoForExportP } from '@/helpers/utxoSelection/selectMaxUtxoForExportP'
@@ -182,6 +183,8 @@ export default class ChainTransfer extends Vue {
     formAmt: BN = new BN(0)
 
     baseFee: BN = new BN(0)
+    importFee: Big = new Big(0)
+    exportFee: Big = new Big(0)
 
     // Transaction ids
     exportId: string = ''
@@ -204,6 +207,32 @@ export default class ChainTransfer extends Vue {
     onChainChange() {
         if (this.sourceChain === 'C' || this.targetChain === 'C') {
             this.updateBaseFee()
+        }
+    }
+
+    @Watch('sourceChain')
+    @Watch('targetChain')
+    @Watch('amt')
+    onChange() {
+        if (this.targetChain == 'P' && this.amt.gt(new BN(0))) {
+            TxHelper.calculatePlatformImportFee().then((fee) => {
+                this.importFee = bnToBig(fee, 9)
+            });
+        } else {
+            this.importFee = this.getFee(this.targetChain, false)
+        }
+
+        if (this.sourceChain == 'P' && this.amt.gt(new BN(0))) {
+            const utxos = this.wallet.getPlatformUTXOSet();
+            const fromAddrs = this.wallet.getAllAddressesP();
+            const destinationAddr = this.targetChain === 'C' ? this.wallet.getEvmAddressBech() : this.wallet.getCurrentAddressAvm()
+            const pChangeAddr = this.wallet.getCurrentAddressPlatform()
+
+            TxHelper.calculatePlatformExportFee(utxos, fromAddrs, destinationAddr, this.amt, pChangeAddr, this.targetChain as ExportChainsP).then((fee) => {
+                this.exportFee = bnToBig(fee, 9)
+            })
+        } else {
+            this.exportFee = this.getFee(this.sourceChain, true)
         }
     }
 
@@ -281,19 +310,11 @@ export default class ChainTransfer extends Vue {
         }
     }
 
-    get importFee(): Big {
-        return this.getFee(this.targetChain, false)
-    }
-
     /**
      * Returns the import fee in nAVAX
      */
     get importFeeBN(): BN {
         return bigToBN(this.importFee, 9)
-    }
-
-    get exportFee(): Big {
-        return this.getFee(this.sourceChain, true)
     }
 
     get exportFeeBN(): BN {

@@ -17,7 +17,7 @@ export async function getTransactionsForAddresses(config: GetTransactionsParams,
         config: GetTransactionsParams,
         currentCount = 0
     ): Promise<TransactionType[]> {
-        const res = await Glacier.primaryNetwork.listLatestPrimaryNetworkTransactions({
+        const res = await Glacier.primaryNetworkTransactions.listLatestPrimaryNetworkTransactions({
             ...config,
             addresses: config.addresses.join(','),
         })

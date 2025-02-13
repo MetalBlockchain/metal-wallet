@@ -71,7 +71,7 @@ import { ValidatorRaw } from '@/components/misc/ValidatorList/types'
 import { WalletType } from '@/js/wallets/types'
 import { getPriceAtUnixTime } from '@/helpers/price_helper'
 import Big from 'big.js'
-import { PChainTransaction, PChainUtxo, RewardType } from '@avalabs/glacier-sdk'
+import { PChainTransaction, PChainUtxo, RewardType } from '@metalblockchain/glacier-sdk'
 import { filterOwnedAddresses } from './filterOwnedAddresses'
 
 @Component
@@ -206,7 +206,7 @@ export default class StakingTx extends Vue {
     }
 
     get isRewarded() {
-        return this.transaction.rewardTx !== undefined
+        return this.transaction.rewardTxHash !== undefined
     }
 
     // TODO: Add missing stake info for staking transactions, start/end date, potential reward, reward date, reward USD price

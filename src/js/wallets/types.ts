@@ -29,7 +29,6 @@ import Erc20Token from '@/js/Erc20Token'
 
 import { Transaction } from '@ethereumjs/tx'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 import { SingletonWallet } from '@/js/wallets/SingletonWallet'
 import { ExportChainsC, ExportChainsP, ExportChainsX } from '@metalblockchain/metal-wallet-sdk'
 import { UTXOSet as EVMUTXOSet } from '@metalblockchain/metaljs/dist/apis/evm/utxos'
@@ -43,7 +42,7 @@ export type AvmImportChainType = 'P' | 'C'
 export type AvmExportChainType = 'P' | 'C'
 
 export type WalletNameType = 'mnemonic' | 'ledger' | 'singleton'
-export type WalletType = MnemonicWallet | LedgerWallet | SingletonWallet
+export type WalletType = MnemonicWallet | SingletonWallet
 
 interface IAddressManager {
     getCurrentAddressAvm(): string
