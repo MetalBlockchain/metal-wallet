@@ -32,9 +32,7 @@ import { web3 } from '@/evm'
 import { UTXO as PlatformUTXO } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 import {
     BlockchainId,
-    CreatePrimaryNetworkTransactionExportRequest,
-    PrimaryNetworkOptions,
-} from '@avalabs/glacier-sdk'
+} from '@metalblockchain/glacier-sdk'
 import { toChecksumAddress } from 'ethereumjs-util'
 import { PrimaryNetworkID } from '@metalblockchain/metaljs/dist/utils'
 
@@ -121,7 +119,7 @@ abstract class AbstractWallet {
             bal = new BN(await web3.eth.getBalance(this.getEvmAddress()))
         } else {
             const chainId = isMainnet ? '381931' : '381932'
-            const res = await glacier.evm.getNativeBalance({
+            const res = await glacier.evmBalances.getNativeBalance({
                 chainId: chainId,
                 address: '0x' + this.getEvmAddress(),
             })
@@ -225,6 +223,43 @@ abstract class AbstractWallet {
         const tx = await this.signX(exportTx)
 
         return this.issueX(tx)
+    }
+
+    async estimatePChainExportFee(amt: BN, destinationChain: ExportChainsP, importFee?: BN) {
+        const utxoSet = this.getPlatformUTXOSet()
+        // Sort by amount
+        const sortedSet = sortUTxoSetP(utxoSet, false)
+
+        const pChangeAddr = this.getCurrentAddressPlatform()
+        const fromAddrs = this.getAllAddressesP()
+
+        if (destinationChain === 'C' && !importFee)
+            throw new Error('Exports to C chain must specify an import fee.')
+
+        // Calculate C chain import fee
+        let amtFee = amt.clone()
+        if (importFee) {
+            amtFee = amt.add(importFee)
+        } else if (destinationChain === 'X') {
+            // We can add the import fee for X chain
+            const fee = avm.getTxFee()
+            amtFee = amt.add(fee)
+        }
+
+        // Get the destination address for the right chain
+        const destinationAddr =
+            destinationChain === 'C' ? this.getEvmAddressBech() : this.getCurrentAddressAvm()
+
+        const exportTx = await TxHelper.buildPlatformExportTransaction(
+            sortedSet,
+            fromAddrs,
+            destinationAddr,
+            amtFee,
+            pChangeAddr,
+            destinationChain
+        )
+
+        return exportTx.getBurn(await pChain.getAVAXAssetID());
     }
 
     async exportFromPChain(amt: BN, destinationChain: ExportChainsP, importFee?: BN) {
@@ -477,7 +512,7 @@ abstract class AbstractWallet {
      * Excluding EVM for now.
      */
     async startTxExportJob(startDate: Date, endDate: Date, chains: BlockchainId[]) {
-        const addresses = this.getHistoryAddresses()
+        /*const addresses = this.getHistoryAddresses()
         const stripped = addresses.map((addr) => addr.split('-')[1] || addr)
 
         const res = await glacier.operations.postTransactionExportJob({
@@ -494,7 +529,7 @@ abstract class AbstractWallet {
                 },
             },
         })
-        return res
+        return res*/
     }
 
     /**

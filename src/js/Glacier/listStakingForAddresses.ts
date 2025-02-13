@@ -5,7 +5,7 @@ import { ListStakingParams } from '@/js/Glacier/models'
 import { splitToParts } from '@/js/Glacier/utils'
 import { filterDuplicateGlacierTxs } from './filterDuplicateGlacierTxs'
 import Glacier from './Glacier'
-import { Network, PChainId, PChainTransaction, SortOrder } from '@avalabs/glacier-sdk'
+import { Network, PChainId, PChainTransaction, SortOrder } from '@metalblockchain/glacier-sdk'
 
 export async function listStakingForAddresses(addrs: string[]) {
     if (!addrs.length) return []
@@ -22,7 +22,7 @@ export async function listStakingForAddresses(addrs: string[]) {
 
     async function fetchAll(config: ListStakingParams): Promise<PChainTransaction[]> {
         // const res = await GlacierService.listStaking(config)
-        const res = await Glacier.primaryNetwork.listActivePrimaryNetworkStakingTransactions({
+        const res = await Glacier.primaryNetworkTransactions.listActivePrimaryNetworkStakingTransactions({
             ...config,
             addresses: config.addresses.join(','),
         })

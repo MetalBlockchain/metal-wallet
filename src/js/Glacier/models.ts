@@ -1,16 +1,4 @@
-import {
-    BlockchainId,
-    Network,
-    PChainId,
-    PChainTransaction,
-    XChainLinearTransaction,
-    XChainNonLinearTransaction,
-    CChainExportTransaction,
-    CChainImportTransaction,
-    SortOrder,
-    Utxo,
-    PChainUtxo,
-} from '@avalabs/glacier-sdk'
+import { BlockchainId, CChainExportTransaction, CChainImportTransaction, Network, PChainId, PChainTransaction, PChainUtxo, SortOrder, Utxo, XChainLinearTransaction, XChainNonLinearTransaction } from "@metalblockchain/glacier-sdk";
 
 export type XChainTransaction = XChainLinearTransaction | XChainNonLinearTransaction
 export interface GetBalancesParams {

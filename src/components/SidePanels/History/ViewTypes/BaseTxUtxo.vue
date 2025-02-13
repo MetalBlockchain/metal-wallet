@@ -14,7 +14,7 @@
 </template>
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
-import { Utxo } from '@avalabs/glacier-sdk'
+import { Utxo } from '@metalblockchain/glacier-sdk'
 import { BN } from '@metalblockchain/metaljs'
 import { bnToLocaleString } from '@metalblockchain/metal-wallet-sdk'
 

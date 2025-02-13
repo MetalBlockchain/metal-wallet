@@ -10,7 +10,6 @@ import { HdHelper } from '@/js/HdHelper'
 import { UTXOSet as PlatformUTXOSet } from '@metalblockchain/metaljs/dist/apis/platformvm/utxos'
 import { buildUnsignedTransaction } from '../TxHelper'
 import { AbstractWallet } from '@/js/wallets/AbstractWallet'
-import { updateFilterAddresses } from '../../providers'
 import { digestMessage } from '@/helpers/helper'
 
 /**
@@ -77,12 +76,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
     }
 
     updateInitState() {
-        this.isInit =
-            this.externalHelper.isInit && this.internalHelper.isInit && this.platformHelper.isInit
-
-        if (this.isInit) {
-            updateFilterAddresses()
-        }
+        this.isInit = this.externalHelper.isInit && this.internalHelper.isInit && this.platformHelper.isInit
     }
     // Fetches the utxos
     async getUTXOs(): Promise<void> {

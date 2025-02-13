@@ -1,6 +1,6 @@
 import { createUtxoCsvData } from '@/js/CSV/createUtxoCsvData'
 import { UtxoType } from '@/js/Glacier/models'
-import { Utxo } from '@avalabs/glacier-sdk'
+import { PChainUtxo, PrimaryNetworkAssetType, Utxo } from '@metalblockchain/glacier-sdk'
 import {describe, expect, test, it} from '@jest/globals';
 
 const AVAX_ID = 'FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z'
@@ -20,7 +20,7 @@ function createUtxoDataX(
             name: 'Avalanche',
             symbol: 'AVAX',
             denomination: 9,
-            type: 'secp256k1',
+            type: PrimaryNetworkAssetType.SECP256K1,
             amount: amount,
         },
         createdOnChainId: chain,
@@ -37,9 +37,9 @@ function createUtxoDataX(
     }
 }
 
-function createEmittedUtxoDataP(assetId: string, amount: string, chain: string, owners: string[]) {
+function createEmittedUtxoDataP(assetId: string, amount: string, chain: string, owners: string[]): Partial<PChainUtxo> {
     return {
-        toTx: '2AuQwY1r6LdHQnrwxQm86ZHDnkdLeh3ydb7R8DeFrPgYuVubZ1',
+        consumingTxHash: '2AuQwY1r6LdHQnrwxQm86ZHDnkdLeh3ydb7R8DeFrPgYuVubZ1',
         addresses: owners,
         amount: amount,
         assetId: assetId,
@@ -50,9 +50,9 @@ function createEmittedUtxoDataP(assetId: string, amount: string, chain: string, 
     }
 }
 
-function createConsumedUtxoDataP(assetId: string, amount: string, chain: string, owners: string[]) {
+function createConsumedUtxoDataP(assetId: string, amount: string, chain: string, owners: string[]): Partial<PChainUtxo> {
     return {
-        fromTx: 'fyfrcK69orUDnrAHsub6BPWP88QyKJb7NM7jFGBAjwCoVwiVs',
+        txHash: 'fyfrcK69orUDnrAHsub6BPWP88QyKJb7NM7jFGBAjwCoVwiVs',
         addresses: owners,
         amount: amount,
         assetId: assetId,

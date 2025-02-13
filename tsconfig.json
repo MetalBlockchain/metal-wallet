@@ -13,6 +13,7 @@
         "skipLibCheck": true,
         "sourceMap": true,
         "resolveJsonModule": true,
+        "noImplicitThis": true,
         "baseUrl": ".",
         "typeRoots": ["./node_modules/@types", "./node_modules/vuetify/types", "./types"],
         "types": ["webpack-env"],

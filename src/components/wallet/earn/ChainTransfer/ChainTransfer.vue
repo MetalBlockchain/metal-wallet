@@ -121,7 +121,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator'
 import Dropdown from '@/components/misc/Dropdown.vue'
 import AvaxInput from '@/components/misc/AvaxInput.vue'
 import AvaAsset from '@/js/AvaAsset'
-import { BN } from '@metalblockchain/metaljs'
+import { BN, platformvm } from '@metalblockchain/metaljs'
 import { avm, cChain, pChain } from '@/AVA'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
 import Spinner from '@/components/misc/Spinner.vue'
@@ -146,9 +146,11 @@ import {
     bigToBN,
     avaxCtoX,
     bnToAvaxP,
+    TxHelper,
 } from '@metalblockchain/metal-wallet-sdk'
 import { sortUTxoSetP } from '@/helpers/sortUTXOs'
 import { selectMaxUtxoForExportP } from '@/helpers/utxoSelection/selectMaxUtxoForExportP'
+import { FeeConfig, FeeState } from '@metalblockchain/metaljs/dist/apis/platformvm'
 
 const IMPORT_DELAY = 5000 // in ms
 const BALANCE_DELAY = 2000 // in ms
@@ -181,6 +183,8 @@ export default class ChainTransfer extends Vue {
     formAmt: BN = new BN(0)
 
     baseFee: BN = new BN(0)
+    importFee: Big = new Big(0)
+    exportFee: Big = new Big(0)
 
     // Transaction ids
     exportId: string = ''
@@ -195,6 +199,9 @@ export default class ChainTransfer extends Vue {
 
     txMaxAmount: BN | undefined = undefined
 
+    feeConfig: FeeConfig | undefined = undefined
+    feeState: FeeState | undefined = undefined
+
     @Watch('sourceChain')
     @Watch('targetChain')
     onChainChange() {
@@ -203,8 +210,35 @@ export default class ChainTransfer extends Vue {
         }
     }
 
+    @Watch('sourceChain')
+    @Watch('targetChain')
+    @Watch('amt')
+    onChange() {
+        if (this.targetChain == 'P' && this.amt.gt(new BN(0))) {
+            TxHelper.calculatePlatformImportFee().then((fee) => {
+                this.importFee = bnToBig(fee, 9)
+            });
+        } else {
+            this.importFee = this.getFee(this.targetChain, false)
+        }
+
+        if (this.sourceChain == 'P' && this.amt.gt(new BN(0))) {
+            const utxos = this.wallet.getPlatformUTXOSet();
+            const fromAddrs = this.wallet.getAllAddressesP();
+            const destinationAddr = this.targetChain === 'C' ? this.wallet.getEvmAddressBech() : this.wallet.getCurrentAddressAvm()
+            const pChangeAddr = this.wallet.getCurrentAddressPlatform()
+
+            TxHelper.calculatePlatformExportFee(utxos, fromAddrs, destinationAddr, this.amt, pChangeAddr, this.targetChain as ExportChainsP).then((fee) => {
+                this.exportFee = bnToBig(fee, 9)
+            })
+        } else {
+            this.exportFee = this.getFee(this.sourceChain, true)
+        }
+    }
+
     created() {
         this.updateBaseFee()
+        this.getFeeVariables()
     }
 
     get ava_asset(): AvaAsset | null {
@@ -260,7 +294,7 @@ export default class ChainTransfer extends Vue {
         if (chain === 'X') {
             return bnToBigAvaxX(avm.getTxFee())
         } else if (chain === 'P') {
-            return bnToBigAvaxX(pChain.getTxFee())
+            return bnToBigAvaxX(new BN(0))
         } else {
             const fee = isExport
                 ? GasHelper.estimateExportGasFeeFromMockTx(
@@ -276,19 +310,11 @@ export default class ChainTransfer extends Vue {
         }
     }
 
-    get importFee(): Big {
-        return this.getFee(this.targetChain, false)
-    }
-
     /**
      * Returns the import fee in nAVAX
      */
     get importFeeBN(): BN {
         return bigToBN(this.importFee, 9)
-    }
-
-    get exportFee(): Big {
-        return this.getFee(this.sourceChain, true)
     }
 
     get exportFeeBN(): BN {
@@ -366,6 +392,15 @@ export default class ChainTransfer extends Vue {
 
     async updateBaseFee() {
         this.baseFee = await GasHelper.getBaseFeeRecommended()
+    }
+
+    async getFeeVariables() {
+        pChain.getFeeConfig().then((feeConfig) => {
+            this.feeConfig = feeConfig;
+        })
+        pChain.getFeeState().then((feeState) => {
+            this.feeState = feeState
+        })
     }
 
     async submit() {

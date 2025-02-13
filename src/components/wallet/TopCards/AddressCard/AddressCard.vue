@@ -72,7 +72,6 @@ import MnemonicWallet, {
     AVA_ACCOUNT_PATH,
     LEDGER_ETH_ACCOUNT_PATH,
 } from '@/js/wallets/MnemonicWallet'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 
 import ChainSelect from '@/components/wallet/TopCards/AddressCard/ChainSelect.vue'
 import { ChainIdType } from '@/constants'
@@ -266,21 +265,6 @@ export default class AddressCard extends Vue {
                 if (error) console.error(error)
             }
         )
-    }
-
-    async verifyLedgerAddress() {
-        const wallet = this.activeWallet as LedgerWallet
-
-        let networkId = ava.getNetworkID()
-
-        switch (this.chainNow) {
-            case 'X':
-            case 'P':
-                wallet.verifyAddress(this.activeIdx, false, this.chainNow)
-                break
-            case 'C':
-                wallet.ethApp.getAddress(`${LEDGER_ETH_ACCOUNT_PATH}`, true)
-        }
     }
 
     mounted() {

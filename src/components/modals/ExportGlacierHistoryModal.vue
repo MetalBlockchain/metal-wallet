@@ -82,7 +82,7 @@ import 'reflect-metadata'
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 
 import Modal from '@/components/modals/Modal.vue'
-import { BlockchainId, Glacier, OperationStatus } from '@avalabs/glacier-sdk'
+import { BlockchainId, Glacier, OperationStatus } from '@metalblockchain/glacier-sdk'
 import { WalletType } from '@/js/wallets/types'
 import MultiSelect from '../misc/MultiSelect.vue'
 import glacier from '@/js/Glacier/Glacier'
@@ -261,7 +261,7 @@ export default class ExportGlacierHistoryModal extends Vue {
         if (!w) return
         const start = new Date('2023-01-01')
         const end = new Date()
-        w.startTxExportJob(this.formStartDate, this.formEndDate, this.includeChains).then((res) => {
+        w.startTxExportJob(this.formStartDate, this.formEndDate, this.includeChains).then((res: any) => {
             this.operationID = res.operationId
             this.loading = true
 

@@ -1,4 +1,4 @@
-import { Utxo, PChainUtxo } from '@avalabs/glacier-sdk'
+import { Utxo, PChainUtxo } from '@metalblockchain/glacier-sdk'
 
 /**
  * Check if the UTXO is owned by one of the given addresses
@@ -12,7 +12,7 @@ export function isOwnedUTXO(utxo: Utxo | PChainUtxo, ownedAddresses: string[]) {
     })
 
     return (
-        utxo.addresses.filter((addr) => {
+        utxo.addresses.filter((addr: any) => {
             return ownedAddresses.includes(addr)
         }).length > 0
     )

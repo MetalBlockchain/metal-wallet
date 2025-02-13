@@ -29,12 +29,11 @@
 <script lang="ts">
 import { Vue, Component, Prop, Model } from 'vue-property-decorator'
 import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import { LedgerWallet } from '@/js/wallets/LedgerWallet'
 
 @Component
 export default class SearchAddress extends Vue {
     @Model('change', { type: String }) readonly selectedAddress!: string | null
-    @Prop() wallet!: MnemonicWallet | LedgerWallet
+    @Prop() wallet!: MnemonicWallet
 
     address: string = ''
     matchingAddrs: string[] = []

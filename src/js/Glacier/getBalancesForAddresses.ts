@@ -6,7 +6,7 @@ import {
     ListPChainBalancesResponse,
     ListXChainBalancesResponse,
     ListCChainAtomicBalancesResponse,
-} from '@avalabs/glacier-sdk'
+} from '@metalblockchain/glacier-sdk'
 
 export async function getBalancesForAddresses(config: GetBalancesParams) {
     // Max number of addresses glacier accepts
@@ -14,7 +14,7 @@ export async function getBalancesForAddresses(config: GetBalancesParams) {
     const addressBuckets = splitToParts<string>(config.addresses, addressLimit)
 
     const promises = addressBuckets.map((bucketAddrs) => {
-        return Glacier.primaryNetwork.getBalancesByAddresses({
+        return Glacier.primaryNetworkBalances.getBalancesByAddresses({
             ...config,
             addresses: bucketAddrs.join(','),
         })
@@ -45,7 +45,7 @@ export async function getBalancesForAddresses(config: GetBalancesParams) {
             )
 
             lockedUnstaked.iadd(
-                new BN(val.balances.lockedUnstaked ? val.balances.lockedUnstaked[0].amount : 0)
+                new BN(val.balances.lockedPlatform ? val.balances.lockedPlatform[0].amount : 0)
             )
 
             unlockedStaked.iadd(
