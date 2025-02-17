@@ -71,12 +71,12 @@ import { ValidatorRaw } from '@/components/misc/ValidatorList/types'
 import { WalletType } from '@/js/wallets/types'
 import { getPriceAtUnixTime } from '@/helpers/price_helper'
 import Big from 'big.js'
-import { PChainTransaction, PChainUtxo, RewardType } from '@avalabs/glacier-sdk'
+import { PChainTransaction, PChainUtxo, RewardType } from '@metalblockchain/glacier-sdk'
 import { filterOwnedAddresses } from './filterOwnedAddresses'
 
 @Component
 export default class StakingTx extends Vue {
-    @Prop() transaction!: PChainTransaction
+    @Prop() transaction!: any
     isStarted = false
     mounted() {
         this.updateStartStatus()
@@ -131,7 +131,7 @@ export default class StakingTx extends Vue {
     }
 
     get stakeAmt(): BN {
-        let tot = (this.transaction.emittedUtxos ?? []).reduce((acc, out) => {
+        let tot = (this.transaction.emittedUtxos ?? []).reduce((acc: any, out: any) => {
             return out.staked ? acc.add(new BN(out.amount)) : acc
         }, new BN(0))
         return tot
@@ -146,7 +146,7 @@ export default class StakingTx extends Vue {
         return pAddrs.map((addr) => addr.split('-')[1])
     }
 
-    formatRewardAmount(amount: BN) {
+    formatRewardAmount(amount: any) {
         return bnToBig(amount, 9)
     }
 
@@ -159,7 +159,7 @@ export default class StakingTx extends Vue {
      * The validator reward UTXO of this tx
      */
     get validatorReward(): PChainUtxo | undefined {
-        return (this.transaction.emittedUtxos || []).filter((utxo) => {
+        return (this.transaction.emittedUtxos || []).filter((utxo: any) => {
             return utxo.rewardType?.toLowerCase() === RewardType.VALIDATOR.toLowerCase()
         })[0]
     }
@@ -168,7 +168,7 @@ export default class StakingTx extends Vue {
      * The delegator reward UTXO of this tx
      */
     get delegatorReward(): PChainUtxo | undefined {
-        return (this.transaction.emittedUtxos || []).filter((utxo) => {
+        return (this.transaction.emittedUtxos || []).filter((utxo: any) => {
             return utxo.rewardType?.toLowerCase() === RewardType.DELEGATOR.toLowerCase()
         })[0]
     }

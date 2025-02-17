@@ -28,6 +28,7 @@
         "@ledgerhq/hw-transport-u2f": "5.36.0-deprecated",
         "@ledgerhq/hw-transport-webhid": "6.28.6",
         "@ledgerhq/hw-transport-webusb": "6.28.6",
+        "@metalblockchain/glacier-sdk": "^1.0.20",
         "@metalblockchain/metal-wallet-sdk": "0.19.0-alpha.6",
         "@metalblockchain/metaljs": "3.16.12",
         "@openzeppelin/contracts": "4.9.2",

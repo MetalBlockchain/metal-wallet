@@ -148,7 +148,9 @@ export default class LedgerButton extends Vue {
         }, 1000)
 
         try {
+            // @ts-ignore
             const prov = await getLedgerProvider(t)
+            // @ts-ignore
             this.version = await prov.getVersion(t)
         } catch (e) {
             // this.version = await (app as AvalancheApp).

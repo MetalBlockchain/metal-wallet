@@ -34,7 +34,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import { AssetsDict, NftFamilyDict } from '@/store/modules/assets/types'
-import { PChainUtxo, Utxo } from '@avalabs/glacier-sdk'
+import { PChainUtxo, Utxo } from '@metalblockchain/glacier-sdk'
 
 import StakingTx from '@/components/SidePanels/History/ViewTypes/StakingTx.vue'
 import BaseTx from '@/components/SidePanels/History/ViewTypes/BaseTx.vue'
@@ -59,7 +59,7 @@ import { ava } from '@/AVA'
 })
 export default class TxRow extends Vue {
     @Prop() index!: number
-    @Prop() source!: TransactionType
+    @Prop() source!: any
 
     get explorerUrl(): string | null {
         const netID = ava.getNetworkID()

@@ -34,7 +34,7 @@ import { Vue, Component, Prop } from 'vue-property-decorator'
 import { BN } from '@metalblockchain/metaljs'
 import Big from 'big.js'
 import { bnToBigAvaxP } from '@metalblockchain/metal-wallet-sdk'
-import { PChainTransaction } from '@avalabs/glacier-sdk'
+import { PChainTransaction } from '@metalblockchain/glacier-sdk'
 
 @Component
 export default class UserRewardRow extends Vue {

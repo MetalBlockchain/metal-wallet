@@ -119,14 +119,18 @@ class LedgerWallet extends AbstractHdWallet implements AvaWalletCore {
     }
 
     static async fromTransport(t: Transport) {
+        // @ts-ignore
         const prov = await getLedgerProvider(t)
+        // @ts-ignore
         const version = await prov.getVersion(t)
 
+        // @ts-ignore
         const xpub = await prov.getXPUB(t, AVA_ACCOUNT_PATH)
         const hd = new HDKey()
         hd.publicKey = xpub.pubKey
         hd.chainCode = xpub.chainCode
 
+        // @ts-ignore
         const eth = new Eth(t, 'w0w')
         const ethRes = await eth.getAddress(LEDGER_ETH_ACCOUNT_PATH, false, true)
         const hdEth = new HDKey()
