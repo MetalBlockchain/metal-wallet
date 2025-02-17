@@ -249,7 +249,7 @@ export default class StakingTx extends Vue {
         left: 0;
         top: 0;
         height: 100%;
-        background-color: #112ebd;
+        background-color: var(--secondary-color);
     }
 
     p {
