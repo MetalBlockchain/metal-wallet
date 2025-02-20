@@ -206,7 +206,7 @@ export default class StakingTx extends Vue {
     }
 
     get isRewarded() {
-        return this.transaction.rewardTxHash !== undefined
+        return this.transaction.rewardTx !== undefined
     }
 
     // TODO: Add missing stake info for staking transactions, start/end date, potential reward, reward date, reward USD price

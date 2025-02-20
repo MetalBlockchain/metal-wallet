@@ -2828,18 +2828,19 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.1.tgz#5bd16082261d7364eabb511c788f00937dac588d"
   integrity sha512-z+ILK8Q3y+nfUl43ctCPuR4Y2bIxk/ooCQFwZxhtci1EhAtMDzMAx2W25qx8G1PPL9UUOdnUax19+F0OjXoj4w==
 
-"@metalblockchain/glacier-sdk@1.0.19":
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/@metalblockchain/glacier-sdk/-/glacier-sdk-1.0.19.tgz#6d4bfa7f20423b4ef7b5621602ec4eb7e16940b6"
-  integrity sha512-TWJYfE59yLqVOMG7nfL7vGNrWYuA+b3czEhDdJ2uyH0m+t1c3aNnWB3BrDct6tlofWYX+3uA9jhtJAwdc6An6w==
-  dependencies:
-    "@types/node" "^22.12.0"
-    typescript "^5.7.3"
-
 "@metalblockchain/glacier-sdk@1.0.20":
   version "1.0.20"
   resolved "https://registry.yarnpkg.com/@metalblockchain/glacier-sdk/-/glacier-sdk-1.0.20.tgz#f55fb8f95ae6cd6ea61995b4f320a390a6a805d4"
   integrity sha512-EyuTTGgKTMtN8E64jJWzmijNEKfr/WEY6OebZigUFMiG+Z0/UhQZWUAjPXUWiPD9WN4NGWiXV+hyHbxcvDhYbA==
+  dependencies:
+    "@types/node" "^22.12.0"
+    tslib "^2.8.1"
+    typescript "^5.7.3"
+
+"@metalblockchain/glacier-sdk@1.0.21":
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/@metalblockchain/glacier-sdk/-/glacier-sdk-1.0.21.tgz#2a72b9ea7e2fe94ec28e4486ab6b507689818022"
+  integrity sha512-z4PngH5GagMU9MfiIYmrftNz8IEiIrOH6awUAzvw5/ayyZkUi+bI6IkLxTxTJW705XmWytY2FyiP7yTEf8mzsQ==
   dependencies:
     "@types/node" "^22.12.0"
     tslib "^2.8.1"
