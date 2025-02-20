@@ -11,9 +11,9 @@
         <!--            <button @click="openTokenlist">Manage Token Lists</button>-->
         <!--        </div>-->
         <div class="grids">
-            <ChainImport class="grid_box"></ChainImport>
             <SignMessage class="grid_box"></SignMessage>
             <VerifyMessage class="grid_box"></VerifyMessage>
+            <ChainImport class="grid_box"></ChainImport>
         </div>
     </div>
 </template>
@@ -74,7 +74,7 @@ h1 {
     display: grid;
     column-gap: 14px;
     row-gap: 14px;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .grid_box {
