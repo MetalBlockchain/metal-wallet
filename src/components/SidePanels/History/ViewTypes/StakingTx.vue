@@ -158,27 +158,31 @@ export default class StakingTx extends Vue {
     /**
      * The validator reward UTXO of this tx
      */
-    get validatorReward(): PChainUtxo | undefined {
+    get validatorRewards(): PChainUtxo[] | undefined {
         return (this.transaction.emittedUtxos || []).filter((utxo) => {
             return utxo.rewardType?.toLowerCase() === RewardType.VALIDATOR.toLowerCase()
-        })[0]
+        })
     }
 
     /**
      * The delegator reward UTXO of this tx
      */
-    get delegatorReward(): PChainUtxo | undefined {
+    get delegatorRewards(): PChainUtxo[] | undefined {
         return (this.transaction.emittedUtxos || []).filter((utxo) => {
             return utxo.rewardType?.toLowerCase() === RewardType.DELEGATOR.toLowerCase()
-        })[0]
+        })
     }
 
     get validatorRewardAmount() {
-        return this.validatorReward?.amount
+        return (this.validatorRewards || []).reduce((acc, out) => {
+            return out.amount ? acc.add(new BN(out.amount)) : acc
+        }, new BN(0))
     }
 
     get delegatorRewardAmount() {
-        return this.delegatorReward?.amount
+        return (this.delegatorRewards || []).reduce((acc, out) => {
+            return out.amount ? acc.add(new BN(out.amount)) : acc
+        }, new BN(0))
     }
 
     get potentialReward() {
@@ -189,9 +193,15 @@ export default class StakingTx extends Vue {
      * Returns true if this wallet received delegator reward
      */
     get receivedDelegatorReward() {
-        if (this.isValidator || !this.delegatorReward) return false
+        if (this.isValidator || !this.delegatorRewards) return false
 
-        const addrs = filterOwnedAddresses(this.pAddrsClean, this.delegatorReward.addresses)
+        const rewardedAddresses: string[] = [];
+
+        for (let delegatorReward of this.delegatorRewards || []) {
+            rewardedAddresses.push(...delegatorReward.addresses)
+        }
+
+        const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses)
         return addrs.length
     }
 
@@ -199,9 +209,15 @@ export default class StakingTx extends Vue {
      * Returns true if this wallet received validator reward
      */
     get receivedValidatorReward() {
-        if (!this.isValidator || !this.validatorReward) return false
+        if (!this.isValidator || !this.validatorRewards) return false
 
-        const addrs = filterOwnedAddresses(this.pAddrsClean, this.validatorReward.addresses)
+        const rewardedAddresses: string[] = [];
+
+        for (let validatorReward of this.validatorRewards || []) {
+            rewardedAddresses.push(...validatorReward.addresses)
+        }
+
+        const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses)
         return addrs.length
     }
 
