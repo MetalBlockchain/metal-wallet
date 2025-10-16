@@ -2,7 +2,7 @@ import { createUtxoCsvData } from "@/js/CSV/createUtxoCsvData";
 import type { UtxoType } from "@/js/Glacier/models";
 import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import { PrimaryNetworkAssetType } from "@metalblockchain/glacier-sdk";
-import { describe, expect, test, it } from "@jest/globals";
+import { describe, expect, test } from "vitest";
 
 const AVAX_ID = "FvwEAhmxKfeiG8SnEvq42hc6whRyY3EFYAvebMqDNDGCgxN5Z";
 
@@ -75,7 +75,7 @@ function createConsumedUtxoDataP(
 
 describe("createUtxoCsvData", () => {
   describe("X Chain UTXOs", () => {
-    it("owned, single owner, avax", () => {
+    test("owned, single owner, avax", () => {
       const utxo = createUtxoDataX(
         AVAX_ID,
         "1000",
@@ -97,7 +97,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("owned, multi owner, avax", () => {
+    test("owned, multi owner, avax", () => {
       const utxo = createUtxoDataX(
         AVAX_ID,
         "1000",
@@ -119,7 +119,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("not owned, multi owner, avax", () => {
+    test("not owned, multi owner, avax", () => {
       const utxo = createUtxoDataX(
         AVAX_ID,
         "1000",
@@ -143,7 +143,7 @@ describe("createUtxoCsvData", () => {
   });
 
   describe("P Chain emitted UTXOs", () => {
-    it("owned, single owner, avax", () => {
+    test("owned, single owner, avax", () => {
       const utxo = createEmittedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
       ]) as UtxoType;
@@ -160,7 +160,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("owned, multi owner, avax", () => {
+    test("owned, multi owner, avax", () => {
       const utxo = createEmittedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
         "address2",
@@ -178,7 +178,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("not owned, single owner, avax", () => {
+    test("not owned, single owner, avax", () => {
       const utxo = createEmittedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
       ]) as UtxoType;
@@ -197,7 +197,7 @@ describe("createUtxoCsvData", () => {
   });
 
   describe("P Chain consumed UTXOs", () => {
-    it("owned, single owner, avax", () => {
+    test("owned, single owner, avax", () => {
       const utxo = createConsumedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
       ]) as UtxoType;
@@ -214,7 +214,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("owned, multi owner, avax", () => {
+    test("owned, multi owner, avax", () => {
       const utxo = createConsumedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
         "address2",
@@ -232,7 +232,7 @@ describe("createUtxoCsvData", () => {
       });
     });
 
-    it("not owned, single owner, avax", () => {
+    test("not owned, single owner, avax", () => {
       const utxo = createConsumedUtxoDataP(AVAX_ID, "1000", "chain1", [
         "address1",
       ]) as UtxoType;

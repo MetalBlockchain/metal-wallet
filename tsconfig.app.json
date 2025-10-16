@@ -4,7 +4,9 @@
     "env.d.ts",
     "types.d.ts",
     "src/**/*",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
   ],
   "exclude": [
     "src/**/__tests__/*"
