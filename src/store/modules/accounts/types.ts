@@ -1,11 +1,11 @@
-import { iUserAccountEncrypted } from '@/store/types'
+import type { iUserAccountEncrypted } from "@/store/types";
 
 export interface AccountsState {
-    accounts: iUserAccountEncrypted[]
-    accountIndex: null | number
+  accounts: iUserAccountEncrypted[];
+  accountIndex: null | number;
 }
 
 export interface ChangePasswordInput {
-    passNew: string
-    passOld: string
+  passNew: string;
+  passOld: string;
 }

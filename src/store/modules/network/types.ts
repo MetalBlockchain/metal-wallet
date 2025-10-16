@@ -1,23 +1,23 @@
-import { AvaNetwork } from '@/js/AvaNetwork'
-import { BN } from '@metalblockchain/metaljs'
+import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { BN } from "@metalblockchain/metaljs";
 
 export interface NetworkState {
-    networks: AvaNetwork[]
-    networksCustom: AvaNetwork[]
-    selectedNetwork: null | AvaNetwork
-    // isConnected: boolean
-    status: NetworkStatus
+  networks: AvaNetwork[];
+  networksCustom: AvaNetwork[];
+  selectedNetwork: null | AvaNetwork;
+  // isConnected: boolean
+  status: NetworkStatus;
 
-    txFee: BN
+  txFee: BN;
 }
 
-export type NetworkStatus = 'disconnected' | 'connecting' | 'connected'
+export type NetworkStatus = "disconnected" | "connecting" | "connected";
 
 export interface NetworkItem {
-    name: string
-    url: string
-    protocol: string
-    port: number
-    networkId: number
-    chainId: string
+  name: string;
+  url: string;
+  protocol: string;
+  port: number;
+  networkId: number;
+  chainId: string;
 }

@@ -1,272 +1,279 @@
 <template>
-    <div>
-        <div class="table_title">
-            <p>{{ $t('transfer.tx_list.amount') }}</p>
-            <p>{{ $t('transfer.tx_list.token') }}</p>
-        </div>
-        <div v-for="(tx, i) in tx_list" :key="tx.uuid" class="list_item">
-            <currency-input-dropdown
-                class="list_in"
-                @change="oninputchange(i, $event)"
-                :disabled_assets="disabledAssets[i]"
-                :initial="tx.asset.id"
-                :disabled="disabled"
-            ></currency-input-dropdown>
-            <button
-                @click="removeTx(i)"
-                v-if="(i !== 0 || tx_list.length > 1) && !disabled"
-                class="remove_but"
-            >
-                <img src="@/assets/trash_can_dark.svg" />
-            </button>
-        </div>
-        <button block depressed @click="addTx()" class="add_asset" v-if="showAdd">
-            <fa icon="plus"></fa>
-            Add Asset
-        </button>
-        <!--        <p class="chain_warn">{{$t('transfer.chain_warn')}}</p>-->
+  <div>
+    <div class="table_title">
+      <p>{{ $t("transfer.tx_list.amount") }}</p>
+      <p>{{ $t("transfer.tx_list.token") }}</p>
     </div>
+    <div v-for="(tx, i) in tx_list" :key="tx.uuid" class="list_item">
+      <currency-input-dropdown
+        class="list_in"
+        @change="oninputchange(i, $event)"
+        :disabled_assets="disabledAssets[i]"
+        :initial="tx.asset.id"
+        :disabled="disabled"
+      ></currency-input-dropdown>
+      <button
+        @click="removeTx(i)"
+        v-if="(i !== 0 || tx_list.length > 1) && !disabled"
+        class="remove_but"
+      >
+        <img src="@/assets/trash_can_dark.svg" />
+      </button>
+    </div>
+    <button block depressed @click="addTx()" class="add_asset" v-if="showAdd">
+      <fa icon="plus"></fa>
+      Add Asset
+    </button>
+    <!--        <p class="chain_warn">{{$t('transfer.chain_warn')}}</p>-->
+  </div>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
+import "reflect-metadata";
+import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 
-const uuidv1 = require('uuid/v1')
+import { v1 as uuidv1 } from "uuid";
 
-import { BN } from '@metalblockchain/metaljs'
-import CurrencyInputDropdown from '@/components/misc/CurrencyInputDropdown.vue'
-import AvaAsset from '@/js/AvaAsset'
-import { AssetsDict } from '@/store/modules/assets/types'
-import { ICurrencyInputDropdownValue, ITransaction } from '@/components/wallet/transfer/types'
+import { BN } from "@metalblockchain/metaljs";
+import CurrencyInputDropdown from "@/components/misc/CurrencyInputDropdown.vue";
+import type AvaAsset from "@/js/AvaAsset";
+import type { AssetsDict } from "@/store/modules/assets/types";
+import type {
+  ICurrencyInputDropdownValue,
+  ITransaction,
+} from "@/components/wallet/transfer/types";
 
 @Component({
-    components: {
-        CurrencyInputDropdown,
-    },
+  components: {
+    CurrencyInputDropdown,
+  },
 })
-export default class TxList extends Vue {
-    tx_list: ITransaction[] = []
-    disabledAssets: AvaAsset[][] = []
-    next_initial: AvaAsset | null = null
+export class TxList extends Vue {
+  tx_list: ITransaction[] = [];
+  disabledAssets: AvaAsset[][] = [];
+  next_initial: AvaAsset | null = null;
 
-    @Prop({ default: false }) disabled!: boolean
+  @Prop({ default: false }) disabled!: boolean;
 
-    deactivated() {
-        this.reset()
+  deactivated() {
+    this.reset();
+  }
+
+  updateUnavailable(): void {
+    const res: AvaAsset[][] = [];
+    const allDisabled = [];
+
+    for (var i = 0; i < this.tx_list.length; i++) {
+      const localDisabled: AvaAsset[] = [];
+
+      allDisabled.push(this.tx_list[i].asset);
+      for (let n = 0; n < this.tx_list.length; n++) {
+        if (i === n) continue;
+        const assetNow = this.tx_list[n].asset;
+        localDisabled.push(assetNow);
+      }
+      res.push(localDisabled);
     }
 
-    updateUnavailable(): void {
-        let res: AvaAsset[][] = []
-        let allDisabled = []
-
-        for (var i = 0; i < this.tx_list.length; i++) {
-            let localDisabled: AvaAsset[] = []
-
-            allDisabled.push(this.tx_list[i].asset)
-            for (var n = 0; n < this.tx_list.length; n++) {
-                if (i === n) continue
-                let assetNow = this.tx_list[n].asset
-                localDisabled.push(assetNow)
-            }
-            res.push(localDisabled)
-        }
-
-        this.next_initial = null
-        for (i = 0; i < this.assets_list.length; i++) {
-            let asset = this.assets_list[i]
-            if (!allDisabled.includes(asset)) {
-                this.next_initial = asset
-                break
-            }
-        }
-
-        this.disabledAssets = res
+    this.next_initial = null;
+    for (i = 0; i < this.assets_list.length; i++) {
+      const asset = this.assets_list[i];
+      if (!allDisabled.includes(asset)) {
+        this.next_initial = asset;
+        break;
+      }
     }
 
-    oninputchange(index: number, event: ICurrencyInputDropdownValue): void {
-        let asset = event.asset
-        let amt = event.amount
+    this.disabledAssets = res;
+  }
 
-        if (!asset) return
+  oninputchange(index: number, event: ICurrencyInputDropdownValue): void {
+    const asset = event.asset;
+    const amt = event.amount;
 
-        this.tx_list[index].asset = asset
-        this.tx_list[index].amount = amt
+    if (!asset) return;
 
-        this.updateUnavailable()
+    this.tx_list[index].asset = asset;
+    this.tx_list[index].amount = amt;
 
-        this.$emit('change', this.tx_list)
+    this.updateUnavailable();
+
+    this.$emit("change", this.tx_list);
+  }
+
+  removeTx(index: number): void {
+    this.tx_list.splice(index, 1);
+    this.updateUnavailable();
+    this.$emit("change", this.tx_list);
+  }
+
+  addTx(id?: string): void {
+    if (this.tx_list.length >= this.assets_list.length) {
+      return;
     }
 
-    removeTx(index: number): void {
-        this.tx_list.splice(index, 1)
-        this.updateUnavailable()
-        this.$emit('change', this.tx_list)
-    }
+    const uuid = uuidv1();
 
-    addTx(id?: string): void {
-        if (this.tx_list.length >= this.assets_list.length) {
-            return
-        }
+    if (id) {
+      this.tx_list.push({
+        uuid: uuid,
+        asset: this.assets[id],
+        amount: new BN(0),
+      });
+    } else if (this.next_initial) {
+      this.tx_list.push({
+        uuid: uuid,
+        asset: this.next_initial,
+        amount: new BN(0),
+      });
+    }
+    this.$emit("change", this.tx_list);
+  }
 
-        let uuid = uuidv1()
+  // clears the list
+  clear(): void {
+    for (let i = this.tx_list.length - 1; i >= 0; i--) {
+      this.removeTx(i);
+    }
+  }
 
-        if (id) {
-            this.tx_list.push({
-                uuid: uuid,
-                asset: this.assets[id],
-                amount: new BN(0),
-            })
-        } else if (this.next_initial) {
-            this.tx_list.push({
-                uuid: uuid,
-                asset: this.next_initial,
-                amount: new BN(0),
-            })
-        }
-        this.$emit('change', this.tx_list)
+  addDefaultAsset() {
+    this.next_initial = this.assets_list[0];
+    if (this.$route.query.asset) {
+      const assetId = this.$route.query.asset as string;
+      this.addTx(assetId);
+    } else {
+      this.addTx();
     }
+  }
 
-    // clears the list
-    clear(): void {
-        for (var i = this.tx_list.length - 1; i >= 0; i--) {
-            this.removeTx(i)
-        }
-    }
+  // clear and add the default asset
+  reset() {
+    this.clear();
+    this.addDefaultAsset();
+  }
 
-    addDefaultAsset() {
-        this.next_initial = this.assets_list[0]
-        if (this.$route.query.asset) {
-            let assetId = this.$route.query.asset as string
-            this.addTx(assetId)
-        } else {
-            this.addTx()
-        }
-    }
+  activated() {
+    this.reset();
+  }
 
-    // clear and add the default asset
-    reset() {
-        this.clear()
-        this.addDefaultAsset()
-    }
+  @Watch("assets_list")
+  onAssetListChange() {
+    this.updateUnavailable();
+  }
 
-    activated() {
-        this.reset()
+  get assets_list(): AvaAsset[] {
+    // return this.$store.getters.walletAssetsArray
+    return this.$store.getters["Assets/walletAssetsArray"];
+  }
+  get assets(): AssetsDict {
+    // return this.$store.getters.walletAssetsDict
+    return this.$store.getters["Assets/walletAssetsDict"];
+  }
+  get showAdd(): boolean {
+    if (this.disabled) return false;
+    if (
+      this.tx_list.length === this.assets_list.length ||
+      this.assets_list.length === 0
+    ) {
+      return false;
     }
-
-    @Watch('assets_list')
-    onAssetListChange() {
-        this.updateUnavailable()
-    }
-
-    get assets_list(): AvaAsset[] {
-        // return this.$store.getters.walletAssetsArray
-        return this.$store.getters['Assets/walletAssetsArray']
-    }
-    get assets(): AssetsDict {
-        // return this.$store.getters.walletAssetsDict
-        return this.$store.getters['Assets/walletAssetsDict']
-    }
-    get showAdd(): boolean {
-        if (this.disabled) return false
-        if (this.tx_list.length === this.assets_list.length || this.assets_list.length === 0) {
-            return false
-        }
-        return true
-    }
+    return true;
+  }
 }
+export default TxList;
 </script>
 <style scoped lang="scss">
-@use '../../../main';
+@use "../../../main";
 
 $right_pad: 60px;
 
 .chain_warn {
-    color: var(--primary-color-light);
-    font-size: 12px;
-    margin: 6px 0 !important;
+  color: var(--primary-color-light);
+  font-size: 12px;
+  margin: 6px 0 !important;
 }
 
 .table_title {
-    display: grid;
-    grid-template-columns: 1fr 140px;
-    padding-right: $right_pad;
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  padding-right: $right_pad;
 }
 .table_title p {
-    display: block;
-    text-align: left;
-    font-size: 14px;
-    font-weight: bold;
-    padding: 12px 0;
-    color: var(--tertiary-color);
+  display: block;
+  text-align: left;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 12px 0;
+  color: var(--tertiary-color);
 
-    &:last-of-type {
-        text-align: right;
-    }
+  &:last-of-type {
+    text-align: right;
+  }
 }
 .table_title p:first-of-type {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .list_item {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr $right_pad;
-    /*flex-direction: column;*/
-    margin-bottom: 14px;
-    border-radius: 3px !important;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr $right_pad;
+  /*flex-direction: column;*/
+  margin-bottom: 14px;
+  border-radius: 3px !important;
 
-    &:last-of-type {
-        margin-bottom: 0px;
+  &:last-of-type {
+    margin-bottom: 0px;
+  }
+
+  .remove_but {
+    height: 20px;
+    opacity: 0.6;
+    justify-self: center;
+
+    &:hover {
+      opacity: 1;
     }
-
-    .remove_but {
-        height: 20px;
-        opacity: 0.6;
-        justify-self: center;
-
-        &:hover {
-            opacity: 1;
-        }
-        img {
-            height: 100%;
-            object-fit: contain;
-        }
+    img {
+      height: 100%;
+      object-fit: contain;
     }
+  }
 }
 
 .list_in {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 .list_item button {
-    width: max-content;
-    text-align: right;
-    /*align-self: flex-end;*/
-    font-size: 12px;
-    color: var(--primary-color-light);
-    margin-top: 10px;
-    margin-bottom: 10px;
+  width: max-content;
+  text-align: right;
+  /*align-self: flex-end;*/
+  font-size: 12px;
+  color: var(--primary-color-light);
+  margin-top: 10px;
+  margin-bottom: 10px;
 
-    &:hover {
-        opacity: 0.7;
-    }
+  &:hover {
+    opacity: 0.7;
+  }
 }
 
 .add_asset {
-    width: calc(100% - #{$right_pad});
-    border: 1px dashed var(--primary-color-light);
-    margin-top: 10px;
-    padding: 8px;
-    border-radius: 0;
-    color: var(--primary-color-light);
-    font-size: 14px;
-    opacity: 0.3;
-    transition-duration: 0.2s;
+  width: calc(100% - #{$right_pad});
+  border: 1px dashed var(--primary-color-light);
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 0;
+  color: var(--primary-color-light);
+  font-size: 14px;
+  opacity: 0.3;
+  transition-duration: 0.2s;
 
-    &:hover {
-        opacity: 1;
-        color: var(--primary-color);
-    }
+  &:hover {
+    opacity: 1;
+    color: var(--primary-color);
+  }
 }
 
 /*.list_item:before{*/
@@ -279,28 +286,28 @@ $right_pad: 60px;
 /*}*/
 
 .list_item[empty] button {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 .list_item[empty] .list_in,
 .list_item[empty]:before {
-    opacity: 0.1;
-    transition-duration: 0.2s;
+  opacity: 0.1;
+  transition-duration: 0.2s;
 }
 .list_item[empty] button:hover {
-    opacity: 1;
+  opacity: 1;
 }
 .list_item[empty] .list_in {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 @include main.mobile-device {
-    .list_item {
-        column-gap: 12px;
-        grid-template-columns: 1fr max-content;
-    }
+  .list_item {
+    column-gap: 12px;
+    grid-template-columns: 1fr max-content;
+  }
 
-    .add_asset {
-        width: 100%;
-    }
+  .add_asset {
+    width: 100%;
+  }
 }
 </style>

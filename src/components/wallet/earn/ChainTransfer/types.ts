@@ -1,15 +1,15 @@
-import { ChainIdType } from '@/constants'
-import { BN } from '@metalblockchain/metaljs'
+import type { ChainIdType } from "@/constants";
+import type { BN } from "@metalblockchain/metaljs";
 
 export enum TxState {
-    failed = -1,
-    waiting = 0,
-    started = 1,
-    success = 2,
+  failed = -1,
+  waiting = 0,
+  started = 1,
+  success = 2,
 }
 
 export interface ChainSwapFormData {
-    sourceChain: ChainIdType
-    destinationChain: ChainIdType
-    amount: BN
+  sourceChain: ChainIdType;
+  destinationChain: ChainIdType;
+  amount: BN;
 }

@@ -1,17 +1,16 @@
-import { TransactionTypeName } from '@/js/Glacier/models'
-import { BlockchainId } from '@metalblockchain/glacier-sdk'
+import type { TransactionTypeName } from "@/js/Glacier/models";
 
 export interface UtxoCsvRow {
-    txID: string
-    timeStamp: Date
-    unixTime: string
-    txType: TransactionTypeName
-    chain: string
-    isInput: boolean
-    isOwner: boolean
-    amount: string
-    owners: string[]
-    locktime: number
-    threshold: number
-    assetID: string
+  txID: string;
+  timeStamp: Date;
+  unixTime: string;
+  txType: TransactionTypeName;
+  chain: string;
+  isInput: boolean;
+  isOwner: boolean;
+  amount: string;
+  owners: string[];
+  locktime: number;
+  threshold: number;
+  assetID: string;
 }

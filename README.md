@@ -1,26 +1,28 @@
 # Metal Blockchain (METAL) Wallet
 
-This is the frontend Vue.js application for the Metal Wallet.
+This template should help get you started developing with Vue 3 in Vite.
+
+## Recommended IDE Setup
+
+[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
 
 ## Prerequisites
 
 -   Yarn (https://classic.yarnpkg.com/en/docs/install/)
--   Recent version of npm (7.4.0)
--   Node v16
+-   Recent version of npm
+-   Node v22
 -   Gecko, Metal client in Golang (https://github.com/MetalBlockchain/metalgo)
-
 ## Installation
 
 1. Clone the repo `git clone https://github.com/MetalBlockchain/metal-wallet.git`
 2. Go to root of the project `cd metal-wallet`
 3. Install javascript dependencies with `yarn install`.
-
 ## Running The Project
 
 In order for the wallet to work, it needs the Metal network to operate on. By default the wallet will connect to the Metal mainnet.
 
 1. If you want to connect to a local network, make sure you have installed and able to run a MetalGo node properly.
-2. Run the project with hot reloading `yarn serve`
+2. Run the project with hot reloading `yarn dev`
 
 When you go to the website on your browser, you might get a warning saying
 "Site is not secure". This is because we are signing our own SSL Certificates. Please ignore and continue to the website.
@@ -44,26 +46,6 @@ WARNING: This history might be out of order and incomplete.
 ## Browser Support
 
 We suggest using Google Chrome to view the Metal Wallet website.
-
-### Firefox and https
-
-Firefox does not allow https requests to localhost. But the Metal Wallet uses https by default, so we will need to change this to http. Make this switch by editing the `vue.config.js` file in the root directory and change
-
-```
-devServer: {
-    https: true
-},
-```
-
-to
-
-```
-devServer: {
-    https: false
-},
-```
-
-and run `yarn serve` to reflect the change.
 
 # Accounts
 
@@ -108,4 +90,27 @@ By default, there are two network options to connect to: `Mainnet` and `Tahoe`.
 
 -   Metal API: `https://tahoe.metalblockchain.org:443`
 -   Explorer API: `https://tahoe-explorerapi.metalblockchain.org`
+
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vitejs.dev/config/).
+
+## Project Setup
+
+```sh
+yarn install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
+yarn dev
+```
+
+### Type-Check, Compile and Minify for Production
+
+```sh
+yarn build
+```
 
