@@ -27,7 +27,7 @@
 </template>
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
-import { AvaNetwork } from "@/js/AvaNetwork";
+import type { AvaNetwork } from "@/js/AvaNetwork";
 
 @Component
 export default class NetworkRow extends Vue {

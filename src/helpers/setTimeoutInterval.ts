@@ -6,41 +6,41 @@
  * @param callback
  */
 export async function setTimeoutInterval(
-    action: () => Promise<boolean>,
-    interval: number,
-    timeout: number
+  action: () => Promise<boolean>,
+  interval: number,
+  timeout: number
 ): Promise<void> {
-    const start = performance.now()
-    const end = start + timeout
+  const start = performance.now();
+  const end = start + timeout;
 
-    return new Promise((resolve, reject) => {
-        const intervalID = setInterval(() => {
-            try {
-                const now = performance.now()
+  return new Promise((resolve, reject) => {
+    const intervalID = setInterval(() => {
+      try {
+        const now = performance.now();
 
-                if (now > end) {
-                    clearInterval(intervalID)
-                    reject(new Error('Timeout'))
-                    return
-                }
+        if (now > end) {
+          clearInterval(intervalID);
+          reject(new Error("Timeout"));
+          return;
+        }
 
-                // Do action every interval
-                action()
-                    .then((res) => {
-                        // If action returns true, stop interval
-                        if (res) {
-                            clearInterval(intervalID)
-                            resolve()
-                        }
-                    })
-                    .catch((err) => {
-                        clearInterval(intervalID)
-                        reject(err)
-                    })
-            } catch (e) {
-                clearInterval(intervalID)
-                reject(e)
+        // Do action every interval
+        action()
+          .then((res) => {
+            // If action returns true, stop interval
+            if (res) {
+              clearInterval(intervalID);
+              resolve();
             }
-        }, interval)
-    })
+          })
+          .catch((err) => {
+            clearInterval(intervalID);
+            reject(err);
+          });
+      } catch (e) {
+        clearInterval(intervalID);
+        reject(e);
+      }
+    }, interval);
+  });
 }

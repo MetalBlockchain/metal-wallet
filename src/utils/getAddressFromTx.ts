@@ -1,7 +1,5 @@
-import {
-  BaseTx as AVMBaseTx,
-  TransferableOutput,
-} from "@metalblockchain/metaljs/dist/apis/avm";
+import type { TransferableOutput } from "@metalblockchain/metaljs/dist/apis/avm";
+import { BaseTx as AVMBaseTx } from "@metalblockchain/metaljs/dist/apis/avm";
 import { BaseTx as PlatformBaseTx } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { EVMBaseTx } from "@metalblockchain/metaljs/dist/apis/evm";
 import {

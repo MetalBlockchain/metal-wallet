@@ -29,10 +29,8 @@ import type {
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
 import { BN } from "@metalblockchain/metaljs";
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import {
-  PlatformVMConstants,
-  StakeableLockOut,
-} from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type { StakeableLockOut } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import axios from "axios";
 import Erc20Token from "@/js/Erc20Token";
 import type { AvaNetwork } from "@/js/AvaNetwork";

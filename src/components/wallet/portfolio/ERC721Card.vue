@@ -55,7 +55,7 @@
 import { Vue, Component, Prop } from "vue-property-decorator";
 import axios from "axios";
 import Tooltip from "@/components/misc/Tooltip.vue";
-import ERC721Token from "@/js/ERC721Token";
+import type ERC721Token from "@/js/ERC721Token";
 import ERC721View from "@/components/misc/ERC721View.vue";
 import ERC721ViewModal from "@/components/modals/ERC721ViewModal.vue";
 @Component({

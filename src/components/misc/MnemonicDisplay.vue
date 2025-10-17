@@ -23,7 +23,7 @@
 <script lang="ts">
 import "reflect-metadata";
 import { Vue, Component, Prop } from "vue-property-decorator";
-import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 import { getRandomMnemonicWord } from "@/helpers/getRandomMnemonicWord";
 
 @Component

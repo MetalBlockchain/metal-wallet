@@ -1,6 +1,6 @@
 export interface ValidatorListFilter {
-    minDuration: number
-    maxFee: number
-    minUptime: number
-    availableSpace: number
+  minDuration: number;
+  maxFee: number;
+  minUptime: number;
+  availableSpace: number;
 }

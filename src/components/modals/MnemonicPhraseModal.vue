@@ -16,7 +16,7 @@ import { Vue, Component, Prop } from "vue-property-decorator";
 import Modal from "@/components/modals/Modal.vue";
 import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
 import CopyText from "@/components/misc/CopyText.vue";
-import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 
 @Component({
   components: {

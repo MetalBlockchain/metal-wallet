@@ -27,7 +27,7 @@ import "reflect-metadata";
 import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 
 import Modal from "@/components/modals/Modal.vue";
-import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
 import { getRandomMnemonicWord } from "@/helpers/getRandomMnemonicWord";
 

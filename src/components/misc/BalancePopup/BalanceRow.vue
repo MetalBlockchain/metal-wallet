@@ -8,7 +8,7 @@
 <script lang="ts">
 import "reflect-metadata";
 import { Vue, Component, Prop } from "vue-property-decorator";
-import AvaAsset from "@/js/AvaAsset";
+import type AvaAsset from "@/js/AvaAsset";
 
 @Component
 export default class BalanceRow extends Vue {

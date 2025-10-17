@@ -53,7 +53,7 @@
 import "reflect-metadata";
 import { Vue, Component, Prop } from "vue-property-decorator";
 
-import { AvaNetwork } from "@/js/AvaNetwork";
+import type { AvaNetwork } from "@/js/AvaNetwork";
 import punycode from "punycode";
 
 @Component
