@@ -1,5 +1,5 @@
-import { UTXO } from '@metalblockchain/metaljs/dist/apis/avm'
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 
 export interface NftGroupDict {
-    [key: string]: [UTXO]
+  [key: string]: [UTXO];
 }

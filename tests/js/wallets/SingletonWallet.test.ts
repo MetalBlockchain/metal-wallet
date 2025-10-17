@@ -1,43 +1,43 @@
-import { SingletonWallet } from '@/js/wallets/SingletonWallet'
-import { isValidChecksumAddress } from 'ethereumjs-util'
-import {describe, expect, test} from '@jest/globals';
-const TEST_KEY = 'PrivateKey-r6yxM4MiGc93hZ4QxSHhixLEH5RtPjGw6Y85gzg8mgaia6HT3'
-const ADDR_X = 'X-tahoe1np2h3agqvgxc29sqfh0dy2nvmedus0saj06cfx'
-const ADDR_C = '506433b9338e2a5706e3c0d6bce041d30688935f'
+import { SingletonWallet } from "@/js/wallets/SingletonWallet";
+import { isValidChecksumAddress } from "ethereumjs-util";
+import { describe, expect, test } from "vitest";
+const TEST_KEY = "PrivateKey-r6yxM4MiGc93hZ4QxSHhixLEH5RtPjGw6Y85gzg8mgaia6HT3";
+const ADDR_X = "X-tahoe1np2h3agqvgxc29sqfh0dy2nvmedus0saj06cfx";
+const ADDR_C = "506433b9338e2a5706e3c0d6bce041d30688935f";
 
-import { ava, avm, cChain, pChain } from '@/AVA'
+import { ava, avm, cChain, pChain } from "@/AVA";
 
-ava.setNetworkID(5)
-avm.setBlockchainAlias('X')
-pChain.setBlockchainAlias('P')
-cChain.setBlockchainAlias('C')
+ava.setNetworkID(5);
+avm.setBlockchainAlias("X");
+pChain.setBlockchainAlias("P");
+cChain.setBlockchainAlias("C");
 
-describe('Singleton Wallet', () => {
-    const wallet = new SingletonWallet(TEST_KEY)
+describe("Singleton Wallet", () => {
+  const wallet = new SingletonWallet(TEST_KEY);
 
-    test('can init', () => {
-        expect(wallet.key === TEST_KEY)
-    })
+  test("can init", () => {
+    expect(wallet.key === TEST_KEY);
+  });
 
-    test('correct address', () => {
-        let addrX = wallet.getCurrentAddressAvm() === ADDR_X
-        let addrC = wallet.getEvmAddress() === ADDR_C
-        expect(addrX && addrC).toEqual(true)
-    })
+  test("correct address", () => {
+    const addrX = wallet.getCurrentAddressAvm() === ADDR_X;
+    const addrC = wallet.getEvmAddress() === ADDR_C;
+    expect(addrX && addrC).toEqual(true);
+  });
 
-    test('getCurrentAddressAvm', () => {
-        let addr1 = wallet.getCurrentAddressAvm()
-        expect(addr1).toEqual(ADDR_X)
-    })
+  test("getCurrentAddressAvm", () => {
+    const addr1 = wallet.getCurrentAddressAvm();
+    expect(addr1).toEqual(ADDR_X);
+  });
 
-    test('evm address correct', () => {
-        let addr1 = wallet.getEvmAddress()
-        expect(addr1).toEqual(ADDR_C)
-    })
+  test("evm address correct", () => {
+    const addr1 = wallet.getEvmAddress();
+    expect(addr1).toEqual(ADDR_C);
+  });
 
-    test('can get checksum address', () => {
-        const address = wallet.getEvmChecksumAddress()
-        expect(address).toEqual('0x506433b9338e2a5706E3c0D6BCe041D30688935f')
-        expect(isValidChecksumAddress(address)).toBe(true)
-    })
-})
+  test("can get checksum address", () => {
+    const address = wallet.getEvmChecksumAddress();
+    expect(address).toEqual("0x506433b9338e2a5706E3c0D6BCe041D30688935f");
+    expect(isValidChecksumAddress(address)).toBe(true);
+  });
+});

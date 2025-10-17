@@ -1,5 +1,5 @@
-import { PChainTransaction } from '@metalblockchain/glacier-sdk'
+import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 
 export interface EarnState {
-    stakingTxs: PChainTransaction[]
+  stakingTxs: PChainTransaction[];
 }
