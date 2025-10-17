@@ -1,12 +1,11 @@
+import Metal, { BinTools } from "@metalblockchain/metaljs";
 import type {
   KeyChain as AVMKeyChain,
   AVMAPI,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { InfoAPI } from "@metalblockchain/metaljs/dist/apis/info";
-import Metal from "@metalblockchain/metaljs";
 
-import BinTools from "@metalblockchain/metaljs/dist/utils/bintools";
 import type { EVMAPI } from "@metalblockchain/metaljs/dist/apis/evm";
+import type { InfoAPI } from "@metalblockchain/metaljs/dist/apis/info";
 import type { PlatformVMAPI } from "@metalblockchain/metaljs/dist/apis/platformvm";
 
 // Connect to TestNet by default

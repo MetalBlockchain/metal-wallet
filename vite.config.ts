@@ -4,17 +4,26 @@ import { defineConfig } from "vite";
 import legacy from "@vitejs/plugin-legacy";
 import vue2 from "@vitejs/plugin-vue2";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import commonjs from "vite-plugin-commonjs";
 
 import pkg from "./package.json";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    commonjs({
+      filter(id) {
+        if (id.includes("node_modules/randomfill")) {
+          return true;
+        }
+      },
+    }),
     nodePolyfills(),
     vue2(),
     legacy({
       targets: ["ie >= 11"],
       additionalLegacyPolyfills: ["regenerator-runtime/runtime"],
+      renderLegacyChunks: false,
     }),
   ],
   define: {
