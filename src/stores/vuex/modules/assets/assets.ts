@@ -672,8 +672,7 @@ const assets_module: Module<AssetsState, RootState> = {
           const isStakeableLock =
             outId === PlatformVMConstants.STAKEABLELOCKOUTID;
 
-          let locktime;
-          locktime = isStakeableLock
+          const locktime = isStakeableLock
             ? (utxoOut as StakeableLockOut).getStakeableLocktime()
             : (utxoOut as AmountOutput).getLocktime();
 

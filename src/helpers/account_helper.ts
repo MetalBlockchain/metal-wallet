@@ -1,7 +1,7 @@
 import type { WalletType } from "@/js/wallets/types";
 import type { iUserAccountEncrypted } from "@/stores/vuex/types";
-import differenceBy from "lodash-es/differenceby";
-import isEqual from "lodash-es/isequal";
+import differenceBy from "lodash-es/differenceBy";
+import isEqual from "lodash-es/isEqual";
 import { readKeyFile } from "@/js/Keystore";
 
 function checkAccountsExist(): boolean {
