@@ -3,23 +3,23 @@
     <v-menu
       v-model="fromDateMenu"
       :close-on-content-click="false"
-      transition="scale-transition"
       offset-y
+      transition="scale-transition"
     >
-      <template v-slot:activator="{ on }">
+      <template #activator="{ on }">
         <v-text-field
+          hide-details
           :label="label"
           readonly
           :value="fromDateDisp"
           v-on="on"
-          hide-details
         ></v-text-field>
       </template>
       <v-date-picker
-        locale="en-in"
-        :min="minDate"
-        :max="maxDate"
         v-model="dateVal"
+        locale="en-in"
+        :max="maxDate"
+        :min="minDate"
         no-title
         @input="dateIn"
       ></v-date-picker>
@@ -27,12 +27,13 @@
   </v-layout>
 </template>
 <script>
-export default {
+export const VuetifyDateInput = defineComponent({
   props: {
     label: String,
     minDate: String,
     maxDate: String,
   },
+  emits: ["change"],
   data() {
     return {
       fromDateMenu: false,
@@ -49,19 +50,20 @@ export default {
       // return this.fromDateVal ? this.formatDate(this.fromDateVal) : "";
     },
   },
-  methods: {
-    dateIn() {
-      this.fromDateMenu = false;
-      // console.log(this.dateVal);
-    },
-  },
   watch: {
     dateVal(val) {
       // console.log(val);
       this.$emit("change", val);
     },
   },
-};
+  methods: {
+    dateIn() {
+      this.fromDateMenu = false;
+      // console.log(this.dateVal);
+    },
+  },
+});
+export default VuetifyDateInput;
 </script>
 <style scoped lang="scss">
 .layout {

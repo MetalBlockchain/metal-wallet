@@ -1,8 +1,8 @@
 <template>
   <div class="avax_input">
     <div class="col1 hover_border">
-      <button class="max_but" @click="maxOut" v-if="max">MAX</button>
-      <BigNumInput
+      <button v-if="max" class="max_but" @click="maxOut">MAX</button>
+      <BigNumInputShared
         ref="amt_in"
         class="amt_in"
         contenteditable="amt_in"
@@ -10,7 +10,7 @@
         :max="max"
         placeholder="0.00"
         @change="amount_in"
-      ></BigNumInput>
+      ></BigNumInputShared>
     </div>
     <p class="ticker">METAL</p>
     <div v-if="balance" class="balance">
@@ -29,56 +29,60 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Model } from "vue-property-decorator";
 import type { Big } from "@metalblockchain/metal-wallet-sdk";
-import { bnToBig } from "@metalblockchain/metal-wallet-sdk";
-//@ts-ignore
-import { BigNumInput } from "@avalabs/vue_components";
 import type { BN } from "@metalblockchain/metaljs";
-import type { priceDict } from "../../store/types";
+import type { priceDict } from "@/stores/vuex/types";
+import { bnToBig } from "@metalblockchain/metal-wallet-sdk";
+import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
 
-@Component({
+export const AvaxInput = defineComponent({
   components: {
-    BigNumInput,
+    BigNumInputShared,
   },
-})
-export class AvaxInput extends Vue {
-  @Model("change", { type: Object }) readonly amount!: BN;
+  props: {
+    balance: {
+      type: Object as PropType<Big | null>,
+      default: null,
+    },
+    max: {
+      type: Object as PropType<BN | null>,
+      default: null,
+    },
+    modelValue: {
+      type: Object as PropType<BN>,
+      required: true,
+    },
+  },
+  emits: ["change", "update:modelValue"],
+  computed: {
+    amountUSD(): Big {
+      const usdPrice = this.priceDict.usd;
+      const amount = bnToBig(this.modelValue, 9);
+      const usdBig = amount.times(usdPrice);
+      return usdBig;
+    },
 
-  @Prop({
-    default: null,
-  })
-  max?: BN | null;
+    priceDict(): priceDict {
+      return this.$store.state.prices;
+    },
+  },
+  methods: {
+    maxOut(ev: MouseEvent) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      //@ts-ignore
+      this.$refs.amt_in.maxout();
+    },
 
-  @Prop() balance?: Big | null;
-
-  maxOut(ev: MouseEvent) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    //@ts-ignore
-    this.$refs.amt_in.maxout();
-  }
-
-  amount_in(val: BN) {
-    this.$emit("change", val);
-  }
-
-  get amountUSD(): Big {
-    const usdPrice = this.priceDict.usd;
-    const amount = bnToBig(this.amount, 9);
-    const usdBig = amount.times(usdPrice);
-    return usdBig;
-  }
-
-  get priceDict(): priceDict {
-    return this.$store.state.prices;
-  }
-}
+    amount_in(val: BN) {
+      this.$emit("change", val);
+    },
+  },
+});
 export default AvaxInput;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .avax_input {
   display: grid;
@@ -173,7 +177,7 @@ p {
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .balance {
     font-size: 12px;
   }

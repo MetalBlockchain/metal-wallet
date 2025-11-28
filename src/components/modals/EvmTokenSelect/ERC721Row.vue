@@ -1,8 +1,8 @@
 <template>
-  <div class="family_row" v-if="hasBalance">
+  <div v-if="hasBalance" class="family_row">
     <div class="title_row">
-      <p>{{ token.symbol }}</p>
-      <p class="name">{{ token.name }}</p>
+      <p>{{ token?.symbol }}</p>
+      <p class="name">{{ token?.name }}</p>
     </div>
 
     <div class="items">
@@ -10,55 +10,55 @@
         v-for="tokenIndex in walletBalance"
         :key="tokenIndex"
         class="item"
-        :token="token"
         :index="tokenIndex"
-        @click.native="selectToken(tokenIndex)"
+        :token="token"
+        @click="selectToken(tokenIndex)"
       ></ERC721View>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type ERC721Token from "@/js/ERC721Token";
-import ERC721View from "@/components/misc/ERC721View.vue";
+import type { PropType } from "vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
+import type ERC721Token from "@/js/ERC721Token";
+import { defineComponent } from "vue";
+import ERC721View from "@/components/misc/ERC721View.vue";
 
-@Component({
+export const ERC721Row = defineComponent({
   components: { ERC721View },
-})
-export class ERC721Row extends Vue {
-  @Prop() token!: ERC721Token;
-
-  // created() {
-  //     this.getItems()
-  // }
-
-  get walletBalance(): string[] {
-    return (
-      this.$store.state.Assets.ERC721.walletBalance[
-        this.token.contractAddress
-      ] || []
-    );
-  }
-
-  get hasBalance(): boolean {
-    return this.walletBalance.length > 0;
-  }
-
-  selectToken(index: string) {
-    const data: iErc721SelectInput = {
-      id: index,
-      token: this.token,
-    };
-    this.$emit("select", data);
-  }
-
-  // async getItems() {
-  //     let w: WalletType = this.$store.state.activeWallet
-  //     let items = await this.token.getAllTokenData('0x' + w.ethAddress)
-  //     this.nftItems = items
-  // }
-}
+  props: {
+    token: {
+      type: Object as PropType<ERC721Token>,
+    },
+  },
+  emits: ["select"],
+  computed: {
+    walletBalance(): string[] {
+      if (!this.token) {
+        return [];
+      }
+      return (
+        this.$store.state.Assets.ERC721.walletBalance[
+          this.token.contractAddress
+        ] || []
+      );
+    },
+    hasBalance(): boolean {
+      return this.walletBalance.length > 0;
+    },
+  },
+  methods: {
+    selectToken(index: string) {
+      if (this.token) {
+        const data: iErc721SelectInput = {
+          id: index,
+          token: this.token,
+        };
+        this.$emit("select", data);
+      }
+    },
+  },
+});
 export default ERC721Row;
 </script>
 <style scoped lang="scss">

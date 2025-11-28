@@ -1,18 +1,15 @@
 <template>
   <div class="home">
-    <b-container>
-      <b-row>
-        <b-col>
+    <div class="w-container">
+      <div class="w-row">
+        <div class="w-col">
           <div class="home_wrapper">
             <h1>{{ $t("home.desc") }}</h1>
             <div class="login_wrapper">
               <div class="login_option">
                 <header>
                   <div class="img_container">
-                    <img
-                      v-if="$root.$data.theme === 'day'"
-                      src="@/assets/diamond-primary.svg"
-                    />
+                    <img v-if="isDay" src="@/assets/diamond-primary.svg" />
                     <img v-else src="@/assets/diamond-primary.svg" />
                   </div>
                   <h2>{{ $t("home.access.title") }}</h2>
@@ -20,9 +17,9 @@
                 </header>
                 <div>
                   <router-link
+                    class="ava_button button_tertiary submit_but"
                     data-cy="access"
                     to="/access"
-                    class="ava_button button_tertiary submit_but"
                   >
                     {{ $t("home.access.submit") }}
                   </router-link>
@@ -31,10 +28,7 @@
               <div class="login_option">
                 <header>
                   <div class="img_container">
-                    <img
-                      v-if="$root.$data.theme === 'day'"
-                      src="@/assets/diamond-secondary.svg"
-                    />
+                    <img v-if="isDay" src="@/assets/diamond-secondary.svg" />
                     <img v-else src="@/assets/diamond-secondary.svg" />
                   </div>
                   <h2>{{ $t("home.create.title") }}</h2>
@@ -42,9 +36,9 @@
                 </header>
                 <div>
                   <router-link
+                    class="ava_button button_secondary submit_but"
                     data-cy="create"
                     to="/create"
-                    class="ava_button button_secondary submit_but"
                   >
                     {{ $t("home.create.submit") }}
                   </router-link>
@@ -56,31 +50,35 @@
               style="align-self: center; margin: 30px !important"
             ></ToS>
           </div>
-        </b-col>
-      </b-row>
-    </b-container>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 import ToS from "@/components/misc/ToS.vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-@Component({
-  name: "home",
+export const Home = defineComponent({
+  name: "Home",
   components: { ToS },
-})
-export class Home extends Vue {}
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+});
 export default Home;
 </script>
 
 <style scoped lang="scss">
-@use "../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .home {
   padding-top: 100px;
-  /*background-color: #fff;*/
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -109,7 +107,7 @@ export default Home;
       margin-top: 60px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      column-gap: main.$container-padding;
+      column-gap: vars.$container-padding;
 
       .login_option {
         display: flex;
@@ -117,7 +115,7 @@ export default Home;
         border-radius: 2px;
         align-items: center;
         justify-content: space-between;
-        padding: 60px 90px main.$container-padding main.$container-padding;
+        padding: 60px 90px vars.$container-padding vars.$container-padding;
 
         header {
           margin-bottom: 24px;
@@ -130,16 +128,16 @@ export default Home;
           }
 
           h2 {
-            padding-top: main.$s-size;
+            padding-top: vars.$s-size;
             font-family: "Inter", sans-serif;
-            font-size: main.$s-size;
+            font-size: vars.$s-size;
             font-weight: 400;
             color: var(--primary-color-light);
           }
 
           p {
             margin-top: 10px !important;
-            font-size: main.$l-size;
+            font-size: vars.$l-size;
             color: var(--tertiary-color);
             font-weight: 700;
           }
@@ -163,9 +161,6 @@ export default Home;
 /* ==========================================
    Nav
    ========================================== */
-
-@include main.night-mode {
-}
 .logo {
   margin-bottom: 30px;
 }
@@ -175,7 +170,7 @@ img {
   object-fit: contain;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .login_option {
     padding: 30px 40px !important;
     p {
@@ -184,7 +179,7 @@ img {
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .auth {
     border-radius: 0;
     box-shadow: none;
@@ -205,7 +200,7 @@ img {
   .home {
     .home_wrapper {
       h1 {
-        font-size: main.$xl-size-mobile;
+        font-size: vars.$xl-size-mobile;
       }
 
       .login_wrapper {
@@ -214,7 +209,7 @@ img {
         flex-direction: column;
 
         .login_option {
-          margin-bottom: main.$vertical-padding;
+          margin-bottom: vars.$vertical-padding;
           padding: 30px 15px;
           align-items: center;
 
@@ -231,13 +226,13 @@ img {
             }
 
             h2 {
-              padding-top: main.$s-size-mobile;
-              font-size: main.$s-size-mobile;
+              padding-top: vars.$s-size-mobile;
+              font-size: vars.$s-size-mobile;
             }
 
             p {
               margin-top: 10px !important;
-              font-size: main.$l-size-mobile;
+              font-size: vars.$l-size-mobile;
               text-align: center;
             }
           }
@@ -249,8 +244,5 @@ img {
       }
     }
   }
-}
-
-@media only screen and (max-width: 600px) {
 }
 </style>

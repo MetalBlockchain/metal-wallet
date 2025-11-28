@@ -1,6 +1,6 @@
 <template>
   <div class="erc721_view">
-    <img :src="parseURL(img)" v-if="!isError && img" />
+    <img v-if="!isError && img" :src="parseURL(img)" />
     <div v-if="isError" class="err_cont">
       <p>
         <fa icon="unlink"></fa>
@@ -9,62 +9,83 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
-import axios from "axios";
+import { defineComponent } from "vue";
 
 // If an image url is hosted on one of these urls, reroute through cloudflare.
 const REDIRECT_DOMAINS = ["gateway.pinata.cloud/ipfs"];
 const CF_IPFS_BASE = "https://cloudflare-ipfs.com/ipfs/";
-@Component
-export default class ERC721View extends Vue {
-  @Prop() index!: string;
-  @Prop() token!: ERC721Token;
-  metadata: any = {};
-  isError = false;
+export default defineComponent({
+  props: {
+    index: {
+      type: String,
+    },
+    token: {
+      type: Object as PropType<ERC721Token>,
+    },
+  },
+  data() {
+    const metadata: any = {};
 
+    return {
+      metadata,
+      isError: false,
+    };
+  },
+  computed: {
+    img() {
+      const data = this.metadata;
+      if (!data) return null;
+      return data.img || data.image || null;
+    },
+  },
+  watch: {
+    token: [
+      {
+        handler: "onIndexChange",
+      },
+    ],
+    index: [
+      {
+        handler: "onIndexChange",
+      },
+    ],
+  },
   mounted() {
     this.getData();
-  }
+  },
+  methods: {
+    parseURL(val: string) {
+      const isRedirect = REDIRECT_DOMAINS.reduce((acc, domain) => {
+        if (acc) return acc;
+        if (val.includes(domain)) return true;
+        return false;
+      }, false);
 
-  @Watch("token")
-  @Watch("index")
-  onIndexChange() {
-    this.getData();
-  }
-
-  parseURL(val: string) {
-    const isRedirect = REDIRECT_DOMAINS.reduce((acc, domain) => {
-      if (acc) return acc;
-      if (val.includes(domain)) return true;
-      return false;
-    }, false);
-
-    if (isRedirect) {
-      const ipfsHash = val.split("ipfs/")[1];
-      return CF_IPFS_BASE + ipfsHash;
-    }
-    return val;
-  }
-
-  get img() {
-    const data = this.metadata;
-    if (!data) return null;
-    return data.img || data.image || null;
-  }
-
-  async getData() {
-    try {
-      this.metadata = await this.token.getTokenURIData(parseInt(this.index));
-      this.isError = false;
-    } catch (e) {
-      this.isError = true;
-    }
-    // let uri = await this.token.getTokenURI(parseInt(this.index))
-    // let res = (await axios.get(uri)).data
-    // this.metadata = res
-  }
-}
+      if (isRedirect) {
+        const ipfsHash = val.split("ipfs/")[1];
+        return CF_IPFS_BASE + ipfsHash;
+      }
+      return val;
+    },
+    async getData() {
+      if (this.token) {
+        try {
+          this.metadata = await this.token.getTokenURIData(
+            Number.parseInt(this.index ?? ""),
+          );
+          this.isError = false;
+        } catch {
+          this.isError = true;
+        }
+      }
+    },
+    onIndexChange() {
+      this.getData();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .erc721_view {

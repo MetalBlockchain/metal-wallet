@@ -1,11 +1,11 @@
 <template>
   <div class="validator_list">
     <FilterSettings
-      class="filter_modal"
       v-show="showFilter"
-      @close="showFilter = false"
-      @change="applyFilter"
+      class="filter_modal"
       :validators="validators"
+      @change="applyFilter"
+      @close="showFilter = false"
     ></FilterSettings>
     <div class="table_cont">
       <table>
@@ -50,90 +50,99 @@
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import ValidatorRow from "@/components/misc/ValidatorList/ValidatorRow.vue";
-import FilterSettings from "@/components/misc/ValidatorList/FilterSettings.vue";
-
-import Tooltip from "@/components/misc/Tooltip.vue";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+
+import type { ValidatorMetaData } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import Tooltip from "@/components/misc/Tooltip.vue";
+import FilterSettings from "@/components/misc/ValidatorList/FilterSettings.vue";
+import ValidatorRow from "@/components/misc/ValidatorList/ValidatorRow.vue";
 import { filterValidatorList } from "@/components/wallet/earn/Delegate/helper";
-import type { ValidatorMetaData } from "../../../store/types";
 
-@Component({
+export const ValidatorsList = defineComponent({
   components: { Tooltip, ValidatorRow, FilterSettings },
-})
-export class ValidatorsList extends Vue {
-  @Prop() search!: string;
-  showFilter = false;
-  filter: ValidatorListFilter | null = null;
+  props: {
+    search: {
+      type: String,
+    },
+  },
+  emits: ["select"],
+  data(): {
+    filter: ValidatorListFilter | null;
+    showFilter: boolean;
+  } {
+    return {
+      showFilter: false,
+      filter: null,
+    };
+  },
+  computed: {
+    validators(): ValidatorListItem[] {
+      let list: ValidatorListItem[] =
+        this.$store.getters["Platform/validatorListEarn"];
+      const metaData: ValidatorMetaData =
+        this.$store.getters["validatorMetaData"];
 
-  openFilters() {
-    this.showFilter = true;
-  }
+      if (metaData && metaData.validators) {
+        for (const validator of list) {
+          const data = metaData.validators.find(
+            (s: any) => s.id === validator.nodeID,
+          );
 
-  hideFilters() {
-    this.showFilter = false;
-  }
-
-  applyFilter(filter: ValidatorListFilter | null) {
-    this.filter = filter;
-  }
-
-  get validators(): ValidatorListItem[] {
-    let list: ValidatorListItem[] =
-      this.$store.getters["Platform/validatorListEarn"];
-    const metaData: ValidatorMetaData =
-      this.$store.getters["validatorMetaData"];
-
-    if (metaData && metaData.validators) {
-      for (const validator of list) {
-        const data = metaData.validators.find(
-          (s: any) => s.id === validator.nodeID
-        );
-
-        if (data) {
-          validator.name = data.name;
-          validator.country = data.country;
+          if (data) {
+            validator.name = data.name;
+            validator.country = data.country;
+          }
         }
       }
-    }
 
-    if (this.search) {
-      list = list.filter((v) => {
-        return v.nodeID.includes(this.search);
-      });
-    }
-
-    // order by stake amount
-    list = list.sort((a, b) => {
-      console.log(a);
-      const amtA = a.fee;
-      const amtB = b.fee;
-
-      if (amtA > amtB) {
-        return 1;
-      } else if (amtA < amtB) {
-        return -1;
-      } else {
-        return 0;
+      const search = this.search;
+      if (search) {
+        list = list.filter((v) => {
+          return v.nodeID.includes(search);
+        });
       }
-    });
 
-    return list;
-  }
+      // order by stake amount
+      // eslint-disable-next-line unicorn/no-array-sort
+      list = list.sort((a, b) => {
+        console.log(a);
+        const amtA = a.fee;
+        const amtB = b.fee;
 
-  get validatorsFiltered(): ValidatorListItem[] {
-    return filterValidatorList(this.validators, this.filter);
-  }
+        if (amtA > amtB) {
+          return 1;
+        } else if (amtA < amtB) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
 
-  onselect(val: ValidatorListItem) {
-    this.$emit("select", val);
-  }
-}
+      return list;
+    },
+    validatorsFiltered(): ValidatorListItem[] {
+      return filterValidatorList(this.validators, this.filter);
+    },
+  },
+  methods: {
+    openFilters() {
+      this.showFilter = true;
+    },
+    hideFilters() {
+      this.showFilter = false;
+    },
+    applyFilter(filter: ValidatorListFilter | null) {
+      this.filter = filter;
+    },
+    onselect(val: ValidatorListItem) {
+      this.$emit("select", val);
+    },
+  },
+});
 export default ValidatorsList;
 </script>
 <style scoped lang="scss">
@@ -150,8 +159,6 @@ export default ValidatorsList;
 table {
   width: 100%;
   border-collapse: collapse;
-}
-tr {
 }
 th {
   position: sticky;

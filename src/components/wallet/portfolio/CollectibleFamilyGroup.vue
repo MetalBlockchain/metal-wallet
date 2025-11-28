@@ -1,62 +1,64 @@
 <template>
   <div class="family_group">
     <NftCard
-      :payload="payload"
-      :utxo="utxos[0]"
       :group-i-d="groupID"
+      :payload="payload"
       :quantity="quantity"
+      :utxo="utxosFirst"
     ></NftCard>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { Buffer } from "@metalblockchain/metaljs";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { Buffer } from "@metalblockchain/metaljs";
+import type { PropType } from "vue";
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
-import Tooltip from "@/components/misc/Tooltip.vue";
-import NFTViewModal from "@/components/modals/NFTViewModal.vue";
+import { defineComponent } from "vue";
 import NftCard from "@/components/wallet/portfolio/NftCard.vue";
 
 const payloadtypes = PayloadTypes.getInstance();
-@Component({
-  components: { NftCard, NFTViewModal, Tooltip, NftPayloadView },
-})
-export class CollectibleFamilyGroup extends Vue {
-  @Prop() utxos!: UTXO[];
-  $refs!: {
-    modal: NFTViewModal;
-  };
+export const CollectibleFamilyGroup = defineComponent({
+  components: { NftCard },
+  props: {
+    utxos: {
+      type: Array as PropType<UTXO[]>,
+    },
+  },
+  computed: {
+    quantity() {
+      return this.utxos?.length;
+    },
+    utxosFirst() {
+      if (!this.utxos?.length) return undefined;
+      return this.utxos[0];
+    },
+    groupID() {
+      const val = this.utxosFirst;
+      if (!val) return undefined;
+      const output = val.getOutput() as NFTTransferOutput;
+      return output.getGroupID();
+    },
+    payload(): PayloadBase | undefined {
+      const val = this.utxosFirst;
+      if (!val) return undefined;
+      const out = val.getOutput() as NFTTransferOutput;
+      const payload = out.getPayloadBuffer();
 
-  get quantity() {
-    return this.utxos.length;
-  }
+      const typeId = payloadtypes.getTypeID(payload);
+      const pl: Buffer = payloadtypes.getContent(payload);
+      const payloadbase: PayloadBase = payloadtypes.select(typeId, pl);
 
-  get groupID() {
-    const output = this.utxos[0].getOutput() as NFTTransferOutput;
-    return output.getGroupID();
-  }
-
-  get payload(): PayloadBase {
-    const out = this.utxos[0].getOutput() as NFTTransferOutput;
-    const payload = out.getPayloadBuffer();
-
-    const typeId = payloadtypes.getTypeID(payload);
-    const pl: Buffer = payloadtypes.getContent(payload);
-    const payloadbase: PayloadBase = payloadtypes.select(typeId, pl);
-
-    return payloadbase;
-  }
-}
+      return payloadbase;
+    },
+  },
+});
 export default CollectibleFamilyGroup;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
-
 .family_group {
   position: relative;
 }
@@ -91,8 +93,5 @@ export default CollectibleFamilyGroup;
   justify-content: center;
   align-items: center;
   height: 100%;
-}
-
-@include main.mobile-device {
 }
 </style>

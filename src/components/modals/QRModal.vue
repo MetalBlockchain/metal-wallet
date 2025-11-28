@@ -3,80 +3,78 @@
     <div class="qr_body">
       <canvas ref="qr"></canvas>
       <p>{{ address }}</p>
-      <CopyText :value="address" class="copyBut">{{
+      <CopyText class="copyBut" :value="address">{{
         $t("modal.qr.copy")
       }}</CopyText>
     </div>
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-
-import Modal from "./Modal.vue";
-import CopyText from "../misc/CopyText.vue";
 import QRCode from "qrcode";
-import { KeyPair as AVMKeyPair } from "@metalblockchain/metaljs/dist/apis/avm";
-import MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import CopyText from "../misc/CopyText.vue";
+import Modal from "./Modal.vue";
 
-@Component({
+export default defineComponent({
   components: {
     Modal,
     CopyText,
   },
-})
-export default class QRModal extends Vue {
-  colorDark = "#242729";
-  colorLight = "#FFF";
+  props: {
+    address: { default: "-", type: String },
+  },
+  data() {
+    return {
+      colorDark: "#242729",
+      colorLight: "#FFF",
+    };
+  },
+  watch: {
+    address: [{ immediate: true, handler: "onaddrchange" }],
+    "$root.theme": [{ immediate: true, handler: "onthemechange" }],
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
 
-  @Prop({ default: "-" }) address!: string;
-
-  @Watch("address", { immediate: true })
-  onaddrchange(val: string) {
-    if (val) {
-      this.updateQR();
-    }
-  }
-
-  @Watch("$root.theme", { immediate: true })
-  onthemechange(val: string) {
-    if (val === "night") {
-      this.colorDark = "#E5E5E5";
-      this.colorLight = "#242729";
-    } else {
-      this.colorDark = "#242729";
-      this.colorLight = "#FFF";
-    }
-    this.updateQR();
-  }
-
-  open() {
-    // @ts-ignore
-    this.$refs.modal.open();
-
-    Vue.nextTick(() => {
-      this.updateQR();
-    });
-  }
-  updateQR() {
-    if (!this.address) return;
-    const canvas = this.$refs.qr;
-    QRCode.toCanvas(
-      canvas,
-      this.address,
-      {
-        scale: 6,
-        color: {
-          light: this.colorLight,
-          dark: this.colorDark,
+      nextTick(() => {
+        this.updateQR();
+      });
+    },
+    updateQR() {
+      if (!this.address) return;
+      const canvas = this.$refs.qr;
+      QRCode.toCanvas(
+        canvas,
+        this.address,
+        {
+          scale: 6,
+          color: {
+            light: this.colorLight,
+            dark: this.colorDark,
+          },
         },
-      },
-      function (error) {
-        if (error) console.error(error);
+        (error) => {
+          if (error) console.error(error);
+        },
+      );
+    },
+    onaddrchange(val: string) {
+      if (val) {
+        this.updateQR();
       }
-    );
-  }
-}
+    },
+    onthemechange(val: string) {
+      if (val === "night") {
+        this.colorDark = "#E5E5E5";
+        this.colorLight = "#242729";
+      } else {
+        this.colorDark = "#242729";
+        this.colorLight = "#FFF";
+      }
+      this.updateQR();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .qr_body {

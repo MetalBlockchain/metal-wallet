@@ -4,24 +4,25 @@
     <div class="panel_nav">
       <DayNightToggle class="hover_but"></DayNightToggle>
       <network-menu class="net_menu"></network-menu>
-      <button @click="logout" class="logout">
+      <button class="logout" @click="logout">
         {{ $t("logout.button") }}
       </button>
     </div>
-    <transition name="fade" mode="out-in">
+    <transition mode="out-in" name="fade">
       <transaction-history-panel
         class="panel_content"
       ></transaction-history-panel>
     </transition>
   </div>
 </template>
-<script>
-import NetworkMenu from "../NetworkSettings/NetworkMenu.vue";
-import TransactionHistoryPanel from "./TransactionHistoryPanel.vue";
+<script lang="ts">
+import { defineComponent } from "vue";
 import DayNightToggle from "@/components/misc/DayNightToggle.vue";
 import ConfirmLogout from "@/components/modals/ConfirmLogout.vue";
+import NetworkMenu from "../NetworkSettings/NetworkMenu.vue";
+import TransactionHistoryPanel from "./TransactionHistoryPanel.vue";
 
-export default {
+export const MainPanel = defineComponent({
   components: {
     NetworkMenu,
     TransactionHistoryPanel,
@@ -31,13 +32,14 @@ export default {
   methods: {
     logout() {
       // this.$store.dispatch('logout');
-      this.$refs.logout.open();
+      (this.$refs.logout as typeof ConfirmLogout).open();
     },
   },
-};
+});
+export default MainPanel;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .main_panel {
   display: grid;
@@ -80,7 +82,7 @@ export default {
   margin-left: auto;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .panel_nav {
     padding: 12px 16px;
   }

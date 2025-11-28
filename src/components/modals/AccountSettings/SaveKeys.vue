@@ -2,56 +2,59 @@
   <form @submit.prevent="submit">
     <p>You have unsaved keys on your account.</p>
     <input
-      type="password"
+      v-model="pass"
       class="single_line_input"
       placeholder="Password"
-      v-model="pass"
+      type="password"
     />
     <p class="err">{{ error }}</p>
     <v-btn
-      class="button_secondary"
-      small
       block
+      class="button_secondary"
       depressed
       :disabled="!canSubmit"
+      small
       type="submit"
     >
       Submit
     </v-btn>
   </form>
 </template>
+
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-import type AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
+import { defineComponent } from "vue";
 
-@Component
-export class SaveKeys extends Vue {
-  pass = "";
-  error = "";
-
-  $parent!: AccountSettingsModal;
-
-  get canSubmit() {
-    if (this.pass.length < 1) return false;
-    return true;
-  }
-
-  submit() {
-    this.error = "";
-    this.$store
-      .dispatch("Accounts/saveKeys", this.pass)
-      .then((res) => {
-        this.$store.dispatch("Notifications/add", {
-          title: "Keys Saved",
-          message: "Your account is updated with new keys.",
+export const SaveKeys = defineComponent({
+  data() {
+    return {
+      pass: "",
+      error: "",
+    };
+  },
+  computed: {
+    canSubmit() {
+      if (this.pass.length === 0) return false;
+      return true;
+    },
+  },
+  methods: {
+    submit() {
+      this.error = "";
+      this.$store
+        .dispatch("Accounts/saveKeys", this.pass)
+        .then(() => {
+          this.$store.dispatch("Notifications/add", {
+            title: "Keys Saved",
+            message: "Your account is updated with new keys.",
+          });
+          (this.$parent as any)?.close();
+        })
+        .catch((error) => {
+          this.error = error;
         });
-        this.$parent.close();
-      })
-      .catch((err) => {
-        this.error = err;
-      });
-  }
-}
+    },
+  },
+});
 export default SaveKeys;
 </script>
 <style scoped lang="scss">

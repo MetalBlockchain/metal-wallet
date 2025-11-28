@@ -14,7 +14,7 @@ const avascanFuji = `https://tahoe.metalscan.io`;
 export function getTxURL(
   txHash: string,
   chain: ChainIdType,
-  isMainnet: boolean
+  isMainnet: boolean,
 ) {
   const base = isMainnet ? mainnetBase : fujiBase;
   const chainPath = chain.toLowerCase() + "-chain";

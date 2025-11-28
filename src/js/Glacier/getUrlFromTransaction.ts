@@ -1,8 +1,8 @@
-import { isTransactionP, isTransactionX } from "@/js/Glacier/models";
 import type { TransactionType } from "@/js/Glacier/models";
-import { isMainnetNetworkID } from "@/store/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/store/modules/network/isTestnetNetworkID";
 import { getTxURL } from "@/js/Glacier/getTxURL";
+import { isTransactionP, isTransactionX } from "@/js/Glacier/models";
+import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
 
 /**
  * Given a glacier transaction, returns its URL on the explorer.
@@ -11,7 +11,7 @@ import { getTxURL } from "@/js/Glacier/getTxURL";
  */
 export function getUrlFromTransaction(
   netID: number,
-  transaction: TransactionType
+  transaction: TransactionType,
 ) {
   const isMainnet = isMainnetNetworkID(netID);
   const isFuji = isTestnetNetworkID(netID);

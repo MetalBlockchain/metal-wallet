@@ -1,5 +1,5 @@
 <template>
-  <div class="analytics" v-show="showConsentModal">
+  <div v-show="showConsentModal" class="analytics">
     <div class="analytics_item">
       <p class="analytics_msg">
         {{ $t("analytics.cookie_desc") }}
@@ -7,8 +7,8 @@
       <div class="analytics_actions">
         <button
           class="button_form_cancel"
-          @click="onReject"
           data-cy="reject_analytics"
+          @click="onReject"
         >
           {{ $t("analytics.reject") }}
         </button>
@@ -20,26 +20,31 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-@Component
-export class Analytics extends Vue {
-  showConsentModal = localStorage.getItem("consentsToAnalytics") === null;
-  onAccept() {
-    localStorage.setItem("consentsToAnalytics", "true");
-    this.$posthog.opt_in_capturing();
-    this.showConsentModal = false;
+import { defineComponent } from "vue";
 
-    return;
-  }
-  onReject() {
-    localStorage.setItem("consentsToAnalytics", "false");
-    this.$posthog.opt_out_capturing();
-    this.showConsentModal = false;
+export const Analytics = defineComponent({
+  data() {
+    return {
+      showConsentModal: localStorage.getItem("consentsToAnalytics") === null,
+    };
+  },
+  methods: {
+    onAccept() {
+      localStorage.setItem("consentsToAnalytics", "true");
+      this.$posthog.opt_in_capturing();
+      this.showConsentModal = false;
 
-    return;
-  }
-}
+      return;
+    },
+    onReject() {
+      localStorage.setItem("consentsToAnalytics", "false");
+      this.$posthog.opt_out_capturing();
+      this.showConsentModal = false;
+
+      return;
+    },
+  },
+});
 export default Analytics;
 </script>
 <style scoped>

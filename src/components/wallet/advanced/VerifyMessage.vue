@@ -16,12 +16,12 @@
     </div>
     <p class="err">{{ error }}</p>
     <v-btn
-      class="button_secondary"
       block
-      small
+      class="button_secondary"
       depressed
-      @click="verify"
       :disabled="!canSubmit"
+      small
+      @click="verify"
     >
       {{ $t("advanced.verify.submit") }}
     </v-btn>
@@ -32,69 +32,71 @@
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { KeyPair } from "@metalblockchain/metaljs/dist/apis/avm";
-import { ava, bintools } from "@/AVA";
-import createHash from "create-hash";
-import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
-import { avm } from "@/AVA";
 import { Buffer } from "@metalblockchain/metaljs";
+import { KeyPair } from "@metalblockchain/metaljs/dist/apis/avm";
+import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
+import { defineComponent } from "vue";
 import { digestMessage } from "@/helpers/helper";
+import { ava, bintools } from "@/misc/AVA";
 
-@Component
-export default class VerifyMessage extends Vue {
-  message = "";
-  addressX = "";
-  addressP = "";
-  signature = "";
-  error = "";
+export default defineComponent({
+  data() {
+    return {
+      message: "",
+      addressX: "",
+      addressP: "",
+      signature: "",
+      error: "",
+    };
+  },
+  computed: {
+    canSubmit() {
+      if (!this.message || !this.signature) return false;
 
-  submit() {
-    this.addressX = "";
-    this.addressP = "";
-    this.error = "";
-    try {
-      this.verify();
-    } catch (e: any) {
-      this.error = e;
-    }
-  }
-  verify() {
-    const digest = digestMessage(this.message);
-    const digestBuff = Buffer.from(digest.toString("hex"), "hex");
-
-    const networkId = ava.getNetworkID();
-
-    const hrp = getPreferredHRP(networkId);
-    const keypair = new KeyPair(hrp, "X");
-
-    const signedBuff = bintools.cb58Decode(this.signature);
-
-    const pubKey = keypair.recover(digestBuff, signedBuff);
-    const addressBuff = KeyPair.addressFromPublicKey(pubKey);
-    this.addressX = bintools.addressToString(hrp, "X", addressBuff);
-    this.addressP = bintools.addressToString(hrp, "P", addressBuff);
-  }
-
-  clear() {
-    this.message = "";
-    this.signature = "";
-    this.addressX = "";
-    this.addressP = "";
-    this.error = "";
-  }
-
+      return true;
+    },
+  },
   deactivated() {
     this.clear();
-  }
+  },
+  methods: {
+    submit() {
+      this.addressX = "";
+      this.addressP = "";
+      this.error = "";
+      try {
+        this.verify();
+      } catch (error: any) {
+        this.error = error;
+      }
+    },
+    verify() {
+      const digest = digestMessage(this.message);
+      const digestBuff = Buffer.from(digest.toString("hex"), "hex");
 
-  get canSubmit() {
-    if (!this.message || !this.signature) return false;
+      const networkId = ava.getNetworkID();
 
-    return true;
-  }
-}
+      const hrp = getPreferredHRP(networkId);
+      const keypair = new KeyPair(hrp, "X");
+
+      const signedBuff = bintools.cb58Decode(this.signature);
+
+      const pubKey = keypair.recover(digestBuff, signedBuff);
+      const addressBuff = KeyPair.addressFromPublicKey(pubKey);
+      this.addressX = bintools.addressToString(hrp, "X", addressBuff);
+      this.addressP = bintools.addressToString(hrp, "P", addressBuff);
+    },
+    clear() {
+      this.message = "";
+      this.signature = "";
+      this.addressX = "";
+      this.addressP = "";
+      this.error = "";
+    },
+  },
+});
 </script>
 <style lang="scss" scoped>
 h2 {

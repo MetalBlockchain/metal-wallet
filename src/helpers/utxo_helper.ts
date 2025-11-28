@@ -1,7 +1,7 @@
+import type { BN } from "@metalblockchain/metaljs";
 import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import { avm, pChain } from "@/AVA";
-import type { BN } from "@metalblockchain/metaljs";
+import { avm, pChain } from "@/misc/AVA";
 
 export async function getStakeForAddresses(addrs: string[]): Promise<BN> {
   if (addrs.length <= 256) {
@@ -34,16 +34,13 @@ export async function avmGetAllUTXOs(addrs: string[]): Promise<AVMUTXOSet> {
 
 export async function avmGetAllUTXOsForAddresses(
   addrs: string[],
-  endIndex: any = undefined
+  endIndex: any = undefined,
 ): Promise<AVMUTXOSet> {
   if (addrs.length > 1024)
     throw new Error("Maximum length of addresses is 1024");
-  let response;
-  if (!endIndex) {
-    response = await avm.getUTXOs(addrs);
-  } else {
-    response = await avm.getUTXOs(addrs, undefined, 0, endIndex);
-  }
+  const response = await (endIndex
+    ? avm.getUTXOs(addrs, undefined, 0, endIndex)
+    : avm.getUTXOs(addrs));
 
   const utxoSet = response.utxos;
   const utxos = utxoSet.getAllUTXOs();
@@ -59,7 +56,7 @@ export async function avmGetAllUTXOsForAddresses(
 
 // helper method to get utxos for more than 1024 addresses
 export async function platformGetAllUTXOs(
-  addrs: string[]
+  addrs: string[],
 ): Promise<PlatformUTXOSet> {
   if (addrs.length <= 1024) {
     const newSet = await platformGetAllUTXOsForAddresses(addrs);
@@ -77,14 +74,11 @@ export async function platformGetAllUTXOs(
 
 export async function platformGetAllUTXOsForAddresses(
   addrs: string[],
-  endIndex: any = undefined
+  endIndex: any = undefined,
 ): Promise<PlatformUTXOSet> {
-  let response;
-  if (!endIndex) {
-    response = await pChain.getUTXOs(addrs);
-  } else {
-    response = await pChain.getUTXOs(addrs, undefined, 0, endIndex);
-  }
+  const response = await (endIndex
+    ? pChain.getUTXOs(addrs, undefined, 0, endIndex)
+    : pChain.getUTXOs(addrs));
 
   const utxoSet = response.utxos;
   const nextEndIndex = response.endIndex;

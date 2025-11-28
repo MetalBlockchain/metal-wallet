@@ -3,8 +3,8 @@
     <template v-if="account">
       <button class="account_but" @click="openSettings">
         <Identicon
+          :diameter="18"
           :value="account.baseAddresses.join('')"
-          diameter="18"
         ></Identicon>
         <p>{{ account.name }}</p>
       </button>
@@ -13,62 +13,52 @@
     <template v-else>
       <SaveAccountModal ref="save_modal"></SaveAccountModal>
       <button class="save_account" @click="save">
-        <fa icon="exclamation-triangle" class="volatile_alert"></fa>
+        <fa class="volatile_alert" icon="exclamation-triangle"></fa>
         Save Account
       </button>
     </template>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-import type { iUserAccountEncrypted } from "@/store/types";
-import Identicon from "@/components/misc/Identicon.vue";
-import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
-import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
 import type { WalletType } from "@/js/wallets/types";
+import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import Identicon from "@/components/misc/Identicon.vue";
+import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
+import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
 
-@Component({
+export const AccountMenu = defineComponent({
   components: {
     AccountSettingsModal,
     SaveAccountModal,
     Identicon,
   },
-})
-export class AccountMenu extends Vue {
-  $refs!: {
-    save_modal: SaveAccountModal;
-    settings_modal: AccountSettingsModal;
-  };
-
-  get account(): iUserAccountEncrypted | null {
-    return this.$store.getters["Accounts/account"];
-  }
-
-  get wallet(): WalletType | null {
-    return this.$store.state.activeWallet;
-  }
-
-  get isLedger() {
-    const w = this.wallet;
-    if (!w) return false;
-    return w.type === "ledger";
-  }
-
-  openSettings() {
-    this.$refs.settings_modal.open();
-  }
-
-  save() {
-    this.$refs.save_modal.open();
-  }
-}
+  computed: {
+    account(): iUserAccountEncrypted | null {
+      return this.$store.getters["Accounts/account"];
+    },
+    wallet(): WalletType | null {
+      return this.$store.state.activeWallet;
+    },
+    isLedger() {
+      const w = this.wallet;
+      if (!w) return false;
+      return w.type === "ledger";
+    },
+  },
+  methods: {
+    openSettings() {
+      (this.$refs.settings_modal as typeof AccountSettingsModal).open();
+    },
+    save() {
+      (this.$refs.save_modal as typeof SaveAccountModal).open();
+    },
+  },
+});
 export default AccountMenu;
 </script>
 <style scoped lang="scss">
 .account_but {
-  //padding: 4px 8px;
-  //border-radius: 4px;
-  //background-color: var(--bg-light);
   color: var(--primary-color);
   display: flex;
   flex-direction: row;

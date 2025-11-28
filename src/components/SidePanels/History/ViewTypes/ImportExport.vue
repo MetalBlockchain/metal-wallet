@@ -17,139 +17,117 @@
   </div> -->
 </template>
 <script lang="ts">
-import { avm, cChain, pChain } from "@/AVA";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import { BN } from "@metalblockchain/metaljs";
-import { bnToBig } from "@/helpers/helper";
+import type { PropType } from "vue";
 import type { TransactionType, XChainTransaction } from "@/js/Glacier/models";
-import { isTransactionP } from "@/js/Glacier/models";
 // import { getExportBalances } from "@/components/SidePanels/History/ViewTypes/getExportBalances";
 import type { WalletType } from "@/js/wallets/types";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
+import { isTransactionP } from "@/js/Glacier/models";
+import { avm, cChain, pChain } from "@/misc/AVA";
 
 function idToAlias(chainId: string | undefined) {
-  if (chainId === pChain.getBlockchainID()) {
-    return "P";
-  } else if (chainId === avm.getBlockchainID()) {
-    return "X";
-  } else if (chainId === cChain.getBlockchainID()) {
-    return "C";
+  switch (chainId) {
+    case pChain.getBlockchainID(): {
+      return "P";
+    }
+    case avm.getBlockchainID(): {
+      return "X";
+    }
+    case cChain.getBlockchainID(): {
+      return "C";
+    }
+    // No default
   }
   return chainId;
 }
 
-@Component
-export class ImportExport extends Vue {
-  @Prop() transaction!: TransactionType;
-
-  toLocaleString(val: BN, decimals: number) {
-    return bnToBig(val, decimals).toLocaleString();
-  }
-
-  getAssetFromID(id: string) {
-    return this.$store.state.Assets.assetsDict[id];
-  }
-
-  get isExport() {
-    return this.transaction.txType === "ExportTx";
-  }
-
-  get actionTitle() {
-    if (this.isExport) {
-      if (this.isExportReceiver) {
-        return "Received";
+export const ImportExport = defineComponent({
+  props: {
+    transaction: {
+      type: Object as PropType<TransactionType>,
+    },
+  },
+  computed: {
+    isExport() {
+      return this.transaction?.txType === "ExportTx";
+    },
+    actionTitle() {
+      if (this.isExport) {
+        return this.isExportReceiver ? "Received" : "Export";
       } else {
-        return "Export";
+        return "Import";
       }
-    } else {
-      return "Import";
-    }
-  }
+    },
+    destinationChainId() {
+      //TODO: Remove type when PChainTx is ready
+      return (this.transaction as XChainTransaction).destinationChain!;
+    },
+    sourceChainId() {
+      //TODO: Remove type when PChainTx is ready
+      return (this.transaction as XChainTransaction).sourceChain;
+    },
+    chainAlias() {
+      const chainId = this.isExport
+        ? this.sourceChainId
+        : this.destinationChainId;
+      return idToAlias(chainId);
+    },
+    addresses() {
+      const wallet: WalletType | null = this.$store.state.activeWallet;
+      if (!wallet) return [];
+      return wallet.getHistoryAddresses();
+    },
+    ownedInputs() {
+      const tx = this.transaction;
 
-  /**
-   * Returns the chain id we are exporting/importing to
-   */
-  get destinationChainId() {
-    //TODO: Remove type when PChainTx is ready
-    return (this.transaction as XChainTransaction).destinationChain!;
-  }
-
-  get sourceChainId() {
-    //TODO: Remove type when PChainTx is ready
-    return (this.transaction as XChainTransaction).sourceChain;
-  }
-
-  get chainAlias() {
-    const chainId = this.isExport
-      ? this.sourceChainId
-      : this.destinationChainId;
-    return idToAlias(chainId);
-  }
-
-  /**
-   * All X/P addresses used by the wallet
-   */
-  get addresses() {
-    const wallet: WalletType | null = this.$store.state.activeWallet;
-    if (!wallet) return [];
-    return wallet.getHistoryAddresses();
-  }
-
-  get ownedInputs() {
-    const tx = this.transaction;
-    if (isTransactionP(tx)) {
-      return tx.consumedUtxos.filter((utxo) => {
-        return isOwnedUTXO(utxo, this.addresses);
-      });
-    } else {
+      return tx && isTransactionP(tx)
+        ? tx.consumedUtxos.filter((utxo) => {
+            return isOwnedUTXO(utxo, this.addresses);
+          })
+        : [];
+    },
+    ownedOutputs() {
+      const tx = this.transaction;
+      return tx && isTransactionP(tx)
+        ? tx.emittedUtxos.filter((utxo) => {
+            return isOwnedUTXO(utxo, this.addresses);
+          })
+        : [];
+    },
+    sourceChainAlias() {
+      return idToAlias(this.sourceChainId);
+    },
+    wallet(): WalletType {
+      return this.$store.state.activeWallet;
+    },
+    balances() {
       return [];
-    }
-  }
-
-  get ownedOutputs() {
-    const tx = this.transaction;
-    if (isTransactionP(tx)) {
-      return tx.emittedUtxos.filter((utxo) => {
-        return isOwnedUTXO(utxo, this.addresses);
-      });
-    } else {
-      return [];
-    }
-  }
-
-  get sourceChainAlias() {
-    return idToAlias(this.sourceChainId);
-  }
-
-  get wallet(): WalletType {
-    return this.$store.state.activeWallet;
-  }
-
-  get balances() {
-    return [];
-    // return getExportBalances(
-    //   this.transaction,
-    //   this.destinationChainId,
-    //   this.getAssetFromID
-    // );
-  }
-
-  // If user received tokens from the export, but didnt consume any of their utxos
-  // Essentially, the P chain sending hack
-  get isExportReceiver() {
-    return (
-      this.isExport &&
-      this.ownedInputs.length === 0 &&
-      this.ownedOutputs.length > 0
-    );
-  }
-
-  get outputReceivedBalances() {
-    return this.ownedOutputs.reduce((agg, utxo) => {
-      return agg.add(new BN(utxo.amount));
-    }, new BN(0));
-  }
-}
+    },
+    isExportReceiver() {
+      return (
+        this.isExport &&
+        this.ownedInputs.length === 0 &&
+        this.ownedOutputs.length > 0
+      );
+    },
+    outputReceivedBalances() {
+      return this.ownedOutputs.reduce((agg, utxo) => {
+        return agg.add(new BN(utxo.amount));
+      }, new BN(0));
+    },
+  },
+  methods: {
+    toLocaleString(val: BN, decimals: number) {
+      return bnToBig(val, decimals).toLocaleString();
+    },
+    getAssetFromID(id: string) {
+      return this.$store.state.Assets.assetsDict[id];
+    },
+  },
+});
 
 export default ImportExport;
 </script>

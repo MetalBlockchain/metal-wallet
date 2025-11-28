@@ -1,3 +1,31 @@
+import type { BlockchainId } from "@metalblockchain/glacier-sdk";
+import type {
+  ExportChainsC,
+  ExportChainsP,
+  ExportChainsX,
+} from "@metalblockchain/metal-wallet-sdk";
+import type {
+  Tx as AVMTx,
+  UnsignedTx as AVMUnsignedTx,
+} from "@metalblockchain/metaljs/dist/apis/avm/tx";
+import type {
+  Tx as EVMTx,
+  UnsignedTx as EVMUnsignedTx,
+} from "@metalblockchain/metaljs/dist/apis/evm/tx";
+import type { UTXOSet as EVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/evm/utxos";
+import type {
+  Tx as PlatformTx,
+  UnsignedTx as PlatformUnsignedTx,
+} from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
+import type { UTXO as PlatformUTXO } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
+import type { AvmImportChainType } from "@/js/wallets/types";
+
+import {
+  chainIdFromAlias,
+  GasHelper,
+  TxHelper,
+  UtxoHelper,
+} from "@metalblockchain/metal-wallet-sdk";
 /*
 The base wallet class used for common functionality
 */
@@ -8,45 +36,18 @@ import {
   ProofOfPossession,
   Signer,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import {
-  UtxoHelper,
-  TxHelper,
-  GasHelper,
-  chainIdFromAlias,
-} from "@metalblockchain/metal-wallet-sdk";
-import type {
-  ExportChainsC,
-  ExportChainsP,
-  ExportChainsX,
-} from "@metalblockchain/metal-wallet-sdk";
-import { ava, avm, bintools, cChain, pChain } from "@/AVA";
-import type { UTXOSet as EVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/evm/utxos";
-import type {
-  Tx as EVMTx,
-  UnsignedTx as EVMUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/evm/tx";
-import type {
-  Tx as PlatformTx,
-  UnsignedTx as PlatformUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
-import type {
-  Tx as AVMTx,
-  UnsignedTx as AVMUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/avm/tx";
-import type { AvmImportChainType } from "@/js/wallets/types";
+import { PrimaryNetworkID } from "@metalblockchain/metaljs/dist/utils";
+import { toChecksumAddress } from "ethereumjs-util";
+import { nanoid } from "nanoid";
 import { issueC, issueP, issueX } from "@/helpers/issueTx";
 import { sortUTxoSetP } from "@/helpers/sortUTXOs";
 import { getStakeForAddresses } from "@/helpers/utxo_helper";
 import glacier from "@/js/Glacier/Glacier";
-import { isMainnetNetworkID } from "@/store/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/store/modules/network/isTestnetNetworkID";
-import { web3 } from "@/evm";
-import type { UTXO as PlatformUTXO } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import type { BlockchainId } from "@metalblockchain/glacier-sdk";
-import { toChecksumAddress } from "ethereumjs-util";
-import { PrimaryNetworkID } from "@metalblockchain/metaljs/dist/utils";
+import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
+import { web3 } from "@/misc/evm";
+import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
 
-import uniqid from "uniqid";
+import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
 
 abstract class AbstractWallet {
   id: string;
@@ -89,7 +90,7 @@ abstract class AbstractWallet {
   }
 
   protected constructor() {
-    this.id = uniqid();
+    this.id = nanoid();
     this.utxoset = new AVMUTXOSet();
     this.platformUtxoset = new PlatformUTXOSet();
     this.stakeAmount = new BN(0);
@@ -130,7 +131,7 @@ abstract class AbstractWallet {
     } else {
       const chainId = isMainnet ? "381931" : "381932";
       const res = await glacier.evmBalances.getNativeBalance({
-        chainId: chainId,
+        chainId,
         address: "0x" + this.getEvmAddress(),
       });
       bal = new BN(res.nativeTokenBalance.balance);
@@ -143,7 +144,7 @@ abstract class AbstractWallet {
   async createImportTxC(
     sourceChain: ExportChainsC,
     utxoSet: EVMUTXOSet,
-    fee: BN
+    fee: BN,
   ) {
     const bechAddr = this.getEvmAddressBech();
     const hexAddr = this.getEvmAddress();
@@ -159,7 +160,7 @@ abstract class AbstractWallet {
       ownerAddresses,
       sourceChainId,
       fromAddresses,
-      fee
+      fee,
     );
   }
 
@@ -172,7 +173,7 @@ abstract class AbstractWallet {
   async importToCChain(
     sourceChain: ExportChainsC,
     fee: BN,
-    utxoSet?: EVMUTXOSet
+    utxoSet?: EVMUTXOSet,
   ) {
     if (!utxoSet) {
       utxoSet = await this.evmGetAtomicUTXOs(sourceChain);
@@ -211,7 +212,7 @@ abstract class AbstractWallet {
   async exportFromXChain(
     amt: BN,
     destinationChain: ExportChainsX,
-    importFee?: BN
+    importFee?: BN,
   ) {
     if (destinationChain === "C" && !importFee)
       throw new Error("Exports to C chain must specify an import fee.");
@@ -241,7 +242,7 @@ abstract class AbstractWallet {
       fromAddresses,
       destinationAddr,
       amtFee,
-      changeAddress
+      changeAddress,
     );
 
     const tx = await this.signX(exportTx);
@@ -252,7 +253,7 @@ abstract class AbstractWallet {
   async estimatePChainExportFee(
     amt: BN,
     destinationChain: ExportChainsP,
-    importFee?: BN
+    importFee?: BN,
   ) {
     const utxoSet = this.getPlatformUTXOSet();
     // Sort by amount
@@ -286,7 +287,7 @@ abstract class AbstractWallet {
       destinationAddr,
       amtFee,
       pChangeAddr,
-      destinationChain
+      destinationChain,
     );
 
     return exportTx.getBurn(await pChain.getAVAXAssetID());
@@ -295,7 +296,7 @@ abstract class AbstractWallet {
   async exportFromPChain(
     amt: BN,
     destinationChain: ExportChainsP,
-    importFee?: BN
+    importFee?: BN,
   ) {
     const utxoSet = this.getPlatformUTXOSet();
     // Sort by amount
@@ -329,7 +330,7 @@ abstract class AbstractWallet {
       destinationAddr,
       amtFee,
       pChangeAddr,
-      destinationChain
+      destinationChain,
     );
 
     const tx = await this.signP(exportTx);
@@ -346,7 +347,7 @@ abstract class AbstractWallet {
   async exportFromCChain(
     amt: BN,
     destinationChain: ExportChainsC,
-    exportFee: BN
+    exportFee: BN,
   ) {
     // Add import fee
     // X and P have the same fee
@@ -369,7 +370,7 @@ abstract class AbstractWallet {
       amtFee,
       bechAddr,
       destinationChain,
-      exportFee
+      exportFee,
     );
 
     const tx = await this.signC(exportTx);
@@ -383,7 +384,7 @@ abstract class AbstractWallet {
    */
   async estimateExportFee(
     destinationChain: ExportChainsC,
-    amount: BN
+    amount: BN,
   ): Promise<number> {
     const hexAddr = this.getEvmAddress();
     const bechAddr = this.getEvmAddressBech();
@@ -398,7 +399,7 @@ abstract class AbstractWallet {
       hexAddr,
       bechAddr,
       destinationAddr,
-      amount
+      amount,
     );
   }
 
@@ -439,7 +440,7 @@ abstract class AbstractWallet {
       [pToAddr],
       [pToAddr],
       undefined,
-      undefined
+      undefined,
     );
     const tx = await this.signP(unsignedTx);
     // Pass in string because AJS fails to verify Tx type
@@ -472,7 +473,7 @@ abstract class AbstractWallet {
       sourceChainId,
       [xToAddr],
       fromAddrs,
-      [xToAddr]
+      [xToAddr],
     );
 
     const tx = await this.signX(unsignedTx);
@@ -498,7 +499,7 @@ abstract class AbstractWallet {
     signerPublicKey: string,
     signerSignature: string,
     rewardAddress?: string,
-    utxos?: PlatformUTXO[]
+    utxos?: PlatformUTXO[],
   ): Promise<string> {
     let utxoSet = this.getPlatformUTXOSet();
 
@@ -531,7 +532,7 @@ abstract class AbstractWallet {
 
     const signer = new Signer(
       28,
-      new ProofOfPossession(signerPublicKey, signerSignature)
+      new ProofOfPossession(signerPublicKey, signerSignature),
     );
 
     const unsignedTx = await pChain.buildAddPermissionlessValidatorTx(
@@ -546,7 +547,7 @@ abstract class AbstractWallet {
       [rewardAddress],
       delegationFee,
       PrimaryNetworkID,
-      signer
+      signer,
     );
 
     const tx = await this.signP(unsignedTx);
@@ -560,7 +561,7 @@ abstract class AbstractWallet {
   async startTxExportJob(
     startDate: Date,
     endDate: Date,
-    chains: BlockchainId[]
+    chains: BlockchainId[],
   ) {
     /*const addresses = this.getHistoryAddresses()
         const stripped = addresses.map((addr) => addr.split('-')[1] || addr)
@@ -597,7 +598,7 @@ abstract class AbstractWallet {
     start: Date,
     end: Date,
     rewardAddress?: string,
-    utxos?: PlatformUTXO[]
+    utxos?: PlatformUTXO[],
   ): Promise<string> {
     let utxoSet = this.getPlatformUTXOSet();
     const pAddressStrings = this.getAllAddressesP();
@@ -637,7 +638,7 @@ abstract class AbstractWallet {
       endTime,
       stakeAmount,
       [rewardAddress], // reward address
-      pChain.getBlockchainID()
+      pChain.getBlockchainID(),
     );
 
     const tx = await this.signP(unsignedTx);

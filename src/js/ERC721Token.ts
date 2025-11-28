@@ -1,7 +1,7 @@
-import { web3 } from "@/evm";
+import type { ERC721TokenInput } from "@/stores/vuex/modules/assets/modules/types";
 import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721Enumerable.json";
-import type { ERC721TokenInput } from "@/store/modules/assets/modules/types";
 import axios from "axios";
+import { web3 } from "@/misc/evm";
 
 interface TokenDataCache {
   [index: number]: string;
@@ -43,7 +43,7 @@ class ERC721Token {
         .supportsInterface(ERC721EnumerableID)
         .call();
       this.canSupport = metadata && enumerable;
-    } catch (err) {
+    } catch {
       this.canSupport = false;
     }
   }
@@ -70,9 +70,9 @@ class ERC721Token {
     const ids = await this.getAllTokensIds(address);
 
     const res = [];
-    for (let i = 0; i < ids.length; i++) {
-      const id = ids[i];
-      const data = await this.getTokenURI(parseInt(id));
+    for (const id of ids) {
+      if (!id) continue;
+      const data = await this.getTokenURI(Number.parseInt(id));
       res.push(data);
     }
     return res;

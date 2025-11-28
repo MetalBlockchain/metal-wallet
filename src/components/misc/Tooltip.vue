@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-tooltip bottom>
-      <template v-slot:activator="{ on, attrs }">
-        <button v-bind="attrs" v-on="on">
+      <template #activator="{ props }">
+        <button v-bind="props">
           <slot></slot>
         </button>
       </template>
@@ -10,10 +10,11 @@
     </v-tooltip>
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+export const Tooltip = defineComponent({
   props: {
     text: String,
   },
-};
+});
+export default Tooltip;
 </script>

@@ -1,7 +1,6 @@
 <template>
   <div class="copyBut" @click="copy">
-    <!--        <fa icon="copy"></fa>-->
-    <img v-if="$root.theme === 'day'" src="/img/copy_icon.svg" />
+    <img v-if="isDay" src="/img/copy_icon.svg" />
     <img v-else src="/img/copy_night.svg" />
     <p class="text">
       <slot></slot>
@@ -9,25 +8,41 @@
     <input ref="copytext" :value="value" />
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from "vue";
+import { useStore } from "vuex";
+import { useOwnTheme } from "@/composables/use-own-theme";
+
+export const CopyText = defineComponent({
   props: {
     value: String,
   },
-  methods: {
-    copy() {
-      const copytext = this.$refs.copytext;
-      copytext.select();
-      copytext.setSelectionRange(0, 99999);
+  setup() {
+    const { isDay } = useOwnTheme();
+    const store = useStore();
+    const copytext = useTemplateRef<HTMLInputElement>("copytext");
 
-      document.execCommand("copy");
-      this.$store.dispatch("Notifications/add", {
-        title: " Copied",
-        message: "Copied to clipboard.",
-      });
-    },
+    const copy = () => {
+      if (copytext.value) {
+        copytext.value.select();
+        copytext.value.setSelectionRange(0, 99_999);
+
+        document.execCommand("copy");
+        store.dispatch("Notifications/add", {
+          title: " Copied",
+          message: "Copied to clipboard.",
+        });
+      }
+    };
+
+    return {
+      isDay,
+      copytext,
+      copy,
+    };
   },
-};
+});
+export default CopyText;
 </script>
 <style scoped lang="scss">
 .copyBut {
@@ -35,12 +50,14 @@ export default {
   width: max-content;
   align-items: center;
   cursor: pointer;
+
+  input {
+    width: 1px;
+    position: absolute;
+    opacity: 0;
+  }
 }
-.copyBut input {
-  width: 1px;
-  position: absolute;
-  opacity: 0;
-}
+
 .text {
   user-select: none;
   pointer-events: none;

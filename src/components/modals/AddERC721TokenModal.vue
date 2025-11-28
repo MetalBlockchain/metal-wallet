@@ -1,5 +1,5 @@
 <template>
-  <modal ref="modal" title="Add Collectible" @beforeClose="beforeClose">
+  <modal ref="modal" title="Add Collectible" @before-close="beforeClose">
     <div class="add_token_body">
       <div>
         <label>ERC721 Contract Address</label>
@@ -19,15 +19,15 @@
       </div>
 
       <v-btn
-        class="button_secondary"
         block
+        class="button_secondary"
         depressed
         :disabled="!canAdd"
         @click="submit"
       >
         Add Collectible
       </v-btn>
-      <div class="already_added" v-if="networkTokens.length">
+      <div v-if="networkTokens.length > 0" class="already_added">
         <h4>Already added</h4>
         <div
           v-for="token in networkTokens"
@@ -45,124 +45,122 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
-import Modal from "./Modal.vue";
-import { web3 } from "@/evm";
-import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
-import type { ERC721TokenInput } from "@/store/modules/assets/modules/types";
 import type ERC721Token from "@/js/ERC721Token";
+import type { ERC721TokenInput } from "@/stores/vuex/modules/assets/modules/types";
+import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
+import { defineComponent } from "vue";
+import { web3 } from "@/misc/evm";
+import Modal from "./Modal.vue";
 
-@Component({
+export const AddERC721TokenModal = defineComponent({
   components: {
     Modal,
   },
-})
-export class AddERC721TokenModal extends Vue {
-  tokenAddress = "";
-  name = "";
-  symbol = "";
-  canAdd = false;
-  err = "";
+  data() {
+    return {
+      tokenAddress: "",
+      name: "",
+      symbol: "",
+      canAdd: false,
+      err: "",
+    };
+  },
+  computed: {
+    networkTokens(): ERC721Token[] {
+      return this.$store.getters["Assets/ERC721/networkContractsCustom"];
+    },
+  },
+  watch: {
+    tokenAddress: [
+      {
+        handler: "onAddressChange",
+      },
+    ],
+  },
+  methods: {
+    async validateAddress(val: string) {
+      if (val === "") {
+        this.err = "";
+        return false;
+      }
+      try {
+        //@ts-ignore
+        const tokenInst = new web3.eth.Contract(ERC721Abi.abi, val);
+        const name = await tokenInst.methods.name().call();
+        const symbol = await tokenInst.methods.symbol().call();
 
-  @Watch("tokenAddress")
-  async onAddressChange(val: string) {
-    this.err = "";
-    if (val === "") {
-      this.clear();
-      return;
-    }
-    await this.validateAddress(val);
-  }
+        this.symbol = symbol;
+        this.name = name;
 
-  async validateAddress(val: string) {
-    if (val === "") {
-      this.err = "";
-      return false;
-    }
-    try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      const tokenInst = new web3.eth.Contract(ERC721Abi.abi, val);
-      const name = await tokenInst.methods.name().call();
-      const symbol = await tokenInst.methods.symbol().call();
-
-      this.symbol = symbol;
-      this.name = name;
-
-      this.canAdd = true;
-      return true;
-    } catch (e) {
+        this.canAdd = true;
+        return true;
+      } catch {
+        this.canAdd = false;
+        this.symbol = "-";
+        this.name = "-";
+        this.err = "Invalid contract address.";
+        return false;
+      }
+    },
+    clear() {
+      this.tokenAddress = "";
       this.canAdd = false;
       this.symbol = "-";
       this.name = "-";
-      this.err = "Invalid contract address.";
-      return false;
-    }
-  }
+      this.err = "";
+    },
+    async submit() {
+      try {
+        const data: ERC721TokenInput = {
+          address: this.tokenAddress,
+          name: this.name,
+          symbol: this.symbol,
+          chainId: this.$store.state.Assets.evmChainId,
+        };
 
-  clear() {
-    this.tokenAddress = "";
-    this.canAdd = false;
-    this.symbol = "-";
-    this.name = "-";
-    this.err = "";
-  }
+        const token: ERC721Token = await this.$store.dispatch(
+          "Assets/ERC721/addCustom",
+          data,
+        );
 
-  async submit() {
-    try {
-      const data: ERC721TokenInput = {
-        address: this.tokenAddress,
-        name: this.name,
-        symbol: this.symbol,
-        chainId: this.$store.state.Assets.evmChainId,
-      };
-
-      const token: ERC721Token = await this.$store.dispatch(
-        "Assets/ERC721/addCustom",
-        data
-      );
-
-      this.$store.dispatch("Notifications/add", {
-        title: "ERC721 Token Added",
-        message: token.name,
-      });
-      this.close();
-    } catch (e: any) {
-      this.err = e.message;
-      console.error(e);
-    }
-  }
-
-  beforeClose() {
-    this.clear();
-  }
-
-  open() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    this.$refs.modal.open();
-  }
-
-  close() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    this.$refs.modal.close();
-  }
-
-  async removeToken(token: ERC721Token) {
-    await this.$store.dispatch("Assets/ERC721/removeCustom", token);
-  }
-
-  get networkTokens(): ERC721Token[] {
-    return this.$store.getters["Assets/ERC721/networkContractsCustom"];
-  }
-}
+        this.$store.dispatch("Notifications/add", {
+          title: "ERC721 Token Added",
+          message: token.name,
+        });
+        this.close();
+      } catch (error: any) {
+        this.err = error.message;
+        console.error(error);
+      }
+    },
+    beforeClose() {
+      this.clear();
+    },
+    open() {
+      // @ts-ignore
+      this.$refs.modal.open();
+    },
+    close() {
+      // @ts-ignore
+      this.$refs.modal.close();
+    },
+    async removeToken(token: ERC721Token) {
+      await this.$store.dispatch("Assets/ERC721/removeCustom", token);
+    },
+    async onAddressChange(val: string) {
+      this.err = "";
+      if (val === "") {
+        this.clear();
+        return;
+      }
+      await this.validateAddress(val);
+    },
+  },
+});
 export default AddERC721TokenModal;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 .add_token_body {
   padding: 30px 22px;
   text-align: center;
@@ -252,7 +250,7 @@ export default AddERC721TokenModal;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .add_token_body {
     width: 100%;
   }

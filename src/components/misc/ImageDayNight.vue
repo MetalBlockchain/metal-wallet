@@ -3,17 +3,24 @@
   <img v-else :src="night" />
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import { defineComponent } from "vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-@Component
-export default class ImageDayNight extends Vue {
-  @Prop() day!: string;
-  @Prop() night!: string;
-
-  get isDay() {
-    //@ts-ignore
-    return this.$root.theme === "day";
-  }
-}
+export default defineComponent({
+  props: {
+    day: {
+      type: String,
+    },
+    night: {
+      type: String,
+    },
+  },
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+});
 </script>
 <style scoped lang="scss"></style>

@@ -1,7 +1,7 @@
 <template>
   <tr :locked="isLocked">
     <td style="text-align: left; padding-left: 8px">
-      <input type="checkbox" @change="onSelect" v-model="isSelect" />
+      <input v-model="isSelect" type="checkbox" @change="onSelect" />
     </td>
     <td style="opacity: 0.4">
       <template v-if="isLocked"><fa icon="lock"></fa></template>
@@ -12,81 +12,90 @@
   </tr>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import type {
-  UTXO,
   AmountOutput,
   StakeableLockOut,
+  UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { bnToBig } from "@/helpers/helper";
-import Big from "big.js";
-import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
+import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import Big from "big.js";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
 
-@Component
-export default class UtxoRow extends Vue {
-  @Prop() utxo!: UTXO;
-  isSelect = false;
+export default defineComponent({
+  props: {
+    utxo: {
+      type: Object as PropType<UTXO>,
+    },
+  },
+  emits: ["add", "remove"],
+  data() {
+    return {
+      isSelect: false,
+    };
+  },
+  computed: {
+    out() {
+      return this.utxo?.getOutput();
+    },
+    amount(): Big {
+      const outId = this.out?.getOutputID();
+      if (outId === PlatformVMConstants.SECPXFEROUTPUTID) {
+        const out = this.out as AmountOutput;
+        const amtBig = bnToBig(out.getAmount(), 9);
+        return amtBig;
+      } else if (outId === PlatformVMConstants.STAKEABLELOCKOUTID) {
+        const out = this.out as StakeableLockOut;
+        const amtBig = bnToBig(out.getAmount(), 9);
+        return amtBig;
+      }
 
-  onSelect() {
-    if (this.isSelect) {
-      this.$emit("add");
-    } else {
-      this.$emit("remove");
-    }
-  }
-  get out() {
-    return this.utxo.getOutput();
-  }
+      return Big(0);
+    },
+    lockTime(): BN {
+      const outId = this.out?.getOutputID();
 
-  get amount(): Big {
-    const outId = this.out.getOutputID();
-    if (outId === PlatformVMConstants.SECPXFEROUTPUTID) {
-      const out = this.out as AmountOutput;
-      const amtBig = bnToBig(out.getAmount(), 9);
-      return amtBig;
-    } else if (outId === PlatformVMConstants.STAKEABLELOCKOUTID) {
-      const out = this.out as StakeableLockOut;
-      const amtBig = bnToBig(out.getAmount(), 9);
-      return amtBig;
-    }
+      if (outId === PlatformVMConstants.SECPXFEROUTPUTID) {
+        const out = this.out as AmountOutput;
+        return out.getLocktime();
+      } else if (outId === PlatformVMConstants.STAKEABLELOCKOUTID) {
+        const out = this.out as StakeableLockOut;
+        return out.getStakeableLocktime();
+      }
 
-    return Big(0);
-  }
-  get lockTime(): BN {
-    const outId = this.out.getOutputID();
+      return new BN(0);
+    },
+    lockDateText(): string {
+      if (this.lockTime.eq(new BN(0))) {
+        return "-";
+      }
+      const date = new Date(this.lockTime.toNumber() * 1000);
 
-    if (outId === PlatformVMConstants.SECPXFEROUTPUTID) {
-      const out = this.out as AmountOutput;
-      return out.getLocktime();
-    } else if (outId === PlatformVMConstants.STAKEABLELOCKOUTID) {
-      const out = this.out as StakeableLockOut;
-      return out.getStakeableLocktime();
-    }
+      return date.toLocaleString();
+    },
+    isLocked(): boolean {
+      const now = UnixNow();
 
-    return new BN(0);
-  }
+      if (now.lt(this.lockTime)) {
+        return true;
+      }
 
-  get lockDateText(): string {
-    if (this.lockTime.eq(new BN(0))) {
-      return "-";
-    }
-    const date = new Date(this.lockTime.toNumber() * 1000);
-
-    return date.toLocaleString();
-  }
-
-  get isLocked(): boolean {
-    const now = UnixNow();
-
-    if (now.lt(this.lockTime)) {
-      return true;
-    }
-
-    return false;
-  }
-}
+      return false;
+    },
+  },
+  methods: {
+    onSelect() {
+      if (this.isSelect) {
+        this.$emit("add");
+      } else {
+        this.$emit("remove");
+      }
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 tr {

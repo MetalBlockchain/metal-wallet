@@ -1,12 +1,12 @@
-import type { GetBalancesParams } from "@/js/Glacier/models";
-import Glacier from "@/js/Glacier/Glacier";
-import { BN } from "@metalblockchain/metaljs";
-import { splitToParts } from "@/js/Glacier/utils";
 import type {
+  ListCChainAtomicBalancesResponse,
   ListPChainBalancesResponse,
   ListXChainBalancesResponse,
-  ListCChainAtomicBalancesResponse,
 } from "@metalblockchain/glacier-sdk";
+import type { GetBalancesParams } from "@/js/Glacier/models";
+import { BN } from "@metalblockchain/metaljs";
+import Glacier from "@/js/Glacier/Glacier";
+import { splitToParts } from "@/js/Glacier/utils";
 
 export async function getBalancesForAddresses(config: GetBalancesParams) {
   // Max number of addresses glacier accepts
@@ -32,45 +32,47 @@ export async function getBalancesForAddresses(config: GetBalancesParams) {
     val:
       | ListPChainBalancesResponse
       | ListXChainBalancesResponse
-      | ListCChainAtomicBalancesResponse
+      | ListCChainAtomicBalancesResponse,
   ): val is ListPChainBalancesResponse {
     return typeof val === "object" && val !== null && !Array.isArray(val);
   }
 
   // ONLY SUPPORTS P CHAIN AT THE MOMENT
-  res.forEach((val) => {
+  for (const val of res) {
     if (isPChainBalancesResponse(val)) {
       unlockedUnstaked.iadd(
         new BN(
           val.balances.unlockedUnstaked
-            ? val.balances.unlockedUnstaked[0].amount
-            : 0
-        )
+            ? (val.balances.unlockedUnstaked[0]?.amount ?? 0)
+            : 0,
+        ),
       );
 
       lockedUnstaked.iadd(
         new BN(
           val.balances.lockedPlatform
-            ? val.balances.lockedPlatform[0].amount
-            : 0
-        )
+            ? (val.balances.lockedPlatform[0]?.amount ?? 0)
+            : 0,
+        ),
       );
 
       unlockedStaked.iadd(
         new BN(
           val.balances.unlockedStaked
-            ? val.balances.unlockedStaked[0].amount
-            : 0
-        )
+            ? (val.balances.unlockedStaked[0]?.amount ?? 0)
+            : 0,
+        ),
       );
 
       lockedStaked.iadd(
         new BN(
-          val.balances.lockedStaked ? val.balances.lockedStaked[0].amount : 0
-        )
+          val.balances.lockedStaked
+            ? (val.balances.lockedStaked[0]?.amount ?? 0)
+            : 0,
+        ),
       );
     }
-  });
+  }
 
   return {
     unlockedUnstaked,

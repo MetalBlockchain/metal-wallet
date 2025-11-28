@@ -1,24 +1,24 @@
-import type { iUserAccountEncrypted } from "@/store/types";
 import type { WalletType } from "@/js/wallets/types";
-import isEqual from "lodash.isequal";
-import differenceBy from "lodash.differenceby";
+import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import differenceBy from "lodash-es/differenceby";
+import isEqual from "lodash-es/isequal";
 import { readKeyFile } from "@/js/Keystore";
 
-const checkAccountsExist = (): boolean => {
+function checkAccountsExist(): boolean {
   return localStorage.getItem("accounts") !== null;
-};
+}
 
 export function getAccountByIndex(index: number): iUserAccountEncrypted | null {
   return getLocalStorageAccounts()[index] || null;
 }
 
-export const checkIfSavedLocally = (allWallets: WalletType[]): boolean => {
+export function checkIfSavedLocally(allWallets: WalletType[]): boolean {
   const exists = checkAccountsExist();
 
   if (!exists) return false;
 
   const ethAddressArray: string[] = allWallets.map(
-    (x: WalletType) => x.ethAddress
+    (x: WalletType) => x.ethAddress,
   );
 
   const savedAccounts: iUserAccountEncrypted[] =
@@ -31,52 +31,50 @@ export const checkIfSavedLocally = (allWallets: WalletType[]): boolean => {
   }
 
   return false;
-};
-export const removeAccountByIndex = (index: number): void => {
+}
+export function removeAccountByIndex(index: number): void {
   const accounts: iUserAccountEncrypted[] = getLocalStorageAccounts();
   accounts.splice(index, 1);
   saveLocalStorageJSONItem("accounts", accounts);
-};
+}
 
-export const getLocalStorageJSONItem = (key: string) => {
+export function getLocalStorageJSONItem(key: string) {
   const item = localStorage.getItem(key);
   if (item !== null) {
     return JSON.parse(item);
   }
-};
+}
 
 export function getLocalStorageAccounts(): iUserAccountEncrypted[] {
   return getLocalStorageJSONItem("accounts") || [];
 }
 
-export const saveLocalStorageJSONItem = (key: string, data: any) => {
+export function saveLocalStorageJSONItem(key: string, data: any) {
   const formatted = JSON.stringify(data);
   localStorage.setItem(key, formatted);
-};
+}
 
-export const getIndexByWallets = (wallets: WalletType[]): number | null => {
+export function getIndexByWallets(wallets: WalletType[]): number | null {
   const ethAddressArray: string[] = wallets.map((x: WalletType) =>
-    x.getEvmAddress()
+    x.getEvmAddress(),
   );
   const savedAccounts: iUserAccountEncrypted[] = getLocalStorageAccounts();
   const index = 0;
-  for (let i = 0; i < savedAccounts.length; i++) {
-    const acct = savedAccounts[i];
-    if (isEqual(acct.baseAddresses, ethAddressArray)) {
+  for (const acct of savedAccounts) {
+    if (acct && isEqual(acct.baseAddresses, ethAddressArray)) {
       return index;
     }
   }
   return null;
-};
+}
 
-export const getNonVolatileWallets = (
+export function getNonVolatileWallets(
   allWallets: WalletType[],
-  volatileWallets: WalletType[]
-): WalletType[] | [] => {
+  volatileWallets: WalletType[],
+): WalletType[] | [] {
   const diff = differenceBy(allWallets, volatileWallets, "ethAddress");
-  diff === undefined ? [] : diff;
-  return diff;
-};
+  return diff === undefined ? [] : diff;
+}
 
 export function addAccountToStorage(account: iUserAccountEncrypted) {
   const accounts = getLocalStorageAccounts();
@@ -87,19 +85,19 @@ export function addAccountToStorage(account: iUserAccountEncrypted) {
 // Given a password and an account, will verify if its the correct password
 export async function verifyAccountPassword(
   account: iUserAccountEncrypted,
-  password: string
+  password: string,
 ) {
   try {
-    const res = await readKeyFile(account.wallet, password);
+    await readKeyFile(account.wallet, password);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
 
 export function overwriteAccountAtIndex(
   newAccount: iUserAccountEncrypted,
-  index: number
+  index: number,
 ) {
   const accts = getLocalStorageAccounts();
   accts.splice(index, 1, newAccount);

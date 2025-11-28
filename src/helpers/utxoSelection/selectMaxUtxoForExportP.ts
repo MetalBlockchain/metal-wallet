@@ -1,6 +1,6 @@
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { bintools } from "@/AVA";
 import { sumUtxos } from "@/helpers/utxoSelection/sumUtxos";
+import { bintools } from "@/misc/AVA";
 import { MAX_TX_SIZE_P } from "./constants";
 
 function parseAddresses(addrs: string[]) {
@@ -41,8 +41,9 @@ export function selectMaxUtxoForExportP(utxos: UTXO[]) {
 
   // Add utxos until we reach the max size
   const finalUtxos = [];
-  for (let i = 0; i < utxos.length; i++) {
-    const utxo = utxos[i];
+  for (const utxo of utxos) {
+    if (!utxo) continue;
+
     const signersNum = utxo.getOutput().getThreshold();
 
     // 161 is the size of 1 utxo + cred

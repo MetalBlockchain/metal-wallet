@@ -1,8 +1,8 @@
 <template>
   <div
     class="collectibles_view no_scroll_bar"
-    @scroll="onScroll"
     :scroll="isScroll"
+    @scroll="onScroll"
   >
     <AddERC721TokenModal ref="add_token_modal"></AddERC721TokenModal>
     <div v-if="!isEmpty" class="list">
@@ -20,7 +20,7 @@
         <button @click="showModal">Add Collectible</button>
       </div>
     </div>
-    <div class="coming_soon" v-else>
+    <div v-else class="coming_soon">
       <!--            <img v-if="$root.theme === 'day'" src="@/assets/nft_preview.png" />-->
       <!--            <img v-else src="@/assets/nft_preview_night.png" />-->
       <p>{{ $t("portfolio.nobalance_nft") }}</p>
@@ -31,116 +31,106 @@
   </div>
 </template>
 <script lang="ts">
-import NFTCard from "./NftCard.vue";
-import CollectibleFamilyRow from "@/components/wallet/portfolio/CollectibleFamilyRow.vue";
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { IWalletNftDict, IWalletNftMintDict } from "@/store/types";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { NftFamilyDict } from "@/store/modules/assets/types";
-import AddERC721TokenModal from "@/components/modals/AddERC721TokenModal.vue";
 import type ERC721Token from "@/js/ERC721Token";
+
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import AddERC721TokenModal from "@/components/modals/AddERC721TokenModal.vue";
+import CollectibleFamilyRow from "@/components/wallet/portfolio/CollectibleFamilyRow.vue";
 import ERC721FamilyRow from "@/components/wallet/portfolio/ERC721FamilyRow.vue";
-import type { WalletType } from "@/js/wallets/types";
 
 // const payloadTypes = PayloadTypes.getInstance();
-@Component({
+export const Collectibles = defineComponent({
   components: {
     ERC721FamilyRow,
     AddERC721TokenModal,
-    NFTCard,
     CollectibleFamilyRow,
   },
-})
-export class Collectibles extends Vue {
-  @Prop() search!: string;
-  isScroll = false;
+  props: {
+    search: {
+      type: String,
+    },
+  },
+  data() {
+    return {
+      isScroll: false,
+    };
+  },
+  computed: {
+    isEmpty(): boolean {
+      // let nftUtxos = this.$store.getters.walletNftUTXOs.length
+      // let mintUTxos = this.$store.getters.walletNftMintUTXOs.length
+      const nftUtxos = this.$store.state.Assets.nftUTXOs.length;
+      const mintUTxos = this.$store.state.Assets.nftMintUTXOs.length;
+      const erc721Bal = this.$store.getters["Assets/ERC721/totalOwned"];
+      return nftUtxos + mintUTxos + erc721Bal === 0;
+    },
+    nftDict(): IWalletNftDict {
+      // return this.$store.getters.walletNftDict
+      const dict = this.$store.getters["Assets/walletNftDict"];
+      return dict;
+    },
+    nftMintDict(): IWalletNftMintDict {
+      // let dict = this.$store.getters.walletNftMintDict
+      const dict = this.$store.getters["Assets/nftMintDict"];
+      return dict;
+    },
+    nftFamsArray() {
+      let fams: AvaNftFamily[] = this.$store.state.Assets.nftFams;
 
-  $refs!: {
-    add_token_modal: AddERC721TokenModal;
-  };
-
-  get isEmpty(): boolean {
-    // let nftUtxos = this.$store.getters.walletNftUTXOs.length
-    // let mintUTxos = this.$store.getters.walletNftMintUTXOs.length
-    const nftUtxos = this.$store.state.Assets.nftUTXOs.length;
-    const mintUTxos = this.$store.state.Assets.nftMintUTXOs.length;
-    const erc721Bal = this.$store.getters["Assets/ERC721/totalOwned"];
-    return nftUtxos + mintUTxos + erc721Bal === 0;
-  }
-
-  get nftDict(): IWalletNftDict {
-    // return this.$store.getters.walletNftDict
-    const dict = this.$store.getters["Assets/walletNftDict"];
-    return dict;
-  }
-
-  get nftMintDict(): IWalletNftMintDict {
-    // let dict = this.$store.getters.walletNftMintDict
-    const dict = this.$store.getters["Assets/nftMintDict"];
-    return dict;
-  }
-
-  get nftFamsArray() {
-    let fams: AvaNftFamily[] = this.$store.state.Assets.nftFams;
-
-    // If search query
-    if (this.search) {
-      const query = this.search;
-      fams = fams.filter((fam) => {
-        if (
-          fam.name.includes(query) ||
-          fam.id.includes(query) ||
-          fam.symbol.includes(query)
-        ) {
-          return true;
-        }
-        return false;
-      });
-    }
-
-    fams.sort((a, b) => {
-      const symbolA = a.symbol;
-      const symbolB = b.symbol;
-
-      if (symbolA < symbolB) {
-        return -1;
-      } else if (symbolA > symbolB) {
-        return 1;
+      // If search query
+      if (this.search) {
+        const query = this.search;
+        fams = fams.filter((fam) => {
+          if (
+            fam.name.includes(query) ||
+            fam.id.includes(query) ||
+            fam.symbol.includes(query)
+          ) {
+            return true;
+          }
+          return false;
+        });
       }
-      return 0;
-    });
 
-    return fams;
-  }
+      fams.sort((a, b) => {
+        const symbolA = a.symbol;
+        const symbolB = b.symbol;
 
-  get nftFamsDict(): NftFamilyDict {
-    const dict = this.$store.state.Assets.nftFamsDict;
-    return dict;
-  }
+        if (symbolA < symbolB) {
+          return -1;
+        } else if (symbolA > symbolB) {
+          return 1;
+        }
+        return 0;
+      });
 
-  get erc721s(): ERC721Token[] {
-    const w: WalletType = this.$store.state.activeWallet;
-    return this.$store.getters["Assets/ERC721/networkContracts"];
-  }
-
-  onScroll(ev: any) {
-    const val = ev.target.scrollTop;
-    if (val > 0) {
-      this.isScroll = true;
-    } else {
-      this.isScroll = false;
-    }
-  }
-
-  showModal() {
-    this.$refs.add_token_modal.open();
-  }
-}
+      return fams;
+    },
+    nftFamsDict(): NftFamilyDict {
+      const dict = this.$store.state.Assets.nftFamsDict;
+      return dict;
+    },
+    erc721s(): ERC721Token[] {
+      return this.$store.getters["Assets/ERC721/networkContracts"];
+    },
+  },
+  methods: {
+    onScroll(ev: any) {
+      const val = ev.target.scrollTop;
+      this.isScroll = val > 0 ? true : false;
+    },
+    showModal() {
+      (this.$refs.add_token_modal as typeof AddERC721TokenModal).open();
+    },
+  },
+});
 export default Collectibles;
 </script>
 <style lang="scss" scoped>
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 @use "./portfolio";
 
 $flip_dur: 0.6s;
@@ -180,7 +170,7 @@ $flip_dur: 0.6s;
   height: 220px;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .collectibles_view {
     height: 90vh;
   }

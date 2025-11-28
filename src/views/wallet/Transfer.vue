@@ -4,25 +4,25 @@
     <div v-if="networkStatus !== 'connected'" class="disconnected">
       <p>{{ $t("transfer.disconnected") }}</p>
     </div>
-    <div class="card_body" v-else>
+    <div v-else class="card_body">
       <FormC v-show="formType === 'C'">
         <ChainInput v-model="formType" :disabled="isConfirm"></ChainInput>
       </FormC>
-      <div class="new_order_Form" v-show="formType === 'X'">
+      <div v-show="formType === 'X'" class="new_order_Form">
         <div class="lists">
           <ChainInput v-model="formType" :disabled="isConfirm"></ChainInput>
           <div>
             <tx-list
-              class="tx_list"
               ref="txList"
-              @change="updateTxList"
+              class="tx_list"
               :disabled="isConfirm"
+              @change="updateTxList"
             ></tx-list>
             <template v-if="hasNFT">
               <NftList
-                @change="updateNftList"
                 ref="nftList"
                 :disabled="isConfirm"
+                @change="updateNftList"
               ></NftList>
             </template>
           </div>
@@ -33,8 +33,8 @@
             <qr-input
               v-model="addressIn"
               class="qrIn hover_border"
-              placeholder="xxx"
               :disabled="isConfirm"
+              placeholder="xxx"
             ></qr-input>
           </div>
           <div>
@@ -44,13 +44,13 @@
             <!--                        </template>-->
             <h4 v-if="memo || !isConfirm">{{ $t("transfer.memo") }}</h4>
             <textarea
+              v-if="memo || !isConfirm"
+              v-model="memo"
+              autocomplete="off"
               class="memo"
+              :disabled="isConfirm"
               maxlength="256"
               placeholder="Memo"
-              autocomplete="off"
-              v-model="memo"
-              v-if="memo || !isConfirm"
-              :disabled="isConfirm"
             ></textarea>
           </div>
           <div class="fees">
@@ -64,19 +64,19 @@
             </p>
           </div>
           <div class="checkout">
-            <ul class="err_list" v-if="formErrors.length > 0">
-              <li v-for="err in formErrors" :key="err">
-                {{ err }}
+            <ul v-if="formErrors.length > 0" class="err_list">
+              <li v-for="errItem in formErrors" :key="errItem">
+                {{ errItem }}
               </li>
             </ul>
             <template v-if="!isConfirm">
               <v-btn
-                depressed
+                block
                 class="button_secondary"
+                depressed
+                :disabled="!canSend"
                 :ripple="false"
                 @click="confirm"
-                :disabled="!canSend"
-                block
               >
                 Confirm
               </v-btn>
@@ -84,24 +84,24 @@
             <template v-else-if="isConfirm && !isSuccess">
               <p class="err">{{ err }}</p>
               <v-btn
-                depressed
+                block
                 class="button_secondary"
+                depressed
+                :disabled="!canSend"
                 :loading="isAjax"
                 :ripple="false"
                 @click="submit"
-                :disabled="!canSend"
-                block
               >
                 {{ $t("transfer.send") }}
               </v-btn>
               <v-btn
-                text
                 block
                 small
                 style="
                   margin-top: 20px !important;
                   color: var(--secondary-color);
                 "
+                text
                 @click="cancelConfirm"
               >
                 Cancel
@@ -117,13 +117,13 @@
                 {{ txId }}
               </label>
               <v-btn
-                depressed
-                style="margin-top: 14px"
-                class="button_primary"
-                :ripple="false"
-                @click="startAgain"
                 block
+                class="button_primary"
+                depressed
                 :disabled="!canSendAgain"
+                :ripple="false"
+                style="margin-top: 14px"
+                @click="startAgain"
               >
                 Start Again
               </v-btn>
@@ -135,354 +135,168 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import TxList from "@/components/wallet/transfer/TxList.vue";
-import type Big from "big.js";
-
-import NftList from "@/components/wallet/transfer/NftList.vue";
-
-import { QrInput } from "@avalabs/vue_components";
-import { ava, avm, isValidAddress } from "../../AVA";
-import FaucetLink from "@/components/misc/FaucetLink.vue";
-import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import { Buffer, BN } from "@metalblockchain/metaljs";
-import TxSummary from "@/components/wallet/transfer/TxSummary.vue";
-import type { priceDict, IssueBatchTxInput } from "@/store/types";
-import type { WalletType } from "@/js/wallets/types";
-import { bnToBig } from "@/helpers/helper";
-import * as bip39 from "bip39";
-import FormC from "@/components/wallet/transfer/FormC.vue";
+import type Big from "big.js";
+import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { ChainIdType } from "@/constants";
 
-import ChainInput from "@/components/wallet/transfer/ChainInput.vue";
-import type AvaAsset from "../../js/AvaAsset";
+import type AvaAsset from "@/js/AvaAsset";
+import type { WalletType } from "@/js/wallets/types";
+import type { IssueBatchTxInput, priceDict } from "@/stores/vuex/types";
+import { BN, Buffer } from "@metalblockchain/metaljs";
+import * as bip39 from "bip39";
+import { defineComponent } from "vue";
+import QrInput from "@/components/shared/QrInput.vue";
 import { TxState } from "@/components/wallet/earn/ChainTransfer/types";
-@Component({
+import ChainInput from "@/components/wallet/transfer/ChainInput.vue";
+import FormC from "@/components/wallet/transfer/FormC.vue";
+import NftList from "@/components/wallet/transfer/NftList.vue";
+import TxList from "@/components/wallet/transfer/TxList.vue";
+import { bnToBig } from "@/helpers/helper";
+import { ava, avm, isValidAddress } from "@/misc/AVA";
+
+export const Transfer = defineComponent({
   components: {
-    FaucetLink,
     TxList,
     QrInput,
     NftList,
-    TxSummary,
     FormC,
     ChainInput,
   },
-})
-export class Transfer extends Vue {
-  formType: ChainIdType = "X";
-  showAdvanced = false;
-  isAjax = false;
-  addressIn = "";
-  memo = "";
-  orders: ITransaction[] = [];
-  nftOrders: UTXO[] = [];
-  formErrors: string[] = [];
-  err = "";
+  data(): {
+    formType: ChainIdType;
+    showAdvanced: boolean;
+    isAjax: boolean;
+    addressIn: string;
+    memo: string;
+    orders: ITransaction[];
+    nftOrders: UTXO[];
+    formErrors: string[];
+    err: string;
+    formAddress: string;
+    formOrders: ITransaction[];
+    formNftOrders: UTXO[];
+    formMemo: string;
+    isConfirm: boolean;
+    isSuccess: boolean;
+    txId: string;
+    canSendAgain: boolean;
+    txState: TxState | null;
+  } {
+    const txState: TxState | null = null;
+    const formNftOrders: UTXO[] = [];
+    const formOrders: ITransaction[] = [];
+    const formErrors: string[] = [];
+    const nftOrders: UTXO[] = [];
+    const orders: ITransaction[] = [];
+    const formType: ChainIdType = "X";
 
-  formAddress = "";
-  formOrders: ITransaction[] = [];
-  formNftOrders: UTXO[] = [];
-  formMemo = "";
-
-  isConfirm = false;
-  isSuccess = false;
-  txId = "";
-
-  canSendAgain = false;
-  txState: TxState | null = null;
-
-  $refs!: {
-    txList: TxList;
-    nftList: NftList;
-  };
-
-  confirm() {
-    const isValid = this.formCheck();
-    if (!isValid) return;
-
-    this.formOrders = [...this.orders];
-    this.formNftOrders = [...this.nftOrders];
-    this.formAddress = this.addressIn;
-    this.formMemo = this.memo;
-
-    this.isConfirm = true;
-  }
-
-  cancelConfirm() {
-    this.err = "";
-    this.formMemo = "";
-    this.formOrders = [];
-    this.formNftOrders = [];
-    this.formAddress = "";
-    this.isConfirm = false;
-  }
-
-  updateTxList(data: ITransaction[]) {
-    this.orders = data;
-  }
-
-  updateNftList(val: UTXO[]) {
-    this.nftOrders = val;
-  }
-
-  formCheck() {
-    this.formErrors = [];
-    const err = [];
-
-    const addr = this.addressIn;
-
-    const chain = addr.split("-");
-
-    if (chain[0] !== "X") {
-      err.push("Invalid address. You can only send to other X addresses.");
-    }
-
-    if (!isValidAddress(addr)) {
-      err.push("Invalid address.");
-    }
-
-    const memo = this.memo;
-    if (this.memo) {
-      const buff = Buffer.from(memo);
-      const size = buff.length;
-      if (size > 256) {
-        err.push("You can have a maximum of 256 characters in your memo.");
-      }
-
-      // Make sure memo isnt mnemonic
-      const isMnemonic = bip39.validateMnemonic(memo);
-      if (isMnemonic) {
-        err.push("You should not put a mnemonic phrase into the Memo field.");
-      }
-    }
-
-    // Make sure to address matches the bech32 network hrp
-    const hrp = ava.getHRP();
-    if (!addr.includes(hrp)) {
-      err.push("Not a valid address for this network.");
-    }
-
-    this.formErrors = err;
-    if (err.length === 0) {
-      // this.send();
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  startAgain() {
-    this.clearForm();
-
-    this.txId = "";
-    this.isSuccess = false;
-    this.cancelConfirm();
-
-    this.orders = [];
-    this.nftOrders = [];
-    this.formOrders = [];
-    this.formNftOrders = [];
-  }
-
-  clearForm() {
-    this.addressIn = "";
-    this.memo = "";
-
-    // Clear transactions list
-    this.$refs.txList.reset();
-
-    // Clear NFT list
-    if (this.hasNFT) {
-      this.$refs.nftList.clear();
-    }
-  }
-
-  async onsuccess(txId: string) {
-    this.isAjax = false;
-    this.isSuccess = true;
-
-    this.$store.dispatch("Notifications/add", {
-      title: this.$t("transfer.success_title"),
-      message: this.$t("transfer.success_msg"),
-      type: "success",
-    });
-
-    // Update the user's balance
-    this.$store.dispatch("Assets/updateUTXOs").then(() => {
-      this.updateSendAgainLock();
-    });
-    this.$store.dispatch("History/updateTransactionHistory");
-  }
-
-  updateSendAgainLock() {
-    if (!this.wallet.isFetchUtxos) {
-      this.canSendAgain = true;
-    } else {
-      setTimeout(() => {
-        this.updateSendAgainLock();
-      }, 1000);
-    }
-  }
-
-  onerror(err: any) {
-    this.err = err;
-    this.isAjax = false;
-    this.$store.dispatch("Notifications/add", {
-      title: this.$t("transfer.error_title"),
-      message: this.$t("transfer.error_msg"),
-      type: "error",
-    });
-  }
-
-  submit() {
-    this.isAjax = true;
-    this.err = "";
-
-    const sumArray: (ITransaction | UTXO)[] = [
-      ...this.formOrders,
-      ...this.formNftOrders,
-    ];
-
-    const txList: IssueBatchTxInput = {
-      toAddress: this.formAddress,
-      memo: Buffer.from(this.formMemo),
-      orders: sumArray,
+    return {
+      formType,
+      showAdvanced: false,
+      isAjax: false,
+      addressIn: "",
+      memo: "",
+      orders,
+      nftOrders,
+      formErrors,
+      err: "",
+      formAddress: "",
+      formOrders,
+      formNftOrders,
+      formMemo: "",
+      isConfirm: false,
+      isSuccess: false,
+      txId: "",
+      canSendAgain: false,
+      txState,
     };
+  },
+  computed: {
+    networkStatus(): string {
+      const stat = this.$store.state.Network.status;
+      return stat;
+    },
+    hasNFT(): boolean {
+      // return this.$store.getters.walletNftUTXOs.length > 0
+      return this.$store.state.Assets.nftUTXOs.length > 0;
+    },
+    faucetLink() {
+      const link = import.meta.env.VITE_APP_FAUCET_LINK;
+      if (link) return link;
+      return null;
+    },
+    canSend() {
+      if (!this.addressIn) return false;
 
-    this.$store
-      .dispatch("issueBatchTx", txList)
-      .then((res) => {
-        this.canSendAgain = false;
-        this.waitTxConfirm(res);
-        this.txId = res;
-      })
-      .catch((err) => {
-        this.onerror(err);
-      });
-  }
-
-  async waitTxConfirm(txId: string) {
-    const status = await avm.getTxStatus(txId);
-    if (status === "Unknown" || status === "Processing") {
-      // if not confirmed ask again
-      setTimeout(() => {
-        this.waitTxConfirm(txId);
-      }, 500);
-      return false;
-    } else if (status === "Dropped") {
-      // If dropped stop the process
-      this.txState = TxState.failed;
-      return false;
-    } else {
-      // If success display success page
-      this.txState = TxState.success;
-      this.onsuccess(txId);
-    }
-  }
-
-  get networkStatus(): string {
-    const stat = this.$store.state.Network.status;
-    return stat;
-  }
-
-  get hasNFT(): boolean {
-    // return this.$store.getters.walletNftUTXOs.length > 0
-    return this.$store.state.Assets.nftUTXOs.length > 0;
-  }
-
-  get faucetLink() {
-    const link = import.meta.env.VITE_APP_FAUCET_LINK;
-    if (link) return link;
-    return null;
-  }
-  get canSend() {
-    if (!this.addressIn) return false;
-
-    if (
-      this.orders.length > 0 &&
-      this.totalTxSize.eq(new BN(0)) &&
-      this.nftOrders.length === 0
-    ) {
-      return false;
-    }
-
-    if (this.orders.length === 0 && this.nftOrders.length === 0) return false;
-
-    return true;
-  }
-  get totalTxSize() {
-    let res = new BN(0);
-    for (let i = 0; i < this.orders.length; i++) {
-      const order = this.orders[i];
-      if (order.amount) {
-        res = res.add(this.orders[i].amount);
+      if (
+        this.orders.length > 0 &&
+        this.totalTxSize.eq(new BN(0)) &&
+        this.nftOrders.length === 0
+      ) {
+        return false;
       }
-    }
 
-    return res;
-  }
-  get avaxTxSize() {
-    let res = new BN(0);
-    for (let i = 0; i < this.orders.length; i++) {
-      const order = this.orders[i];
-      if (!order.asset) continue;
-      if (order.amount && order.asset.id === this.avaxAsset.id) {
-        res = res.add(this.orders[i].amount);
+      if (this.orders.length === 0 && this.nftOrders.length === 0) return false;
+
+      return true;
+    },
+    totalTxSize() {
+      let res = new BN(0);
+      for (let i = 0; i < this.orders.length; i++) {
+        const order = this.orders[i];
+        if (order && order.amount) {
+          res = res.add(order.amount);
+        }
       }
-    }
 
-    return res;
-  }
-  get avaxAsset(): AvaAsset {
-    return this.$store.getters["Assets/AssetAVA"];
-  }
+      return res;
+    },
+    avaxTxSize() {
+      let res = new BN(0);
+      for (let i = 0; i < this.orders.length; i++) {
+        const order = this.orders[i];
+        if (!order || !order.asset) continue;
+        if (order.amount && order.asset.id === this.avaxAsset.id) {
+          res = res.add(order.amount);
+        }
+      }
 
-  get wallet(): WalletType {
-    return this.$store.state.activeWallet;
-  }
-
-  get txFee(): Big {
-    const fee = avm.getTxFee();
-    return bnToBig(fee, 9);
-  }
-
-  get totalUSD(): Big {
-    const totalAsset = this.avaxTxSize.add(avm.getTxFee());
-    const bigAmt = bnToBig(totalAsset, 9);
-    const usdPrice = this.priceDict.usd;
-    const usdBig = bigAmt.times(usdPrice);
-    return usdBig;
-  }
-
-  get addresses() {
-    return this.$store.state.addresses;
-  }
-
-  get priceDict(): priceDict {
-    return this.$store.state.prices;
-  }
-
-  get nftUTXOs(): UTXO[] {
-    return this.$store.state.Assets.nftUTXOs;
-  }
-
-  deactivated() {
-    this.startAgain();
-  }
-
+      return res;
+    },
+    avaxAsset(): AvaAsset {
+      return this.$store.getters["Assets/AssetAVA"];
+    },
+    wallet(): WalletType {
+      return this.$store.state.activeWallet;
+    },
+    txFee(): Big {
+      const fee = avm.getTxFee();
+      return bnToBig(fee, 9);
+    },
+    totalUSD(): Big {
+      const totalAsset = this.avaxTxSize.add(avm.getTxFee());
+      const bigAmt = bnToBig(totalAsset, 9);
+      const usdPrice = this.priceDict.usd;
+      const usdBig = bigAmt.times(usdPrice);
+      return usdBig;
+    },
+    addresses() {
+      return this.$store.state.addresses;
+    },
+    priceDict(): priceDict {
+      return this.$store.state.prices;
+    },
+    nftUTXOs(): UTXO[] {
+      return this.$store.state.Assets.nftUTXOs;
+    },
+  },
   activated() {
     this.clearForm();
 
     if (this.$route.query.chain) {
       const chain = this.$route.query.chain as string;
-      if (chain === "X") {
-        this.formType = "X";
-      } else {
-        this.formType = "C";
-      }
+      this.formType = chain === "X" ? "X" : "C";
     }
 
     if (this.$route.query.nft) {
@@ -492,11 +306,185 @@ export class Transfer extends Vue {
       });
 
       if (target) {
-        this.$refs.nftList.addNft(target);
+        (this.$refs.nftList as typeof NftList).addNft(target);
       }
     }
-  }
-}
+  },
+  deactivated() {
+    this.startAgain();
+  },
+  methods: {
+    confirm() {
+      const isValid = this.formCheck();
+      if (!isValid) return;
+
+      this.formOrders = [...this.orders];
+      this.formNftOrders = [...this.nftOrders];
+      this.formAddress = this.addressIn;
+      this.formMemo = this.memo;
+
+      this.isConfirm = true;
+    },
+    cancelConfirm() {
+      this.err = "";
+      this.formMemo = "";
+      this.formOrders = [];
+      this.formNftOrders = [];
+      this.formAddress = "";
+      this.isConfirm = false;
+    },
+    updateTxList(data: ITransaction[]) {
+      this.orders = data;
+    },
+    updateNftList(val: UTXO[]) {
+      this.nftOrders = val;
+    },
+    formCheck() {
+      this.formErrors = [];
+      const err = [];
+
+      const addr = this.addressIn;
+
+      const chain = addr.split("-");
+
+      if (chain[0] !== "X") {
+        err.push("Invalid address. You can only send to other X addresses.");
+      }
+
+      if (!isValidAddress(addr)) {
+        err.push("Invalid address.");
+      }
+
+      const memo = this.memo;
+      if (this.memo) {
+        const buff = Buffer.from(memo);
+        const size = buff.length;
+        if (size > 256) {
+          err.push("You can have a maximum of 256 characters in your memo.");
+        }
+
+        // Make sure memo isnt mnemonic
+        const isMnemonic = bip39.validateMnemonic(memo);
+        if (isMnemonic) {
+          err.push("You should not put a mnemonic phrase into the Memo field.");
+        }
+      }
+
+      // Make sure to address matches the bech32 network hrp
+      const hrp = ava.getHRP();
+      if (!addr.includes(hrp)) {
+        err.push("Not a valid address for this network.");
+      }
+
+      this.formErrors = err;
+      return err.length === 0 ? true : false;
+    },
+    startAgain() {
+      this.clearForm();
+
+      this.txId = "";
+      this.isSuccess = false;
+      this.cancelConfirm();
+
+      this.orders = [];
+      this.nftOrders = [];
+      this.formOrders = [];
+      this.formNftOrders = [];
+    },
+    clearForm() {
+      this.addressIn = "";
+      this.memo = "";
+
+      // Clear transactions list
+      if (this.$refs.txList) {
+        (this.$refs.txList as typeof TxList).reset();
+      }
+
+      // Clear NFT list
+      if (this.hasNFT && this.$refs.nftList) {
+        (this.$refs.nftList as typeof NftList).clear();
+      }
+    },
+    async onsuccess(_: string) {
+      this.isAjax = false;
+      this.isSuccess = true;
+
+      this.$store.dispatch("Notifications/add", {
+        title: this.$t("transfer.success_title"),
+        message: this.$t("transfer.success_msg"),
+        type: "success",
+      });
+
+      // Update the user's balance
+      this.$store.dispatch("Assets/updateUTXOs").then(() => {
+        this.updateSendAgainLock();
+      });
+      this.$store.dispatch("History/updateTransactionHistory");
+    },
+    updateSendAgainLock() {
+      if (this.wallet.isFetchUtxos) {
+        setTimeout(() => {
+          this.updateSendAgainLock();
+        }, 1000);
+      } else {
+        this.canSendAgain = true;
+      }
+    },
+    onerror(err: any) {
+      this.err = err;
+      this.isAjax = false;
+      this.$store.dispatch("Notifications/add", {
+        title: this.$t("transfer.error_title"),
+        message: this.$t("transfer.error_msg"),
+        type: "error",
+      });
+    },
+    submit() {
+      this.isAjax = true;
+      this.err = "";
+
+      const sumArray: (ITransaction | UTXO)[] = [
+        ...this.formOrders,
+        ...this.formNftOrders,
+      ] as (ITransaction | UTXO)[];
+
+      const txList: IssueBatchTxInput = {
+        toAddress: this.formAddress,
+        memo: Buffer.from(this.formMemo),
+        orders: sumArray,
+      };
+
+      this.$store
+        .dispatch("issueBatchTx", txList)
+        .then((res) => {
+          this.canSendAgain = false;
+          this.waitTxConfirm(res);
+          this.txId = res;
+        })
+        .catch((error) => {
+          this.onerror(error);
+        });
+    },
+    async waitTxConfirm(txId: string) {
+      const status = await avm.getTxStatus(txId);
+      if (status === "Unknown" || status === "Processing") {
+        // if not confirmed ask again
+        setTimeout(() => {
+          this.waitTxConfirm(txId);
+        }, 500);
+        return false;
+      } else if (status === "Dropped") {
+        // If dropped stop the process
+        this.txState = TxState.failed;
+        return false;
+      } else {
+        // If success display success page
+        this.txState = TxState.success;
+        this.onsuccess(txId);
+      }
+    },
+  },
+});
 export default Transfer;
 </script>
 
@@ -520,7 +508,7 @@ export default Transfer;
 }
 </style>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 $padLeft: 24px;
 $padTop: 8px;
@@ -644,9 +632,6 @@ h4 {
   float: right;
 }
 
-.to_address {
-}
-
 label {
   color: var(--primary-color-light);
   font-size: 12px;
@@ -693,14 +678,14 @@ label {
 //    }
 //}
 
-@include main.medium-device {
+@include mixins.medium-device {
   .new_order_Form {
     grid-template-columns: 1fr 1fr 220px;
     column-gap: 25px;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .transfer_card {
     display: block;
     grid-template-columns: none;

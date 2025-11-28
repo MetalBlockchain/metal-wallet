@@ -1,12 +1,12 @@
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
 import { DAY_MS } from "@/constants";
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import { BN } from "@metalblockchain/metaljs";
 
 function filterValidatorList(
   list: ValidatorListItem[],
-  filter: ValidatorListFilter | null
+  filter: ValidatorListFilter | null,
 ): ValidatorListItem[] {
   const now = Date.now();
   if (!filter) return list;

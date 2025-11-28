@@ -1,39 +1,39 @@
-import { ava, avm, bintools, cChain, pChain } from "@/AVA";
-import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { Buffer } from "@metalblockchain/metaljs";
-import { BN } from "@metalblockchain/metaljs";
-
 import type {
+  UTXO as AVMUTXO,
   NFTMintOutput,
   TransferableInput,
   TransferableOutput,
-  UTXO as AVMUTXO,
-  UTXOSet,
   UTXO,
+  UTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import type { ITransaction } from "@/components/wallet/transfer/types";
+
+import type Erc20Token from "@/js/Erc20Token";
+import type ERC721Token from "@/js/ERC721Token";
+
+import EthereumjsCommon from "@ethereumjs/common";
+import { Transaction } from "@ethereumjs/tx";
+import { BN } from "@metalblockchain/metaljs";
+
 import {
   AssetAmountDestination,
-  BaseTx,
-  MinterSet,
+  AVMConstants,
   UnsignedTx as AVMUnsignedTx,
   UTXOSet as AVMUTXOSet,
-  AVMConstants,
+  BaseTx,
+  MinterSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 
-import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import { OutputOwners } from "@metalblockchain/metaljs/dist/common";
-import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
-
 import {
-  UnsignedTx as EVMUnsignedTx,
   EVMConstants,
+  UnsignedTx as EVMUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/evm";
-
-import { web3 } from "@/evm";
-import type ERC721Token from "@/js/ERC721Token";
-import { Transaction } from "@ethereumjs/tx";
-import EthereumjsCommon from "@ethereumjs/common";
-import type Erc20Token from "@/js/Erc20Token";
+import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { OutputOwners } from "@metalblockchain/metaljs/dist/common";
+import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
+import { web3 } from "@/misc/evm";
 
 export async function buildUnsignedTransaction(
   orders: (ITransaction | AVMUTXO)[],
@@ -41,7 +41,7 @@ export async function buildUnsignedTransaction(
   derivedAddresses: string[],
   utxoset: AVMUTXOSet,
   changeAddress?: string,
-  memo?: Buffer
+  memo?: Buffer,
 ) {
   // TODO: Get new change index.
   if (!changeAddress) {
@@ -50,7 +50,7 @@ export async function buildUnsignedTransaction(
 
   const fromAddrsStr: string[] = derivedAddresses;
   const fromAddrs: Buffer[] = fromAddrsStr.map((val) =>
-    bintools.parseAddress(val, "X")
+    bintools.parseAddress(val, "X"),
   );
   const changeAddr: Buffer = bintools.stringToAddress(changeAddress);
 
@@ -63,14 +63,14 @@ export async function buildUnsignedTransaction(
   const aad: AssetAmountDestination = new AssetAmountDestination(
     [TO_BUF],
     fromAddrs,
-    [changeAddr]
+    [changeAddr],
   );
   const ZERO = new BN(0);
   let isFeeAdded = false;
 
   // Aggregate Fungible ins & outs
   for (let i = 0; i < orders.length; i++) {
-    const order: ITransaction | AVMUTXO = orders[i];
+    const order: ITransaction | AVMUTXO | undefined = orders[i];
 
     if ((order as ITransaction).asset) {
       // if fungible
@@ -89,17 +89,15 @@ export async function buildUnsignedTransaction(
   }
 
   // If fee isn't added, add it
-  if (!isFeeAdded) {
-    if (avm.getTxFee().gt(ZERO)) {
-      aad.addAssetAmount(AVAX_ID_BUF, ZERO, avm.getTxFee());
-    }
+  if (!isFeeAdded && avm.getTxFee().gt(ZERO)) {
+    aad.addAssetAmount(AVAX_ID_BUF, ZERO, avm.getTxFee());
   }
 
   const success: Error = utxoset.getMinimumSpendable(aad);
 
   let ins: TransferableInput[] = [];
   let outs: TransferableOutput[] = [];
-  if (typeof success === "undefined") {
+  if (success === undefined) {
     ins = aad.getInputs();
     outs = aad.getAllOutputs();
   } else {
@@ -141,7 +139,7 @@ export async function buildUnsignedTransaction(
       utxoIds,
       undefined,
       undefined,
-      memo
+      memo,
     );
 
     const rawTx = unsignedTx.getTransaction();
@@ -149,10 +147,10 @@ export async function buildUnsignedTransaction(
     const insNft = rawTx.getIns();
 
     // TODO: This is a hackish way of doing this, need methods in avalanche.js
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     //@ts-ignore
     rawTx.outs = outsNft.concat(outs);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     //@ts-ignore
     rawTx.ins = insNft.concat(ins);
   } else {
@@ -169,7 +167,7 @@ export async function buildCreateNftFamilyTx(
   fromAddrs: string[],
   minterAddr: string,
   changeAddr: string,
-  utxoSet: UTXOSet
+  utxoSet: UTXOSet,
 ) {
   const fromAddresses = fromAddrs;
   const changeAddress = changeAddr;
@@ -189,7 +187,7 @@ export async function buildCreateNftFamilyTx(
     [changeAddress],
     minterSets,
     name,
-    symbol
+    symbol,
   );
   return unsignedTx;
 }
@@ -201,7 +199,7 @@ export async function buildMintNftTx(
   ownerAddress: string,
   changeAddress: string,
   fromAddresses: string[],
-  utxoSet: UTXOSet
+  utxoSet: UTXOSet,
 ): Promise<AVMUnsignedTx> {
   const addrBuf = bintools.parseAddress(ownerAddress, "X");
   const owners = [];
@@ -222,7 +220,7 @@ export async function buildMintNftTx(
     [changeAddress],
     mintUtxo.getUTXOID(),
     groupID,
-    payload
+    payload,
   );
   return mintTx;
 }
@@ -232,7 +230,7 @@ export async function buildEvmTransferNativeTx(
   to: string,
   amount: BN, // in wei
   gasPrice: BN,
-  gasLimit: number
+  gasLimit: number,
 ) {
   const nonce = await web3.eth.getTransactionCount(from);
   const chainId = await web3.eth.getChainId();
@@ -241,20 +239,20 @@ export async function buildEvmTransferNativeTx(
     common: EthereumjsCommon.forCustomChain(
       "mainnet",
       { networkId, chainId },
-      "istanbul"
+      "istanbul",
     ),
   };
 
   const tx = new Transaction(
     {
-      nonce: nonce,
-      gasPrice: gasPrice,
-      gasLimit: gasLimit,
-      to: to,
+      nonce,
+      gasPrice,
+      gasLimit,
+      to,
       value: amount,
       data: "0x",
     },
-    chainParams
+    chainParams,
   );
   return tx;
 }
@@ -265,7 +263,7 @@ export async function buildEvmTransferErc20Tx(
   amount: BN, // in wei
   gasPrice: BN,
   gasLimit: number,
-  token: Erc20Token
+  token: Erc20Token,
 ) {
   const nonce = await web3.eth.getTransactionCount(from);
   const chainId = await web3.eth.getChainId();
@@ -274,7 +272,7 @@ export async function buildEvmTransferErc20Tx(
     common: EthereumjsCommon.forCustomChain(
       "mainnet",
       { networkId, chainId },
-      "istanbul"
+      "istanbul",
     ),
   };
 
@@ -282,14 +280,14 @@ export async function buildEvmTransferErc20Tx(
 
   const tx = new Transaction(
     {
-      nonce: nonce,
-      gasPrice: gasPrice,
-      gasLimit: gasLimit,
+      nonce,
+      gasPrice,
+      gasLimit,
       value: "0x0",
       to: token.data.address,
       data: tokenTx.encodeABI(),
     },
-    chainParams
+    chainParams,
   );
   return tx;
 }
@@ -300,7 +298,7 @@ export async function buildEvmTransferErc721Tx(
   gasPrice: BN,
   gasLimit: number,
   token: ERC721Token,
-  tokenId: string
+  tokenId: string,
 ) {
   const nonce = await web3.eth.getTransactionCount(from);
   const chainId = await web3.eth.getChainId();
@@ -309,7 +307,7 @@ export async function buildEvmTransferErc721Tx(
     common: EthereumjsCommon.forCustomChain(
       "mainnet",
       { networkId, chainId },
-      "istanbul"
+      "istanbul",
     ),
   };
 
@@ -317,14 +315,14 @@ export async function buildEvmTransferErc721Tx(
 
   const tx = new Transaction(
     {
-      nonce: nonce,
-      gasPrice: gasPrice,
-      gasLimit: gasLimit,
+      nonce,
+      gasPrice,
+      gasLimit,
       value: "0x0",
       to: token.data.address,
       data: tokenTx.encodeABI(),
     },
-    chainParams
+    chainParams,
   );
   return tx;
 }

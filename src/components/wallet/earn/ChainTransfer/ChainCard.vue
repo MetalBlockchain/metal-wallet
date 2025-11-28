@@ -3,12 +3,12 @@
     <div class="input_group">
       <h4 v-if="isSource">{{ $t("cross_chain.card.source") }}</h4>
       <h4 v-else>{{ $t("cross_chain.card.destination") }}</h4>
-      <p style="font-size: 3em" class="chain_alias">{{ chain }}</p>
+      <p class="chain_alias" style="font-size: 3em">{{ chain }}</p>
     </div>
     <div>
       <div class="input_group">
         <label>{{ $t("cross_chain.card.name") }}</label>
-        <p>{{ chainNames[chain] }}</p>
+        <p>{{ chain ? chainNames[chain] : "" }}</p>
       </div>
       <div class="input_group">
         <label>{{ $t("cross_chain.card.balance") }}</label>
@@ -18,15 +18,15 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type { ChainIdType } from "@/constants";
-import { BN } from "@metalblockchain/metaljs";
 import type AvaAsset from "@/js/AvaAsset";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletType } from "@/js/wallets/types";
 
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
-import NumberCounter from "@/components/misc/NumberCounter.vue";
 
 const chainNames = {
   X: "Exchange Chain",
@@ -34,71 +34,64 @@ const chainNames = {
   P: "Platform Chain",
 };
 
-@Component({
-  components: {
-    NumberCounter,
+export const ChainCard = defineComponent({
+  props: {
+    chain: {
+      type: String as PropType<ChainIdType>,
+    },
+    isSource: { default: true, type: Boolean },
   },
-})
-export class ChainCard extends Vue {
-  // @Model('change', { type: String }) readonly chain!: ChainIdType
-  @Prop() chain!: ChainIdType;
-  // @Prop() exclude!: ChainIdType
-  @Prop({ default: true }) isSource?: boolean;
-
-  onChange(ev: any) {
-    const val: ChainIdType = ev.target.value;
-    this.$emit("change", val);
-  }
-
-  get chainNames() {
-    return chainNames;
-  }
-
-  get ava_asset(): AvaAsset | null {
-    const ava = this.$store.getters["Assets/AssetAVA"];
-    return ava;
-  }
-
-  get wallet(): WalletType {
-    const wallet: MnemonicWallet = this.$store.state.activeWallet;
-    return wallet;
-  }
-
-  get platformUnlocked(): BN {
-    return this.$store.getters["Assets/walletPlatformBalance"].available;
-  }
-
-  get avmUnlocked(): BN {
-    if (!this.ava_asset) return new BN(0);
-    return this.ava_asset.amount;
-  }
-
-  get evmUnlocked(): BN {
-    const balRaw = this.wallet.ethBalance;
-    return balRaw.div(new BN(Math.pow(10, 9)));
-  }
-
-  get balance() {
-    if (this.chain === "X") {
-      return this.avmUnlocked;
-    } else if (this.chain === "P") {
-      return this.platformUnlocked;
-    } else {
-      return this.evmUnlocked;
-    }
-  }
-
-  get balanceBig() {
-    return bnToBig(this.balance, 9);
-  }
-  get balanceText() {
-    return this.balanceBig.toLocaleString();
-  }
-}
+  emits: ["change"],
+  computed: {
+    chainNames() {
+      return chainNames;
+    },
+    ava_asset(): AvaAsset | null {
+      const ava = this.$store.getters["Assets/AssetAVA"];
+      return ava;
+    },
+    wallet(): WalletType {
+      const wallet: MnemonicWallet = this.$store.state.activeWallet;
+      return wallet;
+    },
+    platformUnlocked(): BN {
+      return this.$store.getters["Assets/walletPlatformBalance"].available;
+    },
+    avmUnlocked(): BN {
+      if (!this.ava_asset) return new BN(0);
+      return this.ava_asset.amount;
+    },
+    evmUnlocked(): BN {
+      const balRaw = this.wallet.ethBalance;
+      return balRaw.div(new BN(Math.pow(10, 9)));
+    },
+    balance() {
+      if (this.chain === "X") {
+        return this.avmUnlocked;
+      } else if (this.chain === "P") {
+        return this.platformUnlocked;
+      } else {
+        return this.evmUnlocked;
+      }
+    },
+    balanceBig() {
+      return bnToBig(this.balance, 9);
+    },
+    balanceText() {
+      return this.balanceBig.toLocaleString();
+    },
+  },
+  methods: {
+    onChange(ev: any) {
+      const val: ChainIdType = ev.target.value;
+      this.$emit("change", val);
+    },
+  },
+});
 export default ChainCard;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
+@use "@/styles/abstracts/mixins";
 
 label {
   text-align: left;
@@ -124,7 +117,7 @@ p {
   word-break: break-all;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .chain_card {
     display: block;
   }

@@ -8,22 +8,23 @@
           <BaseTxUtxo
             v-for="(utxo, i) in sentUTXOs"
             :key="i"
-            :utxo="utxo"
             :ins="inputUTXOs"
-            :outs="outputUTXOs"
             :is-sent="true"
+            :outs="outputUTXOs"
+            :utxo="utxo"
           ></BaseTxUtxo>
         </template>
         <template v-else>
           <BaseTxUtxo
             v-for="(utxo, i) in outputUTXOs"
             :key="i"
-            :utxo="utxo"
             :ins="inputUTXOs"
-            :outs="outputUTXOs"
             :is-sent="true"
+            :outs="outputUTXOs"
+            :utxo="utxo"
           ></BaseTxUtxo>
         </template>
+
         <div class="nft_cols">
           <!--                    <div class="nft_addr">-->
           <!--                        <p v-for="addr in summary.collectibles.sent.addresses" :key="addr">-->
@@ -46,10 +47,10 @@
         <BaseTxUtxo
           v-for="(utxo, i) in receivedUTXOs"
           :key="i"
-          :utxo="utxo"
           :ins="inputUTXOs"
-          :outs="outputUTXOs"
           :is-sent="false"
+          :outs="outputUTXOs"
+          :utxo="utxo"
         ></BaseTxUtxo>
         <!--                <BaseTxOutput-->
         <!--                    v-for="(asset, assetId) in tokensReceived"-->
@@ -78,106 +79,88 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { WalletType } from "@/js/wallets/types";
+import type { PropType } from "vue";
 
-import TxHistoryValue from "@/components/SidePanels/TxHistoryValue.vue";
-import TxHistoryValueFunctional from "@/components/SidePanels/History/TxHistoryValueFunctional.vue";
-import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
-import BaseTxOutput from "@/components/SidePanels/History/ViewTypes/BaseTxOutput.vue";
-import BaseTxNFTOutput from "@/components/SidePanels/History/ViewTypes/BaseTxNFTOutput.vue";
-import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 import type {
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
+import type { WalletType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
+// import TxHistoryValueFunctional from "@/components/SidePanels/History/TxHistoryValueFunctional.vue";
+// import BaseTxNFTOutput from "@/components/SidePanels/History/ViewTypes/BaseTxNFTOutput.vue";
+// import BaseTxOutput from "@/components/SidePanels/History/ViewTypes/BaseTxOutput.vue";
 import BaseTxUtxo from "@/components/SidePanels/History/ViewTypes/BaseTxUtxo.vue";
+// import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
+// import TxHistoryValue from "@/components/SidePanels/TxHistoryValue.vue";
+import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 
-@Component({
+export const BaseTx = defineComponent({
   components: {
     BaseTxUtxo,
-    BaseTxNFTOutput,
-    BaseTxOutput,
-    TxHistoryValue,
-    TxHistoryValueFunctional,
-    TxHistoryNftFamilyGroup,
+    // BaseTxNFTOutput,
+    // BaseTxOutput,
+    // TxHistoryValue,
+    // TxHistoryValueFunctional,
+    // TxHistoryNftFamilyGroup,
   },
-})
-export class BaseTx extends Vue {
-  @Prop() transaction!: XChainTransaction;
-
-  get inputUTXOs() {
-    return this.transaction.consumedUtxos || [];
-  }
-
-  get outputUTXOs() {
-    return this.transaction.emittedUtxos || [];
-  }
-
-  /**
-   * Output UTXOs owned by this wallet
-   */
-  get receivedUTXOs() {
-    return this.outputUTXOs.filter((utxo) => {
-      return isOwnedUTXO(utxo, this.addresses);
-    });
-  }
-
-  /**
-   * Output UTXOs not owned by this wallet
-   */
-  get sentUTXOs() {
-    const utxos = this.outputUTXOs.filter((utxo) => {
-      return !isOwnedUTXO(utxo, this.addresses);
-    });
-
-    return utxos;
-  }
-
-  get sentToSelf() {
-    return this.isSender && !this.sentUTXOs.length;
-  }
-
-  /**
-   * True if this wallet owns one of the input UTXOs
-   */
-  get isSender() {
-    return (
-      this.inputUTXOs.filter((utxo) => {
+  props: {
+    transaction: {
+      type: Object as PropType<XChainTransaction>,
+    },
+  },
+  computed: {
+    inputUTXOs() {
+      return this.transaction?.consumedUtxos ?? [];
+    },
+    outputUTXOs() {
+      return this.transaction?.emittedUtxos ?? [];
+    },
+    receivedUTXOs() {
+      return this.outputUTXOs.filter((utxo) => {
         return isOwnedUTXO(utxo, this.addresses);
-      }).length > 0
-    );
-  }
+      });
+    },
+    sentUTXOs() {
+      const utxos = this.outputUTXOs.filter((utxo) => {
+        return !isOwnedUTXO(utxo, this.addresses);
+      });
 
-  get hasReceived() {
-    return (
-      this.transaction.emittedUtxos.filter((utxo) => {
+      return utxos;
+    },
+    sentToSelf() {
+      return this.isSender && this.sentUTXOs.length === 0;
+    },
+    isSender() {
+      return this.inputUTXOs.some((utxo) => {
         return isOwnedUTXO(utxo, this.addresses);
-      }).length > 0
-    );
-  }
-
-  /**
-   * All X/P addresses used by the wallet
-   */
-  get addresses() {
-    const wallet: WalletType | null = this.$store.state.activeWallet;
-    if (!wallet) return [];
-    return wallet.getHistoryAddresses();
-  }
-
-  /**
-   * Addresses stripped of the chain prefix
-   */
-  get addrsRaw() {
-    const addrs: string[] = this.addresses;
-    return addrs.map((addr) => addr.split("-")[1]);
-  }
-
-  get type() {
-    return this.transaction.txType as TransactionTypeName;
-  }
-}
+      });
+    },
+    hasReceived() {
+      if (!this.transaction) {
+        return false;
+      }
+      return this.transaction.emittedUtxos.some((utxo) => {
+        return isOwnedUTXO(utxo, this.addresses);
+      });
+    },
+    addresses() {
+      const wallet: WalletType | null = this.$store.state.activeWallet;
+      if (!wallet) return [];
+      return wallet.getHistoryAddresses();
+    },
+    addrsRaw() {
+      const addrs: string[] = this.addresses;
+      return addrs.map((addr) => addr.split("-")[1]);
+    },
+    type() {
+      if (!this.transaction) {
+        return null;
+      }
+      return this.transaction.txType as TransactionTypeName;
+    },
+  },
+});
 export default BaseTx;
 </script>
 <style scoped lang="scss">

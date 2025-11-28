@@ -6,63 +6,88 @@
         <p v-for="addr in addresses" :key="addr" class="address">{{ addr }}</p>
       </div>
     </div>
-    <p :sent="isSent" class="token">
+    <p class="token" :sent="isSent">
       <span v-if="isSent">-</span>
       {{ amountString }} {{ symbol }}
     </p>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import type { Utxo } from "@metalblockchain/glacier-sdk";
-import { BN } from "@metalblockchain/metaljs";
+import type { PropType } from "vue";
 import { bnToLocaleString } from "@metalblockchain/metal-wallet-sdk";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
 
-@Component
-export class BaseTxUtxo extends Vue {
-  @Prop() utxo!: Utxo;
-  @Prop() ins!: Utxo[];
-  @Prop() outs!: Utxo[];
-  @Prop() isSent!: boolean;
-
-  get amountString() {
-    return bnToLocaleString(new BN(this.utxo.asset.amount), this.denomination);
-  }
-
-  get symbol() {
-    return this.utxo.asset.symbol;
-  }
-
-  get denomination() {
-    return this.utxo.asset.denomination;
-  }
-
-  /**
-   * Trim the address and prepend X-
-   * @param address
-   */
-  formatAddress(address: string) {
-    const len = address.length;
-    return `X-${address.slice(0, 9)}..${address.slice(len - 5)}`;
-  }
-
-  get addresses() {
-    // If this is a sent utxo, get who we sent to
-    if (this.isSent) {
-      return this.utxo.addresses.map(this.formatAddress);
-    }
-    // If received, get who sent this to us
-    else {
-      const insUtxos = this.ins.filter((utxo) => {
-        return utxo.asset.assetId === this.utxo.asset.assetId;
-      });
-      return insUtxos
-        .map((utxo) => utxo.addresses)
-        .flat()
-        .map(this.formatAddress);
-    }
-  }
-}
+export const BaseTxUtxo = defineComponent({
+  props: {
+    utxo: {
+      type: Object as PropType<Utxo>,
+    },
+    ins: {
+      type: Array as PropType<Utxo[]>,
+    },
+    outs: {
+      type: Array as PropType<Utxo[]>,
+    },
+    isSent: {
+      type: Boolean,
+    },
+  },
+  computed: {
+    amountString() {
+      if (!this.utxo) {
+        return "";
+      }
+      return bnToLocaleString(
+        new BN(this.utxo.asset.amount),
+        this.denomination,
+      );
+    },
+    symbol() {
+      if (!this.utxo) {
+        return "";
+      }
+      return this.utxo.asset.symbol;
+    },
+    denomination() {
+      if (!this.utxo) {
+        return undefined;
+      }
+      return this.utxo.asset.denomination;
+    },
+    addresses() {
+      const utxoValue = this.utxo;
+      if (!utxoValue) {
+        return [];
+      }
+      // If this is a sent utxo, get who we sent to
+      if (this.isSent) {
+        return utxoValue.addresses.map((address) =>
+          this.formatAddress(address),
+        );
+      }
+      // If received, get who sent this to us
+      else {
+        if (!this.ins) {
+          return [];
+        }
+        const insUtxos = this.ins.filter((utxo) => {
+          return utxo.asset.assetId === utxoValue.asset.assetId;
+        });
+        return insUtxos
+          .flatMap((utxo) => utxo.addresses)
+          .map((address) => this.formatAddress(address));
+      }
+    },
+  },
+  methods: {
+    formatAddress(address: string) {
+      const len = address.length;
+      return `X-${address.slice(0, 9)}..${address.slice(len - 5)}`;
+    },
+  },
+});
 export default BaseTxUtxo;
 </script>
 <style scoped lang="scss">

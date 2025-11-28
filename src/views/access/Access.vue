@@ -1,49 +1,48 @@
 <template>
   <div class="access_view">
-    <b-container>
-      <b-row align-h="center">
-        <b-col md="12" lg="10">
-          <transition name="fade" mode="out-in">
-            <router-view class="access_card"></router-view>
-          </transition>
-        </b-col>
-      </b-row>
-    </b-container>
+    <div class="w-container">
+      <div class="w-row w-row--justify-center">
+        <div class="w-col w-col--lg-10 w-col--md-12">
+          <router-view v-slot="{ Component }" class="access_card">
+            <transition mode="out-in" name="fade">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-@Component({
-  metaInfo: () => {
+import { useHead } from "@unhead/vue";
+import { defineComponent } from "vue";
+
+export const Access = defineComponent({
+  setup() {
     const description =
       "Access your stored crypto assets in a simple fashion, yet highly secure, and non-custodial fashion. Your Avalanche wallet is a few clicks away!";
-    return {
+    useHead({
+      title: () => "Access Stored Crypto Assets",
       meta: [
         {
-          vmid: "description",
-          name: "description",
+          property: "og:description",
           content: description,
         },
         {
-          vmid: "og:description",
-          name: "description",
+          property: "description",
           content: description,
         },
         {
-          vmid: "og:title",
-          name: "og:title",
+          property: "og:title",
           content: "Access Stored Crypto Assets | Avalanche Wallet",
         },
       ],
-      title: "Access Stored Crypto Assets",
-    };
+    });
   },
-})
-export default class Access extends Vue {}
+});
+export default Access;
 </script>
 <style scoped lang="scss">
-@use "../../main";
-
 .access_view {
   display: flex;
   justify-content: center;

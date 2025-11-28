@@ -1,11 +1,11 @@
 <template>
   <div
-    data-cy="network-switcher"
     class="network_menu"
     :connected="status === 'connected'"
+    data-cy="network-switcher"
     @keydown.esc="closeMenu"
   >
-    <div class="toggle_but" @click="toggleMenu" :testnet="isTestnet">
+    <div class="toggle_but" :testnet="isTestnet" @click="toggleMenu">
       <span
         :style="{
           backgroundColor: connectionColor,
@@ -31,47 +31,47 @@
     </div>
     <transition name="fade">
       <div
-        class="network_dispose_bg"
         v-if="isActive"
         key="bg"
+        class="network_dispose_bg"
         @click="closeMenu"
       ></div>
     </transition>
     <transition name="slide_right">
-      <div class="network_body" v-if="isActive" key="body">
+      <div v-if="isActive" key="body" class="network_body">
         <div class="header" data-cy="custom-network-option">
           <template v-if="page === 'list'">
             <h4>{{ $t("network.title") }}</h4>
             <button
-              @click="viewCustom"
               class="button_secondary"
               data-cy="create-custom-option"
+              @click="viewCustom"
             >
               {{ $t("network.custom") }}
             </button>
           </template>
           <template v-if="page === 'custom'">
             <h4>{{ $t("network.title2") }}</h4>
-            <button @click="viewList" class="tab_cancel">
+            <button class="tab_cancel" @click="viewList">
               {{ $t("network.cancel") }}
             </button>
           </template>
           <template v-if="page === 'edit'">
             <h4>{{ $t("network.title3") }}</h4>
-            <button @click="viewList" class="tab_cancel">
+            <button class="tab_cancel" @click="viewList">
               {{ $t("network.cancel") }}
             </button>
           </template>
         </div>
 
-        <transition name="fade" mode="out-in">
+        <transition mode="out-in" name="fade">
           <ListPage v-if="page === 'list'" @edit="onedit"></ListPage>
           <CustomPage
-            v-if="page === 'custom'"
+            v-else-if="page === 'custom'"
             @add="addCustomNetwork"
           ></CustomPage>
           <EditPage
-            v-if="page === 'edit'"
+            v-else-if="page === 'edit'"
             :net="editNetwork"
             @success="networkUpdated"
           ></EditPage>
@@ -81,91 +81,95 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import NetworkRow from "./NetworkRow.vue";
-import CustomPage from "./CustomPage.vue";
-import ListPage from "./ListPage.vue";
-import EditPage from "@/components/NetworkSettings/EditPage.vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { NetworkStatus } from "@/store/modules/network/types";
+import type { NetworkStatus } from "@/stores/vuex/modules/network/types";
+import { defineComponent } from "vue";
+import CustomPage from "./CustomPage.vue";
+import EditPage from "./EditPage.vue";
+import ListPage from "./ListPage.vue";
 
-@Component({
+export const NetworkMenu = defineComponent({
   components: {
     ListPage,
-    NetworkRow,
     CustomPage,
     EditPage,
   },
-})
-export class NetworkMenu extends Vue {
-  page = "list";
-  isActive = false;
-  editNetwork: AvaNetwork | null = null;
+  data(): {
+    page: string;
+    isActive: boolean;
+    editNetwork: AvaNetwork | null;
+  } {
+    const editNetwork: AvaNetwork | null = null;
+    return {
+      page: "list",
+      isActive: false,
+      editNetwork,
+    };
+  },
+  computed: {
+    connectionColor(): string {
+      switch (this.status) {
+        case "connecting": {
+          return "#112EBD";
+        }
+        case "connected": {
+          return "#20BF55";
+        }
+        default: {
+          return "#992005";
+        }
+      }
+    },
+    status(): NetworkStatus {
+      return this.$store.state.Network.status;
+    },
+    activeNetwork(): null | AvaNetwork {
+      return this.$store.state.Network.selectedNetwork;
+    },
+    networks(): AvaNetwork[] {
+      return this.$store.getters("Network/allNetworks");
+    },
+    isTestnet(): boolean {
+      const net = this.activeNetwork;
 
-  viewCustom(): void {
-    this.page = "custom";
-  }
-  viewList(): void {
-    this.page = "list";
-  }
-  closeMenu(): void {
-    this.page = "list";
-    this.isActive = false;
-  }
-  toggleMenu(): void {
-    this.isActive = !this.isActive;
-  }
-  addCustomNetwork(data: AvaNetwork): void {
-    this.$store.dispatch("Network/addCustomNetwork", data);
-    this.page = "list";
-  }
-
-  get connectionColor(): string {
-    switch (this.status) {
-      case "connecting":
-        return "#112EBD";
-      case "connected":
-        return "#20BF55";
-      default:
-        return "#992005";
-    }
-  }
-
-  networkUpdated() {
-    this.page = "list";
-    this.$store.dispatch("Network/save");
-  }
-
-  onedit(network: AvaNetwork): void {
-    this.editNetwork = network;
-    this.page = "edit";
-  }
-
-  get status(): NetworkStatus {
-    return this.$store.state.Network.status;
-  }
-  get activeNetwork(): null | AvaNetwork {
-    return this.$store.state.Network.selectedNetwork;
-  }
-  get networks(): AvaNetwork[] {
-    return this.$store.getters("Network/allNetworks");
-    // return this.$store.state.Network.networks;
-  }
-
-  get isTestnet(): boolean {
-    const net = this.activeNetwork;
-
-    if (!net) return false;
-    if (net.networkId !== 1) return true;
-    return false;
-  }
-}
+      if (!net) return false;
+      if (net.networkId !== 1) return true;
+      return false;
+    },
+  },
+  methods: {
+    viewCustom(): void {
+      this.page = "custom";
+    },
+    viewList(): void {
+      this.page = "list";
+    },
+    closeMenu(): void {
+      this.page = "list";
+      this.isActive = false;
+    },
+    toggleMenu(): void {
+      this.isActive = !this.isActive;
+    },
+    addCustomNetwork(data: AvaNetwork): void {
+      this.$store.dispatch("Network/addCustomNetwork", data);
+      this.page = "list";
+    },
+    networkUpdated() {
+      this.page = "list";
+      this.$store.dispatch("Network/save");
+    },
+    onedit(network: AvaNetwork): void {
+      this.editNetwork = network;
+      this.page = "edit";
+    },
+  },
+});
 export default NetworkMenu;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .network_menu {
   position: relative;
@@ -269,7 +273,7 @@ export default NetworkMenu;
   }
 }
 
-@media only screen and (max-width: main.$mobile_width) {
+@media only screen and (max-width: vars.$mobile_width) {
   .network_body {
     position: fixed;
     width: 100vw;
@@ -279,7 +283,7 @@ export default NetworkMenu;
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .toggle_but {
     min-width: auto;
   }

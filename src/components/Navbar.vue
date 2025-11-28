@@ -1,10 +1,9 @@
 <template>
   <div id="nav">
     <ConfirmLogout ref="logout"></ConfirmLogout>
-    <router-link to="/" class="logo">
-      <img v-if="$root.$data.theme === 'day'" src="@/assets/wallet_logo.svg" />
+    <router-link class="logo" to="/">
+      <img v-if="isDay" src="@/assets/wallet_logo.svg" />
       <img v-else src="@/assets/wallet_logo_dark.svg" />
-      <!--            <span class="slogan">by Avalanche</span>-->
     </router-link>
     <v-spacer></v-spacer>
 
@@ -14,19 +13,19 @@
         <button @click="logout">{{ $t("logout.button") }}</button>
       </template>
       <template v-else>
-        <router-link to="/access" class="action_but" data-cy="access">
+        <router-link class="action_but" data-cy="access" to="/access">
           {{ $t("nav.access") }}
         </router-link>
-        <router-link to="/create" class="action_but" data-cy="create">
+        <router-link class="action_but" data-cy="create" to="/create">
           {{ $t("nav.create") }}
         </router-link>
       </template>
-      <network-menu></network-menu>
+      <NetworkMenu></NetworkMenu>
       <LanguageSelect class="lang_web"></LanguageSelect>
     </div>
 
     <div class="mobile_right">
-      <v-btn @click="isDrawer = !isDrawer" icon class="mobile_drawer">
+      <v-btn class="mobile_drawer" icon @click="isDrawer = !isDrawer">
         <fa icon="bars"></fa>
       </v-btn>
     </div>
@@ -34,11 +33,12 @@
     <!--   MOBILE MENU     -->
     <v-navigation-drawer
       ref="drawer"
-      class="mobile_menu"
       v-model="isDrawer"
+      class="mobile_menu"
+      :disable-resize-watcher="true"
       fixed
+      :scrim="false"
       style="z-index: 999"
-      hide-overlay
     >
       <v-list dense nav>
         <div
@@ -48,10 +48,7 @@
             padding: 4px 8px;
           "
         >
-          <img
-            v-if="$root.$data.theme === 'day'"
-            src="@/assets/wallet_logo.svg"
-          />
+          <img v-if="isDay" src="@/assets/wallet_logo.svg" />
           <img v-else src="@/assets/wallet_logo_dark.svg" />
           <DayNightToggle class="action_but"></DayNightToggle>
         </div>
@@ -72,39 +69,36 @@
           <router-link to="/wallet/keys">{{
             $t("wallet.sidebar.manage")
           }}</router-link>
-          <router-link to="/wallet/advanced" data-cy="wallet_advanced">
+          <router-link data-cy="wallet_advanced" to="/wallet/advanced">
             {{ $t("wallet.sidebar.advanced") }}
           </router-link>
           <button class="logout" @click="logout">
             {{ $t("logout.button") }}
           </button>
-
-          <!--                    <v-list-item to="/wallet/">Home</v-list-item>-->
-          <!--                    <v-list-item to="/wallet/keys">Manage Keys</v-list-item>-->
-          <!--                    <v-list-item to="/wallet/transfer">Transfer</v-list-item>-->
-          <!--                    <v-list-item @click="logout"><Log out/v-list-item>-->
         </template>
         <template v-else>
           <router-link to="/access">{{ $t("nav.access") }}</router-link>
           <router-link to="/create">{{ $t("nav.create") }}</router-link>
         </template>
-        <div class="mobile_bottom">
-          <AccountMenu></AccountMenu>
-          <LanguageSelect class="lang_mobile"></LanguageSelect>
-        </div>
       </v-list>
+      <div class="mobile_bottom">
+        <AccountMenu></AccountMenu>
+        <LanguageSelect class="lang_mobile"></LanguageSelect>
+      </div>
     </v-navigation-drawer>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-import LanguageSelect from "./misc/LanguageSelect/LanguageSelect.vue";
+import { defineComponent } from "vue";
+
 import DayNightToggle from "@/components/misc/DayNightToggle.vue";
-import NetworkMenu from "./NetworkSettings/NetworkMenu.vue";
+import LanguageSelect from "@/components/misc/LanguageSelect/LanguageSelect.vue";
 import ConfirmLogout from "@/components/modals/ConfirmLogout.vue";
+import NetworkMenu from "@/components/NetworkSettings/NetworkMenu.vue";
 import AccountMenu from "@/components/wallet/sidebar/AccountMenu.vue";
-@Component({
+import { useOwnTheme } from "@/composables/use-own-theme";
+
+export const Navbar = defineComponent({
   components: {
     AccountMenu,
     NetworkMenu,
@@ -112,31 +106,40 @@ import AccountMenu from "@/components/wallet/sidebar/AccountMenu.vue";
     ConfirmLogout,
     LanguageSelect,
   },
-})
-export class Navbar extends Vue {
-  isDrawer = false;
-  popupOpen = false;
-  $refs!: {
-    logout: ConfirmLogout;
-  };
-
-  get isAuth(): boolean {
-    return this.$store.state.isAuth;
-  }
-
-  logout(): void {
-    this.$refs.logout.open();
-  }
-
-  togglePopup(): void {
-    this.popupOpen = !this.popupOpen;
-  }
-}
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+  data() {
+    return {
+      isDrawer: false,
+      popupOpen: false,
+    };
+  },
+  computed: {
+    isAuth(): boolean {
+      return this.$store.state.isAuth;
+    },
+  },
+  methods: {
+    logout(): void {
+      (
+        this.$refs.logout as ComponentPublicInstance<typeof ConfirmLogout>
+      ).open();
+    },
+    togglePopup(): void {
+      this.popupOpen = !this.popupOpen;
+    },
+  },
+});
 
 export default Navbar;
 </script>
+
 <style scoped lang="scss">
-@use "../main";
+@use "@/styles/abstracts/mixins";
 
 img {
   max-height: 25px;
@@ -229,7 +232,7 @@ button {
   margin: 0;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   img {
     max-height: 18px;
   }
@@ -240,7 +243,7 @@ button {
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .lang_web {
     display: none;
   }

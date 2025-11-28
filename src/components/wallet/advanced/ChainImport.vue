@@ -10,14 +10,14 @@
       <label>Tx ID</label>
       <p class="tx_id">{{ txId }}</p>
     </div>
-    <p class="err" v-else-if="err">{{ err }}</p>
+    <p v-else-if="err" class="err">{{ err }}</p>
     <template v-if="!isLoading">
       <v-btn
         block
         class="button_secondary"
         depressed
-        @click="atomicImportX('P')"
         small
+        @click="atomicImportX('P')"
       >
         Import X (From P)
       </v-btn>
@@ -25,8 +25,8 @@
         block
         class="button_secondary"
         depressed
-        @click="atomicImportX('C')"
         small
+        @click="atomicImportX('C')"
       >
         Import X (From C)
       </v-btn>
@@ -34,8 +34,8 @@
         block
         class="button_secondary"
         depressed
-        @click="atomicImportP('X')"
         small
+        @click="atomicImportP('X')"
       >
         Import P (From X)
       </v-btn>
@@ -43,8 +43,8 @@
         block
         class="button_secondary"
         depressed
-        @click="atomicImportP('C')"
         small
+        @click="atomicImportP('C')"
       >
         Import P (From C)
       </v-btn>
@@ -53,8 +53,8 @@
         block
         class="button_secondary"
         depressed
-        @click="atomicImportC('X')"
         small
+        @click="atomicImportC('X')"
       >
         Import C (from X)
       </v-btn>
@@ -62,144 +62,138 @@
         block
         class="button_secondary"
         depressed
-        @click="atomicImportC('P')"
         small
+        @click="atomicImportC('P')"
       >
         Import C (from P)
       </v-btn>
     </template>
-    <Spinner class="spinner" v-else></Spinner>
+    <Spinner v-else class="spinner"></Spinner>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import Spinner from "@/components/misc/Spinner.vue";
-import type { WalletType } from "@/js/wallets/types";
-import { BN } from "@metalblockchain/metaljs";
 import type {
   ExportChainsC,
   ExportChainsP,
   ExportChainsX,
 } from "@metalblockchain/metal-wallet-sdk";
+import type { WalletType } from "@/js/wallets/types";
 import { avaxCtoX, GasHelper } from "@metalblockchain/metal-wallet-sdk";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import Spinner from "@/components/misc/Spinner.vue";
 
-@Component({
+export const ChainImport = defineComponent({
   components: { Spinner },
-})
-export class ChainImport extends Vue {
-  err = "";
-  isSuccess = false;
-  isLoading = false;
-  txId = "";
-
-  get wallet(): null | WalletType {
-    const wallet: null | WalletType = this.$store.state.activeWallet;
-    return wallet;
-  }
-
-  get isEVMSupported() {
-    if (!this.wallet) return false;
-    return this.wallet.ethAddress;
-  }
-
-  async atomicImportX(sourceChain: ExportChainsX) {
-    this.beforeSubmit();
-    if (!this.wallet) return;
-
-    // // Import from C
-    try {
-      const txId = await this.wallet.importToXChain(sourceChain);
-      this.onSuccess(txId);
-    } catch (e: any) {
-      if (this.isSuccess) return;
-      this.onError(e);
-    }
-  }
-
-  async atomicImportP(source: ExportChainsP) {
-    this.beforeSubmit();
-    if (!this.wallet) return;
-    try {
-      const txId = await this.wallet.importToPlatformChain(source);
-      this.onSuccess(txId);
-    } catch (e: any) {
-      this.onError(e);
-    }
-  }
-
-  async atomicImportC(source: ExportChainsC) {
-    this.beforeSubmit();
-    if (!this.wallet) return;
-    try {
-      const utxoSet = await this.wallet.evmGetAtomicUTXOs(source);
-      const utxos = utxoSet.getAllUTXOs();
-
-      const numIns = utxos.length;
-      const baseFee = await GasHelper.getBaseFeeRecommended();
-
-      if (numIns === 0) {
-        throw new Error("Nothing to import.");
-      }
-
-      // Calculate number of signatures
-      const numSigs = utxos.reduce((acc, utxo) => {
-        return acc + utxo.getOutput().getAddresses().length;
-      }, 0);
-
-      const gas = GasHelper.estimateImportGasFeeFromMockTx(numIns, numSigs);
-
-      const totFee = baseFee.mul(new BN(gas));
-      const txId = await this.wallet.importToCChain(source, avaxCtoX(totFee));
-      this.onSuccess(txId);
-    } catch (e: any) {
-      this.onError(e);
-    }
-  }
-
+  data() {
+    return {
+      err: "",
+      isSuccess: false,
+      isLoading: false,
+      txId: "",
+    };
+  },
+  computed: {
+    wallet(): null | WalletType {
+      const wallet: null | WalletType = this.$store.state.activeWallet;
+      return wallet;
+    },
+    isEVMSupported() {
+      if (!this.wallet) return false;
+      return this.wallet.ethAddress;
+    },
+  },
   deactivated() {
     this.err = "";
     this.txId = "";
     this.isSuccess = false;
-  }
+  },
+  methods: {
+    async atomicImportX(sourceChain: ExportChainsX) {
+      this.beforeSubmit();
+      if (!this.wallet) return;
 
-  beforeSubmit() {
-    this.isLoading = true;
-    this.err = "";
-    this.isSuccess = false;
-    this.txId = "";
-  }
+      // // Import from C
+      try {
+        const txId = await this.wallet.importToXChain(sourceChain);
+        this.onSuccess(txId);
+      } catch (error: any) {
+        if (this.isSuccess) return;
+        this.onError(error);
+      }
+    },
+    async atomicImportP(source: ExportChainsP) {
+      this.beforeSubmit();
+      if (!this.wallet) return;
+      try {
+        const txId = await this.wallet.importToPlatformChain(source);
+        this.onSuccess(txId);
+      } catch (error: any) {
+        this.onError(error);
+      }
+    },
+    async atomicImportC(source: ExportChainsC) {
+      this.beforeSubmit();
+      if (!this.wallet) return;
+      try {
+        const utxoSet = await this.wallet.evmGetAtomicUTXOs(source);
+        const utxos = utxoSet.getAllUTXOs();
 
-  onSuccess(txId: string) {
-    this.isLoading = false;
-    this.err = "";
-    this.isSuccess = true;
-    this.txId = txId;
+        const numIns = utxos.length;
+        const baseFee = await GasHelper.getBaseFeeRecommended();
 
-    this.$store.dispatch("Notifications/add", {
-      type: "success",
-      title: "Import Success",
-      message: txId,
-    });
+        if (numIns === 0) {
+          throw new Error("Nothing to import.");
+        }
 
-    setTimeout(() => {
-      this.$store.dispatch("Assets/updateUTXOs");
-      this.$store.dispatch("History/updateTransactionHistory");
-    }, 3000);
-  }
+        // Calculate number of signatures
+        const numSigs = utxos.reduce((acc, utxo) => {
+          return acc + utxo.getOutput().getAddresses().length;
+        }, 0);
 
-  onError(err: Error) {
-    this.isLoading = false;
-    const msg = "";
-    if (err.message.includes("No atomic")) {
-      this.err = "Nothing found to import.";
-      return;
-    } else {
-      this.err = err.message;
-    }
-  }
-}
+        const gas = GasHelper.estimateImportGasFeeFromMockTx(numIns, numSigs);
+
+        const totFee = baseFee.mul(new BN(gas));
+        const txId = await this.wallet.importToCChain(source, avaxCtoX(totFee));
+        this.onSuccess(txId);
+      } catch (error: any) {
+        this.onError(error);
+      }
+    },
+    beforeSubmit() {
+      this.isLoading = true;
+      this.err = "";
+      this.isSuccess = false;
+      this.txId = "";
+    },
+    onSuccess(txId: string) {
+      this.isLoading = false;
+      this.err = "";
+      this.isSuccess = true;
+      this.txId = txId;
+
+      this.$store.dispatch("Notifications/add", {
+        type: "success",
+        title: "Import Success",
+        message: txId,
+      });
+
+      setTimeout(() => {
+        this.$store.dispatch("Assets/updateUTXOs");
+        this.$store.dispatch("History/updateTransactionHistory");
+      }, 3000);
+    },
+    onError(err: Error) {
+      this.isLoading = false;
+      if (err.message.includes("No atomic")) {
+        this.err = "Nothing found to import.";
+        return;
+      } else {
+        this.err = err.message;
+      }
+    },
+  },
+});
 export default ChainImport;
 </script>
 <style scoped lang="scss">

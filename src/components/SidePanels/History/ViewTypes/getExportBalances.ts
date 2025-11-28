@@ -1,4 +1,8 @@
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
+import type AvaAsset from "@/js/AvaAsset";
 import type { TransactionType } from "@/js/Glacier/models";
+import { UtxoType } from "@metalblockchain/glacier-sdk";
+import { BN } from "@metalblockchain/metaljs";
 import {
   isCChainExportTransaction,
   isCChainImportTransaction,
@@ -6,15 +10,11 @@ import {
   isTransactionP,
   isTransactionX,
 } from "@/js/Glacier/models";
-import { BN } from "@metalblockchain/metaljs";
-import { UtxoType } from "@metalblockchain/glacier-sdk";
-import type { Utxo, PChainUtxo } from "@metalblockchain/glacier-sdk";
-import type AvaAsset from "@/js/AvaAsset";
 
 export function getExportBalances(
   tx: TransactionType,
   destinationChainId: string,
-  getAsset: any
+  getAsset: any,
 ) {
   const balances: {
     [assetID: string]: {
@@ -59,7 +59,7 @@ export function getExportBalances(
     });
   }
 
-  exportedUTXOs.forEach((utxo) => {
+  for (const utxo of exportedUTXOs) {
     let assetId, amount, decimals, symbol;
 
     if (isPChainUtxo(utxo)) {
@@ -67,7 +67,7 @@ export function getExportBalances(
       assetId = utxo.assetId;
       amount = utxo.amount;
       decimals = asset.denomination || 0;
-      symbol = asset.symbol || utxo.assetId.substr(0, 4);
+      symbol = asset.symbol || utxo.assetId.slice(0, 4);
     } else {
       assetId = utxo.asset.assetId;
       amount = utxo.asset.amount;
@@ -75,8 +75,9 @@ export function getExportBalances(
       symbol = utxo.asset.symbol;
     }
 
-    if (balances[assetId]) {
-      balances[assetId].amount.iadd(new BN(amount));
+    const b = balances[assetId];
+    if (b) {
+      b.amount.iadd(new BN(amount));
     } else {
       balances[assetId] = {
         id: assetId,
@@ -85,7 +86,7 @@ export function getExportBalances(
         symbol,
       };
     }
-  });
+  }
 
   return balances;
 }

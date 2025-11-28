@@ -1,10 +1,10 @@
 <template>
   <div class="content">
-    <h1 class="c28 c37" id="h.5473ppjvnwhc">
+    <h1 id="h.5473ppjvnwhc" class="c28 c37">
       <span class="c17 c27">CORE -</span>
       <span class="c9 c27 c17">TERMS OF USE</span>
     </h1>
-    <h4 class="c28 c38" id="h.rzukxuno5xic">
+    <h4 id="h.rzukxuno5xic" class="c28 c38">
       <span class="c17 c39">Effective August 25, 2022</span>
     </h4>
     <p class="c18">
@@ -178,7 +178,7 @@
       </span>
     </p>
     <p class="c21 c22"><span class="c0"></span></p>
-    <h2 class="c32 c28" id="h.rfcu8er0ea4c">
+    <h2 id="h.rfcu8er0ea4c" class="c32 c28">
       <span class="c7 c9"
         >1. INTELLECTUAL PROPERTY; LICENSE TO USE THE APP</span
       >
@@ -242,7 +242,7 @@
       </span>
     </p>
     <p class="c3 c22"><span class="c0"></span></p>
-    <h2 class="c3 c20" id="h.z1wdng2ownun">
+    <h2 id="h.z1wdng2ownun" class="c3 c20">
       <span class="c7">2.</span>
       <span class="c9 c7">THIRD PARTY SERVICES</span>
     </h2>
@@ -346,7 +346,7 @@
       </span>
     </p>
     <p class="c3 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.58cgc1wi9e2j">
+    <h2 id="h.58cgc1wi9e2j" class="c2">
       <span class="c7">3.</span>
       <span class="c9 c7">USER REPRESENTATIONS AND COVENANTS</span>
     </h2>
@@ -423,7 +423,7 @@
       </li>
     </ol>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c28 c32" id="h.u2osb3cqrrw3">
+    <h2 id="h.u2osb3cqrrw3" class="c28 c32">
       <span class="c7">4.</span>
       <span class="c7">ACCEPTABLE USE POLICY</span>
     </h2>
@@ -581,7 +581,7 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.hk919gd4os2">
+    <h2 id="h.hk919gd4os2" class="c2">
       <span class="c9 c7">5. SUBMISSIONS</span>
     </h2>
     <p class="c14"><span class="c0"></span></p>
@@ -602,7 +602,7 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.3q511iwel23m">
+    <h2 id="h.3q511iwel23m" class="c2">
       <span class="c7">6.</span>
       <span class="c7">APP</span>
       <span class="c9 c7">&nbsp;MANAGEMENT</span>
@@ -621,7 +621,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.ryknndd3w04i">
+    <h2 id="h.ryknndd3w04i" class="c2">
       <span class="c7">7. TERM AND TERMINATION</span>
     </h2>
     <p class="c32 c28">
@@ -638,7 +638,7 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.pfvphcvo76zf">
+    <h2 id="h.pfvphcvo76zf" class="c2">
       <span class="c9 c7">8. MODIFICATIONS AND CORRECTIONS</span>
     </h2>
     <p class="c18">
@@ -679,7 +679,7 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.9qucqdbylcrn">
+    <h2 id="h.9qucqdbylcrn" class="c2">
       <span class="c9 c7">9. GOVERNING LAW</span>
     </h2>
     <p class="c14"><span class="c0"></span></p>
@@ -692,24 +692,24 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h2 class="c2" id="h.yjurrd7nlx1r">
+    <h2 id="h.yjurrd7nlx1r" class="c2">
       <span class="c9 c7">10. DISPUTE RESOLUTION</span>
     </h2>
-    <h3 class="c12 c26" id="h.ric4x4q8odp7">
+    <h3 id="h.ric4x4q8odp7" class="c12 c26">
       <span class="c9 c17 c29"></span>
     </h3>
-    <h3 class="c12" id="h.sshgowysje7w">
+    <h3 id="h.sshgowysje7w" class="c12">
       <span class="c5">10.1 Binding Arbitration</span>
     </h3>
-    <h4 class="c2" id="h.3754lo6ua9hf">
+    <h4 id="h.3754lo6ua9hf" class="c2">
       <span class="c11">
         THIS SECTION CONTAINS A BINDING ARBITRATION CLAUSE AND CLASS ACTION
         WAIVER. THEY AFFECT YOUR AND OUR RIGHTS CONCERNING THE RESOLUTION OF ANY
         DISPUTE BETWEEN YOU AND US.
       </span>
     </h4>
-    <h3 class="c2 c26" id="h.bv7d15h2n3he"><span class="c9 c17 c19"></span></h3>
-    <h3 class="c2" id="h.q27xtbn0ldu">
+    <h3 id="h.bv7d15h2n3he" class="c2 c26"><span class="c9 c17 c19"></span></h3>
+    <h3 id="h.q27xtbn0ldu" class="c2">
       <span class="c5">10.2 Agreement to Arbitrate</span>
     </h3>
     <p class="c2">
@@ -728,7 +728,7 @@
       </span>
     </p>
     <p class="c2 c22"><span class="c0"></span></p>
-    <h3 class="c2" id="h.gboeyjnsofct">
+    <h3 id="h.gboeyjnsofct" class="c2">
       <span class="c11">10.3 Exceptions to Arbitration</span>
     </h3>
     <p class="c2">
@@ -740,10 +740,10 @@
         relief; and (c) any Dispute that may be brought in small claims court.
       </span>
     </p>
-    <h3 class="c2" id="h.x4dgpcomm0a5">
+    <h3 id="h.x4dgpcomm0a5" class="c2">
       <span class="c5">10.4 Opt Out of Arbitration</span>
     </h3>
-    <p class="c2" id="h.r1vs56vherv2">
+    <p id="h.r1vs56vherv2" class="c2">
       <span class="c23">
         You may opt out of the binding arbitration described in this section by
         sending us written notice of your desire to do so by
@@ -767,7 +767,7 @@
       </span>
     </p>
     <p class="c14"><span class="c0"></span></p>
-    <h3 class="c2" id="h.sro9rkqoqkdj">
+    <h3 id="h.sro9rkqoqkdj" class="c2">
       <span class="c5">10.5 Arbitration Rules</span>
     </h3>
     <p class="c25">
@@ -805,7 +805,7 @@
       </span>
       <span class="c0">.</span>
     </p>
-    <h3 class="c2" id="h.fmjy5bc5ew3h">
+    <h3 id="h.fmjy5bc5ew3h" class="c2">
       <span class="c5">10.6 Arbitration Location and Procedure</span>
     </h3>
     <p class="c25">
@@ -820,7 +820,7 @@
         competent jurisdiction.
       </span>
     </p>
-    <h3 class="c2" id="h.dlw3pvezv71">
+    <h3 id="h.dlw3pvezv71" class="c2">
       <span class="c5">10.7 Arbitration Fees</span>
     </h3>
     <p class="c25">
@@ -836,7 +836,7 @@
         anything to the contrary herein.
       </span>
     </p>
-    <h3 class="c2" id="h.zd43jydiqzqf">
+    <h3 id="h.zd43jydiqzqf" class="c2">
       <span class="c5">10.8 No Class Actions</span>
     </h3>
     <p class="c18">
@@ -865,7 +865,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.1yg67lfmrldw">
+    <h2 id="h.1yg67lfmrldw" class="c2">
       <span class="c9 c7">11. JUDICIAL FORUM FOR DISPUTES</span>
     </h2>
     <p class="c18">
@@ -879,7 +879,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c18 c20" id="h.a60hmrs9vq8x">
+    <h2 id="h.a60hmrs9vq8x" class="c18 c20">
       <span class="c7">12.</span>
       <span class="c7">RISKS</span>
     </h2>
@@ -1103,7 +1103,7 @@
     </p>
     <p class="c14"><span class="c0"></span></p>
     <p class="c14"><span class="c0"></span></p>
-    <h2 class="c2" id="h.el5e343nyanw">
+    <h2 id="h.el5e343nyanw" class="c2">
       <span class="c7">13. LIMITATIONS OF LIABILITY</span>
     </h2>
     <p class="c18">
@@ -1200,7 +1200,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.kmtrc663vzsz">
+    <h2 id="h.kmtrc663vzsz" class="c2">
       <span class="c9 c7">14. INDEMNIFICATION; RELEASE</span>
     </h2>
     <p class="c18">
@@ -1257,7 +1257,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c32 c28" id="h.qb75g5fhy603">
+    <h2 id="h.qb75g5fhy603" class="c32 c28">
       <span class="c9 c7">15. USER DATA</span>
     </h2>
     <p class="c18">
@@ -1273,7 +1273,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.ql2u8dj3lb2c">
+    <h2 id="h.ql2u8dj3lb2c" class="c2">
       <span class="c9 c7"
         >16. ELECTRONIC COMMUNICATIONS, TRANSACTIONS AND SIGNATURES</span
       >
@@ -1296,7 +1296,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.yehmht5we3bd">
+    <h2 id="h.yehmht5we3bd" class="c2">
       <span class="c9 c7">17. CALIFORNIA USERS AND RESIDENTS</span>
     </h2>
     <p class="c18">
@@ -1309,7 +1309,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.mjvtzzvmyq2a">
+    <h2 id="h.mjvtzzvmyq2a" class="c2">
       <span class="c9 c7">18. MISCELLANEOUS</span>
     </h2>
     <p class="c18">
@@ -1336,7 +1336,7 @@
       </span>
     </p>
     <p class="c10"><span class="c0"></span></p>
-    <h2 class="c2" id="h.fi38w9660hix">
+    <h2 id="h.fi38w9660hix" class="c2">
       <span class="c9 c7">19. CONTACT US</span>
     </h2>
     <p class="c18">
@@ -1357,10 +1357,9 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class ToSCoreContent extends Vue {}
+export default defineComponent({});
 </script>
 <style scoped lang="scss">
 .content {

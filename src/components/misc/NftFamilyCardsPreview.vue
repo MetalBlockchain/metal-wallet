@@ -16,36 +16,42 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import { getPayloadFromUTXO } from "@/helpers/helper";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
-@Component({
+import { getPayloadFromUTXO } from "@/helpers/helper";
+
+export const NftFamilyCardsPreview = defineComponent({
   components: {
     NftPayloadView,
   },
-})
-export class NftFamilyCardsPreview extends Vue {
-  @Prop() utxos!: UTXO[];
-  @Prop({ default: false }) spread!: boolean;
-  @Prop() max!: number;
-
-  get rotateDeg() {
-    if (!this.spread) {
-      return 5;
-    } else {
+  props: {
+    utxos: {
+      type: Array as PropType<UTXO[]>,
+    },
+    spread: { default: false, type: Boolean },
+    max: {
+      type: Number,
+    },
+  },
+  computed: {
+    rotateDeg() {
       const len = this.payloads.length;
       const maxLen = this.max;
-      return 25 * ((maxLen - len) / maxLen) + 5;
-    }
-  }
-
-  get payloads() {
-    return this.utxos.map((utxo) => {
-      return getPayloadFromUTXO(utxo);
-    });
-  }
-}
+      return len && maxLen && this.spread
+        ? 25 * ((maxLen - len) / maxLen) + 5
+        : 5;
+    },
+    payloads() {
+      return this.utxos
+        ? this.utxos.map((utxo) => {
+            return getPayloadFromUTXO(utxo);
+          })
+        : [];
+    },
+  },
+});
 export default NftFamilyCardsPreview;
 </script>
 <style scoped lang="scss">

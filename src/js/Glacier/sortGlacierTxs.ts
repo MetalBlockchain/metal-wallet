@@ -1,14 +1,14 @@
+import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 import type {
-  TransactionType,
   CChainTransaction,
+  TransactionType,
   XChainTransaction,
 } from "@/js/Glacier/models";
 import { SortOrder } from "@metalblockchain/glacier-sdk";
-import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 
 export function sortGlacierTxs(
   txs: TransactionType[],
-  sortOrder: SortOrder = SortOrder.DESC
+  sortOrder: SortOrder = SortOrder.DESC,
 ) {
   return txs.sort((a, b) => {
     const timeA =

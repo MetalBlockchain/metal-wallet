@@ -69,19 +69,19 @@ export function isTransactionP(tx: TransactionType): tx is PChainTransaction {
 }
 
 export function isCChainImportTransaction(
-  tx: TransactionType
+  tx: TransactionType,
 ): tx is CChainImportTransaction {
   return (tx as CChainImportTransaction).evmOutputs !== undefined;
 }
 
 export function isCChainExportTransaction(
-  tx: TransactionType
+  tx: TransactionType,
 ): tx is CChainExportTransaction {
   return (tx as CChainExportTransaction).evmInputs !== undefined;
 }
 
 export function isTransactionC(
-  tx: TransactionType
+  tx: TransactionType,
 ): tx is CChainExportTransaction | CChainImportTransaction {
   return isCChainImportTransaction(tx) || isCChainExportTransaction(tx);
 }

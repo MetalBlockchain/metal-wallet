@@ -1,0 +1,20 @@
+/* The 7-1 pattern (https://sass-guidelin.es/#the-7-1-pattern) */
+
+@use "sass:math";
+/* abstracts */
+// @use "abstracts/vars";
+// @use "abstracts/mixins";
+
+/* vendors */
+@use "/node_modules/flag-icons/css/flag-icons.min.css";
+@use "/node_modules/vue-virtual-scroller/dist/vue-virtual-scroller.css";
+
+/* themes */
+
+/* accessibility */
+
+/* base */
+@use "base/base";
+
+/* layout */
+@use "layout/container";

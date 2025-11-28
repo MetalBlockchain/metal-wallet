@@ -1,13 +1,17 @@
 <template>
-  <Modal title="Wallet UTXO Breakdown" ref="modal">
+  <Modal ref="modal" title="Wallet UTXO Breakdown">
     <div class="utxos_breakdown_body">
       <div class="tabs">
-        <button @click="setChain('X')" :active="chain === 'X'">X Chain</button>
-        <button @click="setChain('P')" :active="chain === 'P'">P Chain</button>
+        <button :data-active="chain === 'X'" @click="setChain('X')">
+          X Chain
+        </button>
+        <button :data-active="chain === 'P'" @click="setChain('P')">
+          P Chain
+        </button>
       </div>
       <div class="scrollable">
         <div style="height: 90px">
-          <table cellspacing="0" cellpadding="0">
+          <table cellpadding="0" cellspacing="0">
             <thead>
               <tr>
                 <th></th>
@@ -22,16 +26,16 @@
             <tbody>
               <UTXORow
                 v-for="utxo in avmUTXOs"
+                v-show="chain === 'X'"
                 :key="utxo.getUTXOID()"
                 :utxo="utxo"
-                v-show="chain === 'X'"
               ></UTXORow>
               <UTXORow
                 v-for="utxo in platformUTXOs"
-                :key="utxo.getUTXOID()"
-                :utxo="utxo"
                 v-show="chain === 'P'"
+                :key="utxo.getUTXOID()"
                 :is-x="false"
+                :utxo="utxo"
               ></UTXORow>
               <tr v-if="isEmpty" class="empty_row">
                 <td colspan="7">
@@ -47,120 +51,117 @@
     </div>
   </Modal>
 </template>
-<script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-import Modal from "@/components/modals/Modal.vue";
-import type { WalletType } from "@/js/wallets/types";
 
+<script lang="ts">
 import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import type {
   UTXO as PlatformUTXO,
   StakeableLockOut,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
+
+import type { WalletType } from "@/js/wallets/types";
+import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
 import UTXORow from "@/components/modals/UtxosBreakdown/AVMUTXORow.vue";
 
-@Component({
+export const UtxosBreakdownModal = defineComponent({
   components: { UTXORow, Modal },
-})
-export class UtxosBreakdownModal extends Vue {
-  chain = "X";
+  data() {
+    return {
+      chain: "X",
+    };
+  },
+  computed: {
+    wallet(): WalletType | null {
+      return this.$store.state.activeWallet;
+    },
+    avmUTXOs(): AVMUTXO[] {
+      if (!this.wallet) return [];
+      const utxos = this.wallet.getUTXOSet().getAllUTXOs();
+      // eslint-disable-next-line unicorn/no-array-sort
+      const sorted = utxos.sort(this.sortFnc);
+      return sorted;
+    },
+    platformUTXOs(): PlatformUTXO[] {
+      if (!this.wallet) return [];
+      const utxos = this.wallet.getPlatformUTXOSet().getAllUTXOs();
+      // eslint-disable-next-line unicorn/no-array-sort
+      const sorted = utxos.sort(this.sortFnc);
+      return sorted;
+    },
+    isEmpty() {
+      return this.chain === "X"
+        ? this.avmUTXOs.length === 0
+        : this.platformUTXOs.length === 0;
+    },
+  },
+  methods: {
+    open(): void {
+      const modal = this.$refs.modal;
+      (modal as typeof Modal).open();
+    },
+    setChain(chainID: string) {
+      this.chain = chainID;
+    },
+    sortFnc(a: PlatformUTXO | AVMUTXO, b: PlatformUTXO | AVMUTXO) {
+      const aOut = a.getOutput();
+      const bOut = b.getOutput();
 
-  $refs!: {
-    modal: Modal;
-  };
-  open(): void {
-    const modal = this.$refs.modal;
-    modal.open();
-  }
+      const aType = aOut.getTypeID();
+      const bType = bOut.getTypeID();
 
-  setChain(chainID: string) {
-    this.chain = chainID;
-  }
+      if (aType === bType) {
+        let aLock = aOut.getLocktime().toNumber();
+        let bLock = bOut.getLocktime().toNumber();
 
-  get wallet(): WalletType | null {
-    return this.$store.state.activeWallet;
-  }
+        if (aType === PlatformVMConstants.STAKEABLELOCKOUTID) {
+          const aStakeLock = (aOut as StakeableLockOut)
+            .getStakeableLocktime()
+            .toNumber();
+          const bStakeLock = (bOut as StakeableLockOut)
+            .getStakeableLocktime()
+            .toNumber();
 
-  get avmUTXOs(): AVMUTXO[] {
-    if (!this.wallet) return [];
-    const utxos = this.wallet.getUTXOSet().getAllUTXOs();
-    const sorted = utxos.sort(this.sortFnc);
-    return sorted;
-  }
+          aLock = Math.max(aLock, aStakeLock);
+          bLock = Math.max(bLock, bStakeLock);
+        }
 
-  get platformUTXOs(): PlatformUTXO[] {
-    if (!this.wallet) return [];
-    const utxos = this.wallet.getPlatformUTXOSet().getAllUTXOs();
-    const sorted = utxos.sort(this.sortFnc);
-    return sorted;
-  }
+        if (aLock !== bLock) return bLock - aLock;
+        return 0;
+      } else {
+        if (aType === AVMConstants.SECPXFEROUTPUTID) {
+          return -1;
+        } else if (bType === AVMConstants.SECPXFEROUTPUTID) {
+          return 1;
+        }
 
-  get isEmpty() {
-    if (this.chain === "X") {
-      return this.avmUTXOs.length === 0;
-    } else {
-      return this.platformUTXOs.length === 0;
-    }
-  }
+        if (aType === AVMConstants.NFTXFEROUTPUTID) {
+          return -1;
+        } else if (bType === AVMConstants.NFTXFEROUTPUTID) {
+          return 1;
+        }
 
-  sortFnc<UTXO extends AVMUTXO | PlatformUTXO>(a: UTXO, b: UTXO) {
-    const aOut = a.getOutput();
-    const bOut = b.getOutput();
+        if (aType === AVMConstants.NFTMINTOUTPUTID) {
+          return -1;
+        } else if (bType === AVMConstants.NFTMINTOUTPUTID) {
+          return 1;
+        }
 
-    const aType = aOut.getTypeID();
-    const bType = bOut.getTypeID();
+        if (aType === AVMConstants.SECPMINTOUTPUTID) {
+          return -1;
+        } else if (bType === AVMConstants.SECPMINTOUTPUTID) {
+          return 1;
+        }
 
-    if (aType === bType) {
-      let aLock = aOut.getLocktime().toNumber();
-      let bLock = bOut.getLocktime().toNumber();
-
-      if (aType === PlatformVMConstants.STAKEABLELOCKOUTID) {
-        const aStakeLock = (aOut as StakeableLockOut)
-          .getStakeableLocktime()
-          .toNumber();
-        const bStakeLock = (bOut as StakeableLockOut)
-          .getStakeableLocktime()
-          .toNumber();
-
-        aLock = Math.max(aLock, aStakeLock);
-        bLock = Math.max(bLock, bStakeLock);
+        // if(aType === AVMConstants.)
       }
 
-      if (aLock !== bLock) return bLock - aLock;
       return 0;
-    } else {
-      if (aType === AVMConstants.SECPXFEROUTPUTID) {
-        return -1;
-      } else if (bType === AVMConstants.SECPXFEROUTPUTID) {
-        return 1;
-      }
-
-      if (aType === AVMConstants.NFTXFEROUTPUTID) {
-        return -1;
-      } else if (bType === AVMConstants.NFTXFEROUTPUTID) {
-        return 1;
-      }
-
-      if (aType === AVMConstants.NFTMINTOUTPUTID) {
-        return -1;
-      } else if (bType === AVMConstants.NFTMINTOUTPUTID) {
-        return 1;
-      }
-
-      if (aType === AVMConstants.SECPMINTOUTPUTID) {
-        return -1;
-      } else if (bType === AVMConstants.SECPMINTOUTPUTID) {
-        return 1;
-      }
-
-      // if(aType === AVMConstants.)
-    }
-
-    return 0;
-  }
-}
+    },
+  },
+});
 export default UtxosBreakdownModal;
 </script>
 <style scoped lang="scss">
@@ -206,7 +207,7 @@ thead {
       color: var(--secondary-color);
     }
 
-    &[active] {
+    &[data-active="true"] {
       background-color: var(--secondary-color);
       color: #fff;
     }

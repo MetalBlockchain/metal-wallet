@@ -4,17 +4,22 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
 import type { UTF8Payload } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 
-@Component
-export default class UtfPayloadView extends Vue {
-  @Prop() payload!: UTF8Payload;
-
-  get text() {
-    return this.payload.getContent();
-  }
-}
+export default defineComponent({
+  props: {
+    payload: {
+      type: Object as PropType<UTF8Payload>,
+    },
+  },
+  computed: {
+    text() {
+      return this.payload?.getContent().toString() ?? "";
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 p {

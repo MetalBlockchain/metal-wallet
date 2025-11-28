@@ -1,5 +1,5 @@
 <template>
-  <modal ref="modal" :title="$t('modal.mnemonic.title')" class="modal_main">
+  <modal ref="modal" class="modal_main" :title="$t('modal.mnemonic.title')">
     <div class="mnemonic_modal_body">
       <mnemonic-display :phrase="phrase" :row-size="3"></mnemonic-display>
       <p class="warning_text">
@@ -10,32 +10,30 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
-import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
-import CopyText from "@/components/misc/CopyText.vue";
+import type { PropType } from "vue";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import { defineComponent } from "vue";
+import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
+import Modal from "@/components/modals/Modal.vue";
 
-@Component({
+export default defineComponent({
   components: {
     Modal,
     MnemonicDisplay,
-    CopyText,
   },
-})
-export default class MnemonicPhraseModal extends Vue {
-  @Prop({ default: "" }) phrase!: MnemonicPhrase;
-
-  open(): void {
-    const modal = this.$refs.modal as Modal;
-    modal.open();
-  }
-}
+  props: {
+    phrase: { type: Object as PropType<MnemonicPhrase> },
+  },
+  methods: {
+    open(): void {
+      const modal = this.$refs.modal as typeof Modal;
+      modal.open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .mnemonic_modal_body {
   /*width: 600px;*/
@@ -67,7 +65,7 @@ export default class MnemonicPhraseModal extends Vue {
   border-radius: 3px;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .mnemonic_modal_body {
     max-width: 100%;
   }

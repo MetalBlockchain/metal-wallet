@@ -14,7 +14,7 @@
     </div>
     <div>
       <label>{{ $t("earn.delegate.confirmation.end") }}</label>
-      <p>{{ end.toLocaleString() }}</p>
+      <p>{{ end?.toLocaleString() }}</p>
     </div>
     <div>
       <label
@@ -25,45 +25,46 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
 import type { BN } from "@metalblockchain/metaljs/dist";
+import type { PropType } from "vue";
 import Big from "big.js";
+import { defineComponent } from "vue";
 
-@Component
-export default class ConfirmPage extends Vue {
-  @Prop() nodeID!: string;
-  // @Prop() start!: Date
-  @Prop() end!: Date;
-  @Prop() amount!: BN;
-  @Prop() rewardAddress!: string;
-  @Prop() rewardDestination!: string;
-
-  // get startDate(){
-  //     return new Date(this.start);
-  // }
-  //
-  // get endDate(){
-  //     return new Date(this.end);
-  // }
-
-  get amtBig(): Big {
-    const stakeAmt = Big(this.amount.toString()).div(Math.pow(10, 9));
-    return stakeAmt;
-  }
-
-  get walletType() {
-    if (this.rewardDestination === "local") {
-      return "This wallet";
-    }
-    return "Custom";
-  }
-
-  get amtText(): string {
-    const amt = this.amtBig;
-    return amt.toLocaleString(9);
-  }
-}
+export default defineComponent({
+  props: {
+    nodeID: {
+      type: String,
+    },
+    end: {
+      type: Object as PropType<Date>,
+    },
+    amount: {
+      type: Object as PropType<BN>,
+    },
+    rewardAddress: {
+      type: String,
+    },
+    rewardDestination: {
+      type: String,
+    },
+  },
+  computed: {
+    amtBig(): Big {
+      const stakeAmt = Big(this.amount?.toString() ?? "0").div(Math.pow(10, 9));
+      return stakeAmt;
+    },
+    walletType() {
+      if (this.rewardDestination === "local") {
+        return "This wallet";
+      }
+      return "Custom";
+    },
+    amtText(): string {
+      const amt = this.amtBig;
+      return amt.toLocaleString(9);
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .confirmation {

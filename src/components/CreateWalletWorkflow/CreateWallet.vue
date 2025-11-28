@@ -1,20 +1,17 @@
 <template>
   <div class="create_wallet">
-    <b-container>
-      <b-row>
-        <b-col>
-          <transition name="fade" mode="out-in">
+    <div class="w-container">
+      <div class="w-row">
+        <div class="w-col">
+          <transition mode="out-in" name="fade">
             <!-- PHASE 1 -->
             <div v-if="!keyPhrase" class="stage_1">
               <div class="img_container">
-                <img
-                  v-if="$root.$data.theme === 'day'"
-                  src="@/assets/diamond-secondary.svg"
-                />
+                <img v-if="isDay" src="@/assets/diamond-secondary.svg" />
                 <img v-else src="@/assets/diamond-secondary-night.svg" />
               </div>
               <h1>{{ $t("create.generate") }}</h1>
-              <router-link to="/access" class="link">
+              <router-link class="link" to="/access">
                 {{ $t("create.but_have") }}
               </router-link>
               <div class="options">
@@ -28,7 +25,7 @@
               </div>
               <ToS></ToS>
 
-              <router-link to="/" class="link">{{
+              <router-link class="link" to="/">{{
                 $t("create.cancel")
               }}</router-link>
             </div>
@@ -38,11 +35,11 @@
                 <!-- LEFT -->
                 <div class="mneumonic_disp_col">
                   <div class="mnemonic_disp">
-                    <mnemonic-display
-                      :phrase="keyPhrase"
-                      :bgColor="verificationColor"
+                    <MnemonicDisplay
+                      :bg-color="verificationColor"
                       class="mnemonic_display"
-                    ></mnemonic-display>
+                      :phrase="keyPhrase"
+                    ></MnemonicDisplay>
                   </div>
                 </div>
                 <!-- RIGHT -->
@@ -59,43 +56,44 @@
                     </h1>
                     <p>{{ $t("create.success_desc") }}</p>
                   </header>
-                  <p class="warn" v-if="!isVerified">
+                  <p v-if="!isVerified" class="warn">
                     <span class="label">{{ $t("create.attention") }}</span>
                     <span class="description">{{ $t("create.warning") }}</span>
                   </p>
                   <!-- STEP 2a - VERIFY -->
-                  <div class="verify_cont" v-if="!isVerified">
+                  <div v-if="!isVerified" class="verify_cont">
                     <MnemonicCopied
                       v-model="isSecured"
                       :explain="$t('create.confirm')"
                     ></MnemonicCopied>
                     <VerifyMnemonic2
-                      :mnemonic="keyPhrase"
+                      v-if="keyPhrase"
                       ref="verify"
+                      :mnemonic="keyPhrase"
                       @complete="complete"
                     ></VerifyMnemonic2>
                     <button
                       class="but_primary ava_button button_secondary"
-                      @click="verifyMnemonic"
                       :disabled="!canVerify"
+                      @click="verifyMnemonic"
                     >
                       {{ $t("create.success_submit") }}
                     </button>
                   </div>
                   <!-- STEP 2b - ACCESS -->
-                  <div class="access_cont" v-if="isVerified">
+                  <div v-if="isVerified" class="access_cont">
                     <div class="submit">
-                      <transition name="fade" mode="out-in">
+                      <transition mode="out-in" name="fade">
                         <Spinner v-if="isLoad" class="spinner"></Spinner>
                         <div v-else>
                           <button
                             class="button_secondary ava_button access generate"
-                            @click="access"
                             :disabled="!canSubmit"
+                            @click="access"
                           >
                             {{ $t("create.success_submit") }}
                           </button>
-                          <router-link to="/" class="link">
+                          <router-link class="link" to="/">
                             Cancel
                           </router-link>
                           <ToS style="margin: 30px 0 !important"></ToS>
@@ -107,93 +105,90 @@
               </div>
             </div>
           </transition>
-        </b-col>
-      </b-row>
-    </b-container>
+        </div>
+      </div>
+    </div>
     <div></div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-import TextDisplayCopy from "@/components/misc/TextDisplayCopy.vue";
-import Spinner from "@/components/misc/Spinner.vue";
-// import TorusGoogle from "@/components/Torus/TorusGoogle.vue";
-import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
-import CopyText from "@/components/misc/CopyText.vue";
 import * as bip39 from "bip39";
-
-import VerifyMnemonic2 from "@/components/modals/VerifyMnemonic2.vue";
+import { defineComponent, ref } from "vue";
 import MnemonicCopied from "@/components/CreateWalletWorkflow/MnemonicCopied.vue";
+import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
+
+import Spinner from "@/components/misc/Spinner.vue";
 import ToS from "@/components/misc/ToS.vue";
+import VerifyMnemonic2 from "@/components/modals/VerifyMnemonic2.vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 
-@Component({
+export const CreateWallet = defineComponent({
   components: {
     ToS,
-    CopyText,
-    // RememberKey,
-    TextDisplayCopy,
     MnemonicDisplay,
     Spinner,
-    // TorusGoogle,
     VerifyMnemonic2,
     MnemonicCopied,
   },
-})
-export class CreateWallet extends Vue {
-  // TODO: We do not need to create keyPair, only mnemonic is sufficient
-  isLoad = false;
-  keyPhrase: MnemonicPhrase | null = null;
-  isSecured = false;
-  isVerified = false;
+  setup() {
+    const { isDay } = useOwnTheme();
 
-  $refs!: {
-    verify: VerifyMnemonic2;
-  };
+    const keyPhrase = ref<MnemonicPhrase>();
 
-  get canVerify(): boolean {
-    return this.isSecured ? true : false;
-  }
+    return { isDay, keyPhrase };
+  },
+  data(): {
+    isLoad: boolean;
 
-  get verificationColor() {
-    return this.isVerified ? "#a9efbf" : "#F5F6FA";
-  }
+    isSecured: boolean;
+    isVerified: boolean;
+  } {
+    return {
+      isLoad: false,
+      isSecured: false,
+      isVerified: false,
+    };
+  },
+  computed: {
+    canVerify(): boolean {
+      return this.isSecured ? true : false;
+    },
+    verificationColor() {
+      return this.isVerified ? "#a9efbf" : "#F5F6FA";
+    },
+    canSubmit(): boolean {
+      return true;
+    },
+  },
+  methods: {
+    createKey(): void {
+      this.isSecured = false;
+      const mnemonic = bip39.generateMnemonic(256);
+      const a = new MnemonicPhrase(mnemonic);
+      this.keyPhrase = a as MnemonicPhrase;
+    },
+    verifyMnemonic() {
+      (this.$refs.verify as typeof VerifyMnemonic2).open();
+    },
+    complete() {
+      this.isVerified = true;
+    },
+    async access(): Promise<void> {
+      if (!this.keyPhrase) return;
 
-  createKey(): void {
-    this.isSecured = false;
-    const mnemonic = bip39.generateMnemonic(256);
-    this.keyPhrase = new MnemonicPhrase(mnemonic);
-  }
-
-  get canSubmit(): boolean {
-    return true;
-  }
-  verifyMnemonic() {
-    this.$refs.verify.open();
-  }
-
-  complete() {
-    this.isVerified = true;
-  }
-
-  async access(): Promise<void> {
-    if (!this.keyPhrase) return;
-
-    this.isLoad = true;
-
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const parent = this;
-
-    setTimeout(async () => {
-      await parent.$store.dispatch("accessWallet", this.keyPhrase!.getValue());
-    }, 500);
-  }
-}
+      this.isLoad = true;
+      setTimeout(async () => {
+        await this.$store.dispatch("accessWallet", this.keyPhrase!.getValue());
+      }, 500);
+    },
+  },
+});
 export default CreateWallet;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .create_wallet {
   display: flex;
@@ -210,19 +205,19 @@ export default CreateWallet;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: main.$container-padding;
+  padding: vars.$container-padding;
   text-align: center;
   /*min-width: 1000px;*/
 
   img {
-    margin-top: main.$vertical-padding;
+    margin-top: vars.$vertical-padding;
     width: 89px;
     height: 89px;
     max-height: none;
   }
 
   h1 {
-    margin-top: main.$vertical-padding;
+    margin-top: vars.$vertical-padding;
     text-align: left;
     font-size: 28px;
     font-weight: 700;
@@ -256,7 +251,7 @@ export default CreateWallet;
 .but_generate {
   display: block;
   height: max-content;
-  background-color: main.$secondary-color;
+  background-color: vars.$secondary-color;
 }
 
 .key_disp {
@@ -309,7 +304,7 @@ a {
   }
 
   .verified {
-    background-color: main.$green-light;
+    background-color: vars.$green-light;
     color: #222;
   }
 
@@ -335,8 +330,8 @@ a {
   }
 
   img {
-    width: main.$img-size;
-    height: main.$img-size;
+    width: vars.$img-size;
+    height: vars.$img-size;
     max-height: none;
   }
 
@@ -351,14 +346,14 @@ a {
     }
 
     p {
-      color: main.$primary-color-light;
+      color: vars.$primary-color-light;
       font-weight: 400;
       font-size: 20px;
     }
   }
 
   .warn {
-    margin-top: main.$vertical-padding !important;
+    margin-top: vars.$vertical-padding !important;
 
     span {
       display: block;
@@ -374,7 +369,7 @@ a {
       }
 
       &.description {
-        color: main.$primary-color-light !important;
+        color: vars.$primary-color-light !important;
       }
     }
   }
@@ -411,13 +406,13 @@ a {
   margin: 20px 0;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .stage_1 {
     min-width: unset;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .stage_1 {
     min-width: unset;
   }
@@ -478,18 +473,18 @@ a {
     align-items: center;
 
     img {
-      width: main.$img-size-mobile;
-      height: main.$img-size-mobile;
+      width: vars.$img-size-mobile;
+      height: vars.$img-size-mobile;
     }
 
     header {
       h1 {
-        font-size: main.$xl-size-mobile;
+        font-size: vars.$xl-size-mobile;
       }
     }
 
     .warn {
-      margin-top: main.$vertical-padding-mobile !important;
+      margin-top: vars.$vertical-padding-mobile !important;
     }
 
     .access_cont {

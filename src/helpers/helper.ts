@@ -1,13 +1,13 @@
-import { ava } from "@/AVA";
-
 import type {
   KeyPair as AVMKeyPair,
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import { BN, Buffer } from "@metalblockchain/metaljs";
+
+import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 import {
   Defaults,
   getPreferredHRP,
@@ -16,8 +16,8 @@ import {
 } from "@metalblockchain/metaljs/dist/utils";
 import Big from "big.js";
 
-import { Buffer, BN } from "@metalblockchain/metaljs";
 import createHash from "create-hash";
+import { ava } from "@/misc/AVA";
 
 function bnToBig(val: BN, denomination = 0): Big {
   return new Big(val.toString()).div(Math.pow(10, denomination));
@@ -32,7 +32,7 @@ function keyToKeypair(key: string, chainID = "X"): AVMKeyPair {
 function calculateStakingReward(
   amount: BN,
   duration: number,
-  currentSupply: BN
+  currentSupply: BN,
 ): BN {
   const networkID = ava.getNetworkID();
 
@@ -75,8 +75,8 @@ function digestMessage(msgStr: string) {
   const msgSize = Buffer.alloc(4);
   msgSize.writeUInt32BE(mBuf.length, 0);
   const msgBuf = Buffer.from(
-    `\x1AAvalanche Signed Message:\n${msgSize}${msgStr}`,
-    "utf8"
+    `\u001AAvalanche Signed Message:\n${msgSize}${msgStr}`,
+    "utf8",
   );
   return createHash("sha256").update(msgBuf).digest();
 }
@@ -95,9 +95,9 @@ function getPayloadFromUTXO(utxo: UTXO): PayloadBase {
 }
 
 export {
-  keyToKeypair,
-  calculateStakingReward,
   bnToBig,
+  calculateStakingReward,
   digestMessage,
   getPayloadFromUTXO,
+  keyToKeypair,
 };

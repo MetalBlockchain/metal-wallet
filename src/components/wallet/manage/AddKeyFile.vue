@@ -2,25 +2,25 @@
   <div class="add_key_file">
     <label>{{ $t("keystore.title") }}</label>
     <form @submit.prevent="importKeyfile">
-      <file-input @change="onfile" class="formIn" ref="fileIn"></file-input>
+      <file-input ref="fileIn" class="formIn" @change="onfile"></file-input>
       <label>{{ $t("keys.export_placeholder1") }}</label>
       <v-text-field
-        class="formIn"
-        :placeholder="$t('keys.export_placeholder1')"
-        dense
-        outlined
-        hide-details
-        type="password"
         v-model="pass"
+        class="formIn"
+        dense
+        hide-details
+        outlined
+        :placeholder="$t('keys.export_placeholder1')"
+        type="password"
       ></v-text-field>
       <p v-if="err" class="err">{{ err }}</p>
       <v-btn
-        type="submit"
-        :loading="isLoading"
-        :disabled="!canSubmit"
+        block
         class="addKeyBut button_primary ava_button"
         depressed
-        block
+        :disabled="!canSubmit"
+        :loading="isLoading"
+        type="submit"
       >
         {{ $t("keys.import_key_button") }}
       </v-btn>
@@ -28,100 +28,114 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Ref } from "vue-property-decorator";
-import FileInput from "@/components/misc/FileInput.vue";
-import type { ImportKeyfileInput } from "@/store/types";
 import type { AllKeyFileTypes } from "@/js/IKeystore";
+import type { ImportKeyfileInput } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import FileInput from "@/components/misc/FileInput.vue";
 import { KEYSTORE_VERSION } from "@/js/Keystore";
 
-@Component({
+export const AddKeyFile = defineComponent({
   components: {
     FileInput,
   },
-})
-export class AddKeyFile extends Vue {
-  canAdd = false;
-  pass = "";
-  keyfile: File | null = null;
-  isLoading = false;
-  err: string | null = null;
-  fileText: string | null = null;
+  emits: ["success"],
+  data(): {
+    canAdd: boolean;
+    pass: string;
+    keyfile: File | null;
+    isLoading: boolean;
+    err: string | null;
+    fileText: string | null;
+  } {
+    const fileText: string | null = null;
+    const err: string | null = null;
+    const keyfile: File | null = null;
 
-  @Ref("fileIn") readonly fileIn!: FileInput;
+    return {
+      canAdd: false,
+      pass: "",
+      keyfile,
+      isLoading: false,
+      err,
+      fileText,
+    };
+  },
+  computed: {
+    canSubmit() {
+      return this.keyfile && this.pass && this.fileText ? true : false;
+    },
+    fileIn() {
+      return this.$refs.fileIn as typeof FileInput;
+    },
+  },
+  methods: {
+    onfile(val: File) {
+      this.keyfile = val;
 
-  get canSubmit() {
-    return this.keyfile && this.pass && this.fileText ? true : false;
-  }
-
-  onfile(val: File) {
-    this.keyfile = val;
-    const parent = this;
-
-    const reader = new FileReader();
-    reader.addEventListener("load", async () => {
-      const res = reader.result as string;
-      parent.fileText = res;
-    });
-    reader.readAsText(val);
-  }
-
-  importKeyfile() {
-    let fileData: AllKeyFileTypes;
-    this.err = null;
-
-    try {
-      fileData = JSON.parse(this.fileText as string);
-    } catch (e) {
-      this.err = "Unable to parse JSON file.";
-      return;
-    }
-
-    if (fileData.version != KEYSTORE_VERSION) {
-      // TODO: update here?
-      this.err =
-        "Tried to import an old keystore version. Please update your keystore file before importing.";
-      return;
-    }
-
-    this.isLoading = true;
-
-    setTimeout(async () => {
-      const input: ImportKeyfileInput = {
-        password: this.pass,
-        data: fileData,
-      };
+      const reader = new FileReader();
+      reader.addEventListener("load", async () => {
+        const res = reader.result as string;
+        this.fileText = res;
+      });
+      // eslint-disable-next-line unicorn/prefer-blob-reading-methods
+      reader.readAsText(val);
+    },
+    importKeyfile() {
+      let fileData: AllKeyFileTypes;
+      this.err = null;
 
       try {
-        await this.$store.dispatch("importKeyfile", input);
-        // @ts-ignore
-        this.$emit("success");
-        this.clear();
-      } catch (err) {
-        this.isLoading = false;
-        if (err === "INVALID_PASS") {
-          this.err = "Invalid password.";
-        } else {
-          this.err = "Failed to read keystore file.";
-        }
-
-        // this.$store.dispatch("Notifications/add", {
-        //     type: "error",
-        //     title: "Import Failed",
-        //     message: err.message
-        // });
+        fileData = JSON.parse(this.fileText as string);
+      } catch {
+        this.err = "Unable to parse JSON file.";
+        return;
       }
-    }, 200);
-  }
 
-  clear() {
-    this.isLoading = false;
-    this.pass = "";
-    this.keyfile = null;
-    this.canAdd = false;
-    this.err = null;
-    this.fileIn.clear();
-  }
-}
+      if (fileData.version != KEYSTORE_VERSION) {
+        // TODO: update here?
+        this.err =
+          "Tried to import an old keystore version. Please update your keystore file before importing.";
+        return;
+      }
+
+      this.isLoading = true;
+
+      setTimeout(async () => {
+        const input: ImportKeyfileInput = {
+          password: this.pass,
+          data: fileData,
+        };
+
+        try {
+          await this.$store.dispatch("importKeyfile", input);
+          // @ts-ignore
+          this.$emit("success");
+          this.clear();
+        } catch (error) {
+          this.isLoading = false;
+          this.err =
+            error === "INVALID_PASS"
+              ? "Invalid password."
+              : "Failed to read keystore file.";
+
+          // this.$store.dispatch("Notifications/add", {
+          //     type: "error",
+          //     title: "Import Failed",
+          //     message: err.message
+          // });
+        }
+      }, 200);
+    },
+    clear() {
+      this.isLoading = false;
+      this.pass = "";
+      this.keyfile = null;
+      this.canAdd = false;
+      this.err = null;
+      this.fileIn.clear();
+    },
+  },
+});
 export default AddKeyFile;
 </script>
 <style lang="scss">
@@ -132,7 +146,8 @@ export default AddKeyFile;
 }
 </style>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/vars";
+
 .add_key_file {
   padding: 14px 0;
 }
@@ -145,7 +160,7 @@ export default AddKeyFile;
 
 label {
   font-size: 12px;
-  color: main.$primary-color-light;
+  color: vars.$primary-color-light;
 }
 
 .err {

@@ -4,9 +4,9 @@
       <div class="list">
         <CollectibleFamily
           v-for="fam in nftFamsDict"
-          :family="fam"
           :key="fam.id"
           :disabled-ids="disabledIds"
+          :family="fam"
           @select="select"
         ></CollectibleFamily>
       </div>
@@ -14,49 +14,48 @@
   </Modal>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import Modal from "@/components/modals/Modal.vue";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { NftFamilyDict } from "@/store/modules/assets/types";
+import type { PropType } from "vue";
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import { defineComponent } from "vue";
 import CollectibleFamily from "@/components/misc/BalancePopup/CollectibleFamily.vue";
-@Component({
+import Modal from "@/components/modals/Modal.vue";
+
+export const AvmNftSelectModal = defineComponent({
   components: { CollectibleFamily, Modal },
-})
-export class AvmNftSelectModal extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
-  @Prop({ default: [] }) disabledIds!: string[];
-
-  open() {
-    this.$refs.modal.open();
-  }
-  close() {
-    this.$refs.modal.close();
-  }
-
-  select(nft: UTXO) {
-    this.$emit("select", nft);
-    this.close();
-  }
-
-  get isEmpty(): boolean {
-    // return this.$store.getters.walletNftUTXOs.length === 0
-    return this.$store.state.Assets.nftUTXOs.length === 0;
-  }
-
-  get nftFamsDict(): NftFamilyDict {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  isNftUsed(utxo: UTXO) {
-    return this.disabledIds.includes(utxo.getUTXOID());
-  }
-}
+  props: {
+    disabledIds: { default: () => [], type: Array as PropType<string[]> },
+  },
+  emits: ["select"],
+  computed: {
+    isEmpty(): boolean {
+      // return this.$store.getters.walletNftUTXOs.length === 0
+      return this.$store.state.Assets.nftUTXOs.length === 0;
+    },
+    nftFamsDict(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+    select(nft: UTXO) {
+      this.$emit("select", nft);
+      this.close();
+    },
+    isNftUsed(utxo: UTXO) {
+      return this.disabledIds.includes(utxo.getUTXOID());
+    },
+  },
+});
 export default AvmNftSelectModal;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 .nft_sel_body {
   width: 650px;
   max-width: 100%;
@@ -72,7 +71,7 @@ export default AvmNftSelectModal;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .nft_sel_body {
     width: 100%;
   }

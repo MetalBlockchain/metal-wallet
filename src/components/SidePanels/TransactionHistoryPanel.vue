@@ -5,79 +5,72 @@
       <h2>Transactions</h2>
       <Spinner v-if="isUpdating" class="spinner"></Spinner>
     </div>
-    <div class="empty" v-if="!isExplorer">
+    <div v-if="!isExplorer" class="empty">
       <h4>{{ $t("transactions.error_api") }}</h4>
       <p>{{ $t("transactions.error_api_desc") }}</p>
     </div>
-    <div class="empty" v-else-if="isEmpty && !isUpdating">
+    <div v-else-if="isEmpty && !isUpdating" class="empty">
       <p>{{ $t("transactions.notx") }}</p>
     </div>
-    <div class="list no_scroll_bar" v-else>
+    <div v-else class="list no_scroll_bar">
       <tx-history-row
         v-for="tx in transactions"
         :key="tx.txHash"
-        :transaction="tx"
         class="tx_row"
+        :transaction="tx"
       ></tx-history-row>
     </div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import Spinner from "@/components/misc/Spinner.vue";
-import TxHistoryRow from "@/components/SidePanels/TxHistoryRow.vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
 import type { TransactionType } from "@/js/Glacier/models";
+import { defineComponent } from "vue";
+import Spinner from "@/components/misc/Spinner.vue";
+import TxHistoryRow from "@/components/SidePanels/TxHistoryRow.vue";
 
-@Component({
+export const TransactionHistoryPanel = defineComponent({
   components: {
     TxHistoryRow,
     Spinner,
   },
-})
-export class TransactionHistoryPanel extends Vue {
-  get isExplorer(): boolean {
-    const network: AvaNetwork | null =
-      this.$store.state.Network.selectedNetwork;
-    if (!network) return false;
-    if (network.explorerUrl) {
-      return true;
-    }
-    return false;
-  }
-
-  get isEmpty(): boolean {
-    if (this.transactions.length === 0) {
-      return true;
-    }
-    return false;
-  }
-  get isUpdating(): boolean {
-    return this.$store.state.History.isUpdating;
-  }
-  get transactions(): TransactionType[] {
-    return this.$store.state.History.recentTransactions;
-  }
-
-  get isActivityPage() {
-    if (this.$route.fullPath.includes("/activity")) {
-      return true;
-    }
-    return false;
-  }
-
-  get explorerUrl(): string {
-    const addr = this.$store.state.address.split("-")[1];
-    return `https://explorer.avax.network/address/${addr}`;
-  }
-}
+  computed: {
+    isExplorer(): boolean {
+      const network: AvaNetwork | null =
+        this.$store.state.Network.selectedNetwork;
+      if (!network) return false;
+      if (network.explorerUrl) {
+        return true;
+      }
+      return false;
+    },
+    isEmpty(): boolean {
+      if (this.transactions.length === 0) {
+        return true;
+      }
+      return false;
+    },
+    isUpdating(): boolean {
+      return this.$store.state.History.isUpdating;
+    },
+    transactions(): TransactionType[] {
+      return this.$store.state.History.recentTransactions;
+    },
+    isActivityPage() {
+      if (this.$route.fullPath.includes("/activity")) {
+        return true;
+      }
+      return false;
+    },
+    explorerUrl(): string {
+      const addr = this.$store.state.address.split("-")[1];
+      return `https://explorer.avax.network/address/${addr}`;
+    },
+  },
+});
 export default TransactionHistoryPanel;
 </script>
 <style scoped lang="scss">
-@use "../../main";
-
 .tx_history_panel {
   display: grid;
   grid-template-rows: max-content 1fr;
@@ -154,7 +147,5 @@ export default TransactionHistoryPanel;
   &[disabled] {
     opacity: 0;
   }
-}
-@include main.medium-device {
 }
 </style>

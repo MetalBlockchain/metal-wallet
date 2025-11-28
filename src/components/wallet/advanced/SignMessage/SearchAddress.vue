@@ -1,24 +1,24 @@
 <template>
   <div class="search_address">
-    <template v-if="selectedAddress">
+    <template v-if="modelValue">
       <p class="selected no_overflow_addr" @click="clearSelection">
-        {{ selectedAddress }}
+        {{ modelValue }}
       </p>
     </template>
     <template v-else>
       <input
-        type="text"
         v-model="address"
-        @input="onInput"
         class="hover_border"
         placeholder="Search address.."
+        type="text"
+        @input="onInput"
       />
-      <div class="search_results" v-if="matchingAddrs.length > 0">
+      <div v-if="matchingAddrs.length > 0" class="search_results">
         <p
           v-for="addr in matchingAddrs"
           :key="addr"
-          @click="selectAddress(addr)"
           class="no_overflow_addr"
+          @click="selectAddress(addr)"
         >
           {{ addr }}
         </p>
@@ -27,56 +27,64 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Model } from "vue-property-decorator";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
+import type { WalletType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
 
-@Component
-export default class SearchAddress extends Vue {
-  @Model("change", { type: String }) readonly selectedAddress!: string | null;
-  @Prop() wallet!: MnemonicWallet;
+export default defineComponent({
+  props: {
+    wallet: {
+      type: Object as PropType<WalletType>,
+    },
+    modelValue: { type: String },
+  },
+  emits: ["update:modelValue"],
+  data() {
+    const matchingAddrs: string[] = [];
 
-  address = "";
-  matchingAddrs: string[] = [];
-
-  get addrsX(): string[] {
-    return this.wallet.getAllDerivedExternalAddresses();
-  }
-
-  get addrsP(): string[] {
-    return this.wallet.getAllAddressesP();
-  }
-
-  emitChange(val: string | null) {
-    this.$emit("change", val);
-  }
-
-  clearSelection() {
-    this.address = "";
-    this.matchingAddrs = [];
-
-    this.emitChange(null);
-  }
-
-  selectAddress(addr: string) {
-    this.emitChange(addr);
-  }
-
-  onInput() {
-    if (this.address === "") {
+    return {
+      address: "",
+      matchingAddrs,
+    };
+  },
+  computed: {
+    addrsX(): string[] {
+      return this.wallet?.getAllDerivedExternalAddresses() ?? [];
+    },
+    addrsP(): string[] {
+      return this.wallet?.getAllAddressesP() ?? [];
+    },
+  },
+  methods: {
+    emitChange(val: string | null) {
+      this.$emit("update:modelValue", val);
+    },
+    clearSelection() {
+      this.address = "";
       this.matchingAddrs = [];
-      return;
-    }
 
-    const pAddrs = this.addrsP.filter((addr) => {
-      return addr.includes(this.address);
-    });
-    const xAddrs = this.addrsX.filter((addr) => {
-      return addr.includes(this.address);
-    });
+      this.emitChange(null);
+    },
+    selectAddress(addr: string) {
+      this.emitChange(addr);
+    },
+    onInput() {
+      if (this.address === "") {
+        this.matchingAddrs = [];
+        return;
+      }
 
-    this.matchingAddrs = [...pAddrs.slice(0, 2), ...xAddrs.slice(0, 2)];
-  }
-}
+      const pAddrs = this.addrsP.filter((addr) => {
+        return addr.includes(this.address);
+      });
+      const xAddrs = this.addrsX.filter((addr) => {
+        return addr.includes(this.address);
+      });
+
+      this.matchingAddrs = [...pAddrs.slice(0, 2), ...xAddrs.slice(0, 2)];
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 $addrSize: 14px;

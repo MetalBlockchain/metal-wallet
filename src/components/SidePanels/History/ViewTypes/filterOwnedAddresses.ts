@@ -5,7 +5,7 @@
  */
 export function filterOwnedAddresses(
   myAddresses: string[],
-  addresses: string[]
+  addresses: string[],
 ) {
   myAddresses = myAddresses.map((addr) => addr.split("-")[1] || addr);
   addresses = addresses.map((addr) => addr.split("-")[1] || addr);

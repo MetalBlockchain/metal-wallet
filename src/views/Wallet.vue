@@ -1,92 +1,81 @@
 <template>
-  <div class="wallet_view" ref="wallet_view">
+  <div ref="wallet_view" class="wallet_view">
     <UpdateKeystoreModal v-if="isManageWarning"></UpdateKeystoreModal>
-    <transition name="fade" mode="out-in">
+    <transition mode="out-in" name="fade">
       <sidebar class="panel sidenav"></sidebar>
     </transition>
     <div class="wallet_main">
       <top-info class="wallet_top"></top-info>
-      <transition name="page_fade" mode="out-in">
-        <keep-alive
-          :exclude="[
-            'cross_chain',
-            'activity',
-            'advanced',
-            'earn',
-            'manage',
-            'studio',
-          ]"
-        >
-          <router-view id="wallet_router" :key="$route.path"></router-view>
-        </keep-alive>
-      </transition>
+      <router-view id="wallet_router" :key="$route.path" v-slot="{ Component }">
+        <transition mode="out-in" name="page_fade">
+          <keep-alive
+            :exclude="[
+              'cross_chain',
+              'activity',
+              'advanced',
+              'earn',
+              'manage',
+              'studio',
+            ]"
+          >
+            <component :is="Component" />
+          </keep-alive>
+        </transition>
+      </router-view>
     </div>
-    <transition name="fade" mode="out-in">
+    <transition mode="out-in" name="fade">
       <main-panel class="panel"></main-panel>
     </transition>
   </div>
 </template>
 
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-import TopInfo from "@/components/wallet/TopInfo.vue";
-import Sidebar from "@/components/wallet/Sidebar.vue";
-import MainPanel from "@/components/SidePanels/MainPanel.vue";
+import { defineComponent } from "vue";
 import UpdateKeystoreModal from "@/components/modals/UpdateKeystore/UpdateKeystoreModal.vue";
+import MainPanel from "@/components/SidePanels/MainPanel.vue";
+import Sidebar from "@/components/wallet/Sidebar.vue";
+import TopInfo from "@/components/wallet/TopInfo.vue";
 
 const TIMEOUT_DURATION = 60 * 15; // in seconds
 const TIMEOUT_DUR_MS = TIMEOUT_DURATION * 1000;
 
-@Component({
+export default defineComponent({
   components: {
     Sidebar,
     MainPanel,
     TopInfo,
     UpdateKeystoreModal,
   },
-})
-export default class Wallet extends Vue {
-  intervalId: ReturnType<typeof setTimeout> | null = null;
-  logoutTimestamp = Date.now() + TIMEOUT_DUR_MS;
-  isLogOut = false;
+  data(): {
+    intervalId: ReturnType<typeof setTimeout> | null;
+    logoutTimestamp: number;
+    isLogOut: boolean;
+  } {
+    const intervalId: ReturnType<typeof setTimeout> | null = null;
 
-  // Set the logout timestamp to now + TIMEOUT_DUR_MS
-  resetTimer() {
-    this.logoutTimestamp = Date.now() + TIMEOUT_DUR_MS;
-  }
-
-  checkLogout() {
-    const now = Date.now();
-
-    // Logout if current time is passed the logout timestamp
-    if (now >= this.logoutTimestamp && !this.isLogOut) {
-      this.isLogOut = true;
-      this.$store.dispatch("timeoutLogout");
-    }
-  }
-
+    return {
+      intervalId,
+      logoutTimestamp: Date.now() + TIMEOUT_DUR_MS,
+      isLogOut: false,
+    };
+  },
+  computed: {
+    isManageWarning(): boolean {
+      if (this.$store.state.warnUpdateKeyfile) {
+        return true;
+      }
+      return false;
+    },
+    hasVolatileWallets() {
+      return this.$store.state.volatileWallets.length > 0;
+    },
+  },
   created() {
     this.resetTimer();
     this.intervalId = setInterval(() => {
       this.checkLogout();
     }, 1000);
-  }
-
-  unload(event: BeforeUnloadEvent) {
-    // user has no wallet saved
-    if (
-      !localStorage.getItem("w") &&
-      this.hasVolatileWallets &&
-      this.isLogOut
-    ) {
-      event.preventDefault();
-      this.isLogOut = false;
-      event.returnValue = "";
-      this.$router.push("/wallet/keys");
-      this.resetTimer();
-    }
-  }
-
+  },
   mounted() {
     const view = this.$refs.wallet_view as HTMLDivElement;
 
@@ -96,35 +85,50 @@ export default class Wallet extends Vue {
     view.addEventListener("mousedown", this.resetTimer);
 
     window.addEventListener("beforeunload", this.unload);
-  }
-
-  beforeDestroy() {
+  },
+  beforeUnmount() {
     const view = this.$refs.wallet_view as HTMLDivElement;
     // Remove Event Listeners
     view.removeEventListener("mousemove", this.resetTimer);
     view.removeEventListener("mousedown", this.resetTimer);
     window.removeEventListener("beforeunload", this.unload);
-  }
-
-  destroyed() {
+  },
+  unmounted() {
     clearInterval(this.intervalId!);
-  }
+  },
+  methods: {
+    resetTimer() {
+      this.logoutTimestamp = Date.now() + TIMEOUT_DUR_MS;
+    },
+    checkLogout() {
+      const now = Date.now();
 
-  get isManageWarning(): boolean {
-    if (this.$store.state.warnUpdateKeyfile) {
-      return true;
-    }
-    return false;
-  }
-
-  get hasVolatileWallets() {
-    return this.$store.state.volatileWallets.length > 0;
-  }
-}
+      // Logout if current time is passed the logout timestamp
+      if (now >= this.logoutTimestamp && !this.isLogOut) {
+        this.isLogOut = true;
+        this.$store.dispatch("timeoutLogout");
+      }
+    },
+    unload(event: BeforeUnloadEvent) {
+      // user has no wallet saved
+      if (
+        !localStorage.getItem("w") &&
+        this.hasVolatileWallets &&
+        this.isLogOut
+      ) {
+        event.preventDefault();
+        this.isLogOut = false;
+        event.returnValue = "";
+        this.$router.push("/wallet/keys");
+        this.resetTimer();
+      }
+    },
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-@use "../main";
+@use "@/styles/abstracts/mixins";
 
 .wallet_view {
   padding-bottom: 0;
@@ -166,7 +170,7 @@ export default class Wallet extends Vue {
   transform: translateY(30px);
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .wallet_view {
     display: block;
     column-gap: 9px;
@@ -181,7 +185,7 @@ export default class Wallet extends Vue {
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .wallet_view {
     grid-template-columns: 180px 1fr 240px !important;
     column-gap: 9px;

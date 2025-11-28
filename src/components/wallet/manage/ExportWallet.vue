@@ -4,34 +4,34 @@
     <form @submit.prevent="download">
       <label>Password (min 9 characters)</label>
       <v-text-field
-        type="password"
-        placeholder="Password"
         v-model="pass"
+        class="formIn"
+        dense
+        height="40"
         hide-details
         outlined
-        dense
-        class="formIn"
-        height="40"
+        placeholder="Password"
+        type="password"
       ></v-text-field>
       <label>Confirm Password</label>
       <v-text-field
-        type="password"
-        placeholder="Confirm Password"
         v-model="passConfirm"
+        class="formIn"
+        dense
+        height="40"
         hide-details
         outlined
-        dense
-        class="formIn"
-        height="40"
+        placeholder="Confirm Password"
+        type="password"
       ></v-text-field>
       <p class="err">{{ err }}</p>
       <v-btn
-        type="submit"
-        :disabled="!isValid"
-        :loading="isLoading"
-        depressed
         block
         class="button_primary"
+        depressed
+        :disabled="!isValid"
+        :loading="isLoading"
+        type="submit"
       >
         Export Wallet
       </v-btn>
@@ -39,63 +39,70 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { ExportWalletsInput } from "@/store/types";
+import type { ExportWalletsInput } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 
-@Component
-export class ExportWallet extends Vue {
-  isLoading = false;
-  pass = "";
-  passConfirm = "";
-  err = "";
-
-  @Prop() wallets!: MnemonicWallet[];
-  @Prop({ default: true }) isDesc!: boolean;
-
-  get isValid(): boolean {
-    return this.pass.length >= 9 && this.pass === this.passConfirm
-      ? true
-      : false;
-  }
-
-  clear() {
-    this.isLoading = false;
-    this.pass = "";
-    this.passConfirm = "";
-    this.err = "";
-  }
-
-  async download() {
-    this.isLoading = true;
-    this.err = "";
-
-    if (!this.wallets) {
-      this.isLoading = false;
-      this.err = "No wallet selected.";
-      return;
-    }
-
-    const input: ExportWalletsInput = {
-      password: this.pass,
-      wallets: this.wallets,
+export const ExportWallet = defineComponent({
+  props: {
+    wallets: {
+      type: Array as PropType<MnemonicWallet[]>,
+    },
+    isDesc: { default: true, type: Boolean },
+  },
+  emits: ["success"],
+  data() {
+    return {
+      isLoading: false,
+      pass: "",
+      passConfirm: "",
+      err: "",
     };
-    setTimeout(() => {
-      this.$store.dispatch("exportWallets", input).then((res) => {
+  },
+  computed: {
+    isValid(): boolean {
+      return this.pass.length >= 9 && this.pass === this.passConfirm
+        ? true
+        : false;
+    },
+  },
+  methods: {
+    clear() {
+      this.isLoading = false;
+      this.pass = "";
+      this.passConfirm = "";
+      this.err = "";
+    },
+    async download() {
+      this.isLoading = true;
+      this.err = "";
+
+      if (!this.wallets) {
         this.isLoading = false;
-        this.pass = "";
-        this.passConfirm = "";
-        this.$store.dispatch("Notifications/add", {
-          title: "Key File Export",
-          message: "Your keys are downloaded.",
+        this.err = "No wallet selected.";
+        return;
+      }
+
+      const input: ExportWalletsInput = {
+        password: this.pass,
+        wallets: this.wallets,
+      };
+      setTimeout(() => {
+        this.$store.dispatch("exportWallets", input).then(() => {
+          this.isLoading = false;
+          this.pass = "";
+          this.passConfirm = "";
+          this.$store.dispatch("Notifications/add", {
+            title: "Key File Export",
+            message: "Your keys are downloaded.",
+          });
+          this.$emit("success");
         });
-        // @ts-ignore
-        this.$emit("success");
-      });
-    }, 200);
-  }
-}
+      }, 200);
+    },
+  },
+});
 export default ExportWallet;
 </script>
 <style lang="scss">
@@ -123,8 +130,7 @@ export default ExportWallet;
 }
 </style>
 <style scoped lang="scss">
-@use "../../../main";
-@use "../../../light_theme";
+// @use "../../../light_theme";
 
 .export_wallet {
   font-size: 12px;

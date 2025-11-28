@@ -1,48 +1,48 @@
-import { ava, avm, bintools, pChain } from "@/AVA";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-import { digestMessage } from "@/helpers/helper";
-import type { WalletNameType } from "@/js/wallets/types";
-
-import { Buffer as BufferAvalanche, BN } from "@metalblockchain/metaljs";
+import type { Transaction } from "@ethereumjs/tx";
 import type {
   KeyPair as AVMKeyPair,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import {
-  KeyChain as AVMKeyChain,
-  UTXOSet as AVMUTXOSet,
-} from "@metalblockchain/metaljs/dist/apis/avm";
-import type { KeyPair as PlatformKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import {
-  KeyChain as PlatformKeyChain,
-  UTXOSet as PlatformUTXOSet,
-} from "@metalblockchain/metaljs/dist/apis/platformvm";
-import {
-  KeyChain,
-  KeyChain as EVMKeyChain,
-} from "@metalblockchain/metaljs/dist/apis/evm";
-import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import { buildUnsignedTransaction } from "../TxHelper";
-import type { AvaWalletCore, UnsafeWallet } from "./types";
-import { privateToAddress } from "ethereumjs-util";
 import type {
   Tx as AVMTx,
   UnsignedTx as AVMUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/avm/tx";
-import type {
-  Tx as PlatformTx,
-  UnsignedTx as PlatformUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+
 import type {
   Tx as EvmTx,
   UnsignedTx as EVMUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/evm/tx";
+import type { KeyPair as PlatformKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type {
+  Tx as PlatformTx,
+  UnsignedTx as PlatformUnsignedTx,
+} from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import type { AvaWalletCore, UnsafeWallet } from "./types";
+import type { ITransaction } from "@/components/wallet/transfer/types";
 import type Erc20Token from "@/js/Erc20Token";
-import { AbstractWallet } from "@/js/wallets/AbstractWallet";
-import { WalletHelper } from "@/helpers/wallet_helper";
+import type { WalletNameType } from "@/js/wallets/types";
+import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
+import {
+  KeyChain as AVMKeyChain,
+  UTXOSet as AVMUTXOSet,
+} from "@metalblockchain/metaljs/dist/apis/avm";
+import {
+  KeyChain as EVMKeyChain,
+  KeyChain,
+} from "@metalblockchain/metaljs/dist/apis/evm";
+import {
+  KeyChain as PlatformKeyChain,
+  UTXOSet as PlatformUTXOSet,
+} from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { privateToAddress } from "ethereumjs-util";
+import { digestMessage } from "@/helpers/helper";
 import { avmGetAllUTXOs, platformGetAllUTXOs } from "@/helpers/utxo_helper";
-import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-import type { Transaction } from "@ethereumjs/tx";
+import { WalletHelper } from "@/helpers/wallet_helper";
+import { AbstractWallet } from "@/js/wallets/AbstractWallet";
+import { ava, avm, bintools, pChain } from "@/misc/AVA";
+import { buildUnsignedTransaction } from "../TxHelper";
 
 class SingletonWallet
   extends AbstractWallet
@@ -88,7 +88,7 @@ class SingletonWallet
     this.stakeAmount = new BN(0);
 
     // Derive EVM key and address
-    const pkBuf = bintools.cb58Decode(pk.split("-")[1]);
+    const pkBuf = bintools.cb58Decode(pk.split("-")[1] ?? "");
     const pkHex = pkBuf.toString("hex");
     const pkBuffNative = Buffer.from(pkHex, "hex");
 
@@ -198,7 +198,7 @@ class SingletonWallet
   async buildUnsignedTransaction(
     orders: (ITransaction | UTXO)[],
     addr: string,
-    memo?: BufferAvalanche
+    memo?: BufferAvalanche,
   ) {
     const changeAddress = this.getChangeAddressAvm();
     const derivedAddresses = this.getDerivedAddresses();
@@ -210,14 +210,14 @@ class SingletonWallet
       derivedAddresses,
       utxoset,
       changeAddress,
-      memo
+      memo,
     );
   }
 
   async issueBatchTx(
     orders: (ITransaction | AVMUTXO)[],
     addr: string,
-    memo: BufferAvalanche | undefined
+    memo: BufferAvalanche | undefined,
   ): Promise<string> {
     return await WalletHelper.issueBatchTx(this, orders, addr, memo);
   }
@@ -290,7 +290,7 @@ class SingletonWallet
   async estimateGas(
     to: string,
     amount: BN,
-    token: Erc20Token
+    token: Erc20Token,
   ): Promise<number> {
     return await WalletHelper.estimateGas(this, to, amount, token);
   }
@@ -300,7 +300,7 @@ class SingletonWallet
     amount: BN,
     gasPrice: BN,
     gasLimit: number,
-    token: Erc20Token
+    token: Erc20Token,
   ): Promise<string> {
     return await WalletHelper.sendErc20(
       this,
@@ -308,7 +308,7 @@ class SingletonWallet
       amount,
       gasPrice,
       gasLimit,
-      token
+      token,
     );
   }
 

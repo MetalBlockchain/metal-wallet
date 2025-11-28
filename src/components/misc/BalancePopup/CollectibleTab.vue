@@ -6,47 +6,48 @@
     <div v-else>
       <CollectibleFamily
         v-for="fam in nftFamsDict"
-        :family="fam"
         :key="fam.id"
         :disabled-ids="disabledIds"
+        :family="fam"
         @select="selectNft"
       ></CollectibleFamily>
     </div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Prop, Component } from "vue-property-decorator";
-import NftCard from "@/components/wallet/portfolio/NftCard.vue";
-import type { NftFamilyDict } from "@/store/modules/assets/types";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import { defineComponent } from "vue";
 
 import CollectibleFamily from "@/components/misc/BalancePopup/CollectibleFamily.vue";
-@Component({
+
+export const CollectibleTab = defineComponent({
   components: {
-    NftCard,
     CollectibleFamily,
   },
-})
-export class CollectibleTab extends Vue {
-  @Prop({ default: [] }) disabledIds!: string[];
-  get isEmpty(): boolean {
-    // return this.$store.getters.walletNftUTXOs.length === 0
-    return this.$store.state.Assets.nftUTXOs.length === 0;
-  }
-
-  get nftFamsDict(): NftFamilyDict {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  isNftUsed(utxo: UTXO) {
-    return this.disabledIds.includes(utxo.getUTXOID());
-  }
-
-  selectNft(nft: UTXO) {
-    this.$emit("select", nft);
-  }
-}
+  props: {
+    disabledIds: { default: () => [], type: Array as PropType<string[]> },
+  },
+  emits: ["select"],
+  computed: {
+    isEmpty(): boolean {
+      // return this.$store.getters.walletNftUTXOs.length === 0
+      return this.$store.state.Assets.nftUTXOs.length === 0;
+    },
+    nftFamsDict(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+  },
+  methods: {
+    isNftUsed(utxo: UTXO) {
+      return this.disabledIds.includes(utxo.getUTXOID());
+    },
+    selectNft(nft: UTXO) {
+      this.$emit("select", nft);
+    },
+  },
+});
 export default CollectibleTab;
 </script>
 <style scoped lang="scss">

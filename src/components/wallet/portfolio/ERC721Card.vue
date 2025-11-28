@@ -1,13 +1,13 @@
 <template>
   <div class="nft_card">
     <ERC721ViewModal
+      ref="view_modal"
       :token="token"
       :token-id="index"
-      ref="view_modal"
     ></ERC721ViewModal>
     <div class="view">
       <template v-if="!isRaw && img">
-        <ERC721View :token="token" :index="index"></ERC721View>
+        <ERC721View :index="index" :token="token"></ERC721View>
       </template>
       <template v-else>
         <div class="raw_view no_scroll_bar">
@@ -21,30 +21,30 @@
           <p>ERC721</p>
         </div>
         <div>
-          <button @click="toggleRaw" :active="isRaw" class="raw_toggle">
+          <button class="raw_toggle" :data-active="isRaw" @click="toggleRaw">
             SOURCE
           </button>
           <Tooltip
-            :text="$t('portfolio.collectibles.send')"
-            @click.native="transfer"
             class="nft_button"
+            :text="$t('portfolio.collectibles.send')"
+            @click="transfer"
           >
             <fa icon="share"></fa>
           </Tooltip>
           <Tooltip
-            :text="$t('portfolio.collectibles.expand')"
-            @click.native="expand"
             class="nft_button"
+            :text="$t('portfolio.collectibles.expand')"
+            @click="expand"
           >
             <fa icon="expand"></fa>
           </Tooltip>
         </div>
       </div>
-      <div class="generic_nft_meta" v-if="name || description">
-        <p class="nft_title" v-if="name">
+      <div v-if="name || description" class="generic_nft_meta">
+        <p v-if="name" class="nft_title">
           {{ name }}
         </p>
-        <p class="nft_desc" v-if="description">
+        <p v-if="description" class="nft_desc">
           {{ description }}
         </p>
       </div>
@@ -52,72 +52,80 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import axios from "axios";
-import Tooltip from "@/components/misc/Tooltip.vue";
+import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import axios from "axios";
+import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";
+import Tooltip from "@/components/misc/Tooltip.vue";
 import ERC721ViewModal from "@/components/modals/ERC721ViewModal.vue";
-@Component({
+
+export default defineComponent({
   components: { ERC721ViewModal, ERC721View, Tooltip },
-})
-export default class ERC721Card extends Vue {
-  @Prop() index!: string;
-  @Prop() token!: ERC721Token;
+  props: {
+    index: {
+      type: String,
+    },
+    token: {
+      type: Object as PropType<ERC721Token>,
+    },
+  },
+  data() {
+    const metadata: any = "";
 
-  $refs!: {
-    view_modal: ERC721ViewModal;
-  };
-
-  metadata: any = "";
-  isRaw = false;
-
+    return {
+      metadata,
+      isRaw: false,
+    };
+  },
+  computed: {
+    img() {
+      const data = this.metadata;
+      if (!data) return null;
+      return data.img || data.image || null;
+    },
+    name() {
+      return this.metadata?.name;
+    },
+    description() {
+      return this.metadata?.description;
+    },
+  },
   mounted() {
     this.getData();
-  }
-
-  get img() {
-    const data = this.metadata;
-    if (!data) return null;
-    return data.img || data.image || null;
-  }
-
-  get name() {
-    return this.metadata?.name;
-  }
-
-  get description() {
-    return this.metadata?.description;
-  }
-
-  async getData() {
-    try {
-      const uri = await this.token.getTokenURI(parseInt(this.index));
-      this.metadata = (await axios.get(uri)).data;
-    } catch (e) {
-      this.metadata = null;
-    }
-  }
-
-  transfer(ev: any) {
-    ev.stopPropagation();
-    this.$router.push({
-      path: "/wallet/transfer",
-      query: {
-        chain: "C",
-        token: this.token.contractAddress,
-        tokenId: this.index,
-      },
-    });
-  }
-  expand() {
-    this.$refs.view_modal.open();
-  }
-
-  toggleRaw() {
-    this.isRaw = !this.isRaw;
-  }
-}
+  },
+  methods: {
+    async getData() {
+      if (this.token) {
+        try {
+          const uri = await this.token.getTokenURI(
+            Number.parseInt(this.index ?? ""),
+          );
+          this.metadata = (await axios.get(uri)).data;
+        } catch {
+          this.metadata = null;
+        }
+      }
+    },
+    transfer(ev: any) {
+      ev.stopPropagation();
+      this.$router.push({
+        path: "/wallet/transfer",
+        query: {
+          chain: "C",
+          token: this.token?.contractAddress,
+          tokenId: this.index,
+        },
+      });
+    },
+    expand() {
+      (this.$refs.view_modal as typeof ERC721ViewModal).open();
+    },
+    toggleRaw() {
+      this.isRaw = !this.isRaw;
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 @use "nft_card";
@@ -138,7 +146,7 @@ img {
 }
 
 .raw_toggle {
-  &[active] {
+  &[data-active="true"] {
     color: var(--secondary-color) !important;
     opacity: 1 !important;
     font-weight: bold;

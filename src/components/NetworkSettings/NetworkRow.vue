@@ -1,9 +1,9 @@
 <template>
-  <div class="network_row" :active="isSelected">
+  <div :active="isSelected" class="network_row">
     <div class="name_col">
-      <p class="name">{{ network.name }}</p>
+      <p class="name">{{ network?.name }}</p>
       <p class="url">{{ endpoint }}</p>
-      <div v-if="!isSelected && !network.readonly" class="buts">
+      <div v-if="!isSelected && !network?.readonly" class="buts">
         <button class="editBut" @click="edit">
           <fa icon="cog"></fa>
           {{ $t("network.row.edit") }}
@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="stat_col">
-      <button @click="select" v-if="!isSelected">
+      <button v-if="!isSelected" @click="select">
         {{ $t("network.row.select") }}
       </button>
       <button v-else-if="!isConnected" class="connecting">
@@ -26,92 +26,104 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import { defineComponent } from "vue";
 
-@Component
-export default class NetworkRow extends Vue {
-  @Prop() network!: AvaNetwork;
+export default defineComponent({
+  props: {
+    network: {
+      type: Object as PropType<AvaNetwork>,
+    },
+  },
+  emits: ["edit"],
+  computed: {
+    endpoint() {
+      const net = this.network;
+      if (!net) {
+        return "";
+      }
+      let portText = "";
+      if (net.port) {
+        portText = ":" + net.port;
+      }
 
-  get endpoint() {
-    const net = this.network;
-    let portText = "";
-    if (net.port) {
-      portText = ":" + net.port;
-    }
-
-    return `${net.protocol}://${net.ip}${portText}`;
-  }
-  get networkStatus() {
-    return this.$store.state.Network.status;
-  }
-  get isConnected() {
-    const state = this.$store.state.Network;
-    if (
-      this.network === state.selectedNetwork &&
-      this.networkStatus === "connected"
-    ) {
-      return true;
-    }
-    return false;
-  }
-  get isSelected() {
-    const state = this.$store.state.Network;
-    if (this.network === state.selectedNetwork) {
-      return true;
-    }
-    return false;
-  }
-
-  edit() {
-    this.$emit("edit");
-  }
-
-  deleteNet() {
-    this.$store.dispatch("Network/removeCustomNetwork", this.network);
-    this.$store.dispatch(
-      "Notifications/add",
-      {
-        title: "Network Removed",
-        message: "Removed custom network.",
-      },
-      { root: true }
-    );
-  }
-  async select() {
-    const net = this.network;
-    try {
-      const isSel = await this.$store.dispatch("Network/setNetwork", net);
-
+      return `${net.protocol}://${net.ip}${portText}`;
+    },
+    networkStatus() {
+      return this.$store.state.Network.status;
+    },
+    isConnected() {
+      const state = this.$store.state.Network;
+      if (
+        this.network === state.selectedNetwork &&
+        this.networkStatus === "connected"
+      ) {
+        return true;
+      }
+      return false;
+    },
+    isSelected() {
+      const state = this.$store.state.Network;
+      if (this.network === state.selectedNetwork) {
+        return true;
+      }
+      return false;
+    },
+  },
+  methods: {
+    edit() {
+      this.$emit("edit");
+    },
+    deleteNet() {
+      this.$store.dispatch("Network/removeCustomNetwork", this.network);
       this.$store.dispatch(
         "Notifications/add",
         {
-          title: "Network Connected",
-          message: "Connected to " + net.name,
-          type: "success",
+          title: "Network Removed",
+          message: "Removed custom network.",
         },
-        { root: true }
+        { root: true },
       );
-      // @ts-ignore
-      this.$parent.$parent.isActive = false;
-    } catch (e) {
-      this.$store.state.Network.selectedNetwork = null;
-      this.$store.state.Network.status = "disconnected";
-      this.$store.dispatch(
-        "Notifications/add",
-        {
-          title: "Connection Failed",
-          message: `Failed to connect ${net.name}`,
-          type: "error",
-        },
-        { root: true }
-      );
-    }
-  }
-}
+    },
+    async select() {
+      const net = this.network;
+      if (net) {
+        try {
+          await this.$store.dispatch("Network/setNetwork", net);
+
+          this.$store.dispatch(
+            "Notifications/add",
+            {
+              title: "Network Connected",
+              message: "Connected to " + net.name,
+              type: "success",
+            },
+            { root: true },
+          );
+          // @ts-ignore
+          this.$parent.$parent.isActive = false;
+        } catch {
+          this.$store.state.Network.selectedNetwork = null;
+          this.$store.state.Network.status = "disconnected";
+          this.$store.dispatch(
+            "Notifications/add",
+            {
+              title: "Connection Failed",
+              message: `Failed to connect ${net.name}`,
+              type: "error",
+            },
+            { root: true },
+          );
+        }
+      }
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .stat_col {
   font-size: 14px;
@@ -177,21 +189,21 @@ img {
 
 .url,
 .credentials {
-  color: main.$primary-color-light;
+  color: vars.$primary-color-light;
   font-size: 12px;
   word-break: break-all;
 }
 
 @keyframes connecting {
   from {
-    color: main.$primary-color;
+    color: vars.$primary-color;
   }
   to {
-    color: main.$green;
+    color: vars.$green;
   }
 }
 
-@media only screen and (max-width: main.$mobile_width) {
+@include mixins.mobile-device {
   img {
     display: none;
   }

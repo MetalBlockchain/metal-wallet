@@ -1,29 +1,30 @@
 <template>
-  <modal :title="$t('modal.nft.title')" ref="modal">
+  <modal ref="modal" :title="$t('modal.nft.title')">
     <div class="nft_view_body">
-      <NftPayloadView :payload="payload" class="view"></NftPayloadView>
+      <NftPayloadView class="view" :payload="payload"></NftPayloadView>
     </div>
   </modal>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import Modal from "@/components/modals/Modal.vue";
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-@Component({
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
+import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import Modal from "@/components/modals/Modal.vue";
+
+export default defineComponent({
   components: { NftPayloadView, Modal },
-})
-export default class NFTViewModal extends Vue {
-  @Prop() payload!: PayloadBase;
-
-  $refs!: {
-    modal: Modal;
-  };
-
-  open() {
-    this.$refs.modal.open();
-  }
-}
+  props: {
+    payload: {
+      type: Object as PropType<PayloadBase>,
+    },
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .nft_view_body {

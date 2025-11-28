@@ -5,7 +5,7 @@
         <h1>{{ $t("studio.title") }}</h1>
         <hr />
       </div>
-      <h1 class="subtitle" v-if="pageNow">
+      <h1 v-if="pageNow" class="subtitle">
         / {{ subtitle }}
         <span @click="cancel"><fa icon="times"></fa></span>
       </h1>
@@ -19,10 +19,10 @@
             <h4 class="title">{{ $t("studio.menu1.title") }}</h4>
             <p>{{ $t("studio.menu1.desc") }}</p>
             <v-btn
-              @click="goNewNftFamily"
               class="button_secondary"
-              small
               depressed
+              small
+              @click="goNewNftFamily"
             >
               {{ $t("studio.menu1.submit") }}
             </v-btn>
@@ -35,11 +35,11 @@
                 {{ $t("studio.menu2.empty") }}
               </p>
               <v-btn
-                @click="goMint"
                 class="button_secondary"
-                small
                 depressed
                 :disabled="!canMint"
+                small
+                @click="goMint"
               >
                 {{ $t("studio.menu2.submit") }}
               </v-btn>
@@ -48,78 +48,75 @@
         </div>
       </div>
     </template>
-    <Component v-else :is="pageNow" @cancel="cancel"></Component>
+    <Component :is="pageNow" v-else @cancel="cancel"></Component>
   </div>
 </template>
+
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import NewCollectibleFamily from "@/components/wallet/studio/NewCollectibleFamily.vue";
+import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import MintNft from "@/components/wallet/studio/mint/MintNft.vue";
-import type { IWalletNftMintDict } from "@/store/types";
-@Component({
-  name: "studio",
+import NewCollectibleFamily from "@/components/wallet/studio/NewCollectibleFamily.vue";
+
+export const Studio = defineComponent({
+  name: "Studio",
   components: {
     NewCollectibleFamily,
   },
-})
-export class Studio extends Vue {
-  pageNow: any = null;
-  subtitle = "";
+  data() {
+    const pageNow: any = null;
 
-  goNewNftFamily() {
-    this.pageNow = NewCollectibleFamily;
-    this.subtitle = "New Collectible Family";
-  }
-
-  goMint() {
-    this.pageNow = MintNft;
-    this.subtitle = "Mint Collectible";
-  }
-
-  get nftMintDict(): IWalletNftMintDict {
-    // return this.$store.getters.walletNftMintDict
-    return this.$store.getters["Assets/nftMintDict"];
-  }
-
-  get canMint(): boolean {
-    const keys = Object.keys(this.nftMintDict);
-    if (keys.length > 0) return true;
-    return false;
-  }
-
-  deactivated() {
-    this.clearPage();
-  }
-
+    return {
+      pageNow,
+      subtitle: "",
+    };
+  },
+  computed: {
+    nftMintDict(): IWalletNftMintDict {
+      return this.$store.getters["Assets/nftMintDict"];
+    },
+    canMint(): boolean {
+      const keys = Object.keys(this.nftMintDict);
+      if (keys.length > 0) return true;
+      return false;
+    },
+  },
   activated() {
     const utxoId = this.$route.query.utxo;
 
     if (utxoId) {
       this.goMint();
     }
-  }
-
-  // If url has a utxo id, clears it
-  clearUrl() {
-    const utxoId = this.$route.query.utxo;
-
-    if (utxoId) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      this.$router.replace({ query: null });
-    }
-  }
-
-  clearPage() {
-    this.pageNow = null;
-    this.subtitle = "";
-  }
-
-  cancel() {
-    this.clearUrl();
+  },
+  deactivated() {
     this.clearPage();
-  }
-}
+  },
+  methods: {
+    goNewNftFamily() {
+      this.pageNow = NewCollectibleFamily;
+      this.subtitle = "New Collectible Family";
+    },
+    goMint() {
+      this.pageNow = MintNft;
+      this.subtitle = "Mint Collectible";
+    },
+    clearUrl() {
+      const utxoId = this.$route.query.utxo;
+
+      if (utxoId) {
+        this.$router.replace({ query: undefined });
+      }
+    },
+    clearPage() {
+      this.pageNow = null;
+      this.subtitle = "";
+    },
+    cancel() {
+      this.clearUrl();
+      this.clearPage();
+    },
+  },
+});
 export default Studio;
 </script>
 <style scoped lang="scss">

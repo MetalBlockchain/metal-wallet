@@ -1,11 +1,10 @@
-import type { TokenListToken } from "@/store/modules/assets/types";
-import { web3 } from "@/evm";
+import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
 import { BN } from "@metalblockchain/metaljs";
-import { bnToBig } from "@/helpers/helper";
-import Big from "big.js";
-import store from "@/store";
-
 import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
+import Big from "big.js";
+import { bnToBig } from "@/helpers/helper";
+
+import { web3 } from "@/misc/evm";
 
 class Erc20Token {
   data: TokenListToken;
@@ -41,7 +40,7 @@ class Erc20Token {
     this.balanceBN = new BN(bal);
     this.balanceBig = bnToBig(
       this.balanceBN,
-      parseInt(this.data.decimals as string)
+      Number.parseInt(this.data.decimals as string),
     );
   }
 }

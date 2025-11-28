@@ -1,79 +1,180 @@
 <template>
-  <div>
-    <div class="curr_in_drop">
-      <div class="max_in_cont hover_border">
-        <button class="max_but" @click="maxOut" :disabled="disabled">
-          MAX
-        </button>
-        <div class="col_big_in">
-          <big-num-input
-            ref="bigIn"
-            @change="amount_in"
-            class="bigIn"
-            contenteditable="bigIn"
-            :max="max_amount"
-            :denomination="denomination"
-            :step="stepSize"
-            :placeholder="placeholder"
-            :disabled="disabled"
-          ></big-num-input>
-          <p class="usd_val" :active="isAvax">
-            ${{ amountUSD.toLocaleString(2) }}
-          </p>
-        </div>
-      </div>
-      <BalanceDropdown
-        :disabled_assets="disabled_assets"
-        v-model="asset_now"
-        :disabled="disabled"
-      ></BalanceDropdown>
-      <div class="col_balance">
-        <p>
-          {{ $t("misc.balance") }}:
-          {{ maxAmountBig.toLocaleString(denomination) }}
+  <div class="curr_in_drop">
+    <div class="max_in_cont hover_border">
+      <button class="max_but" :disabled="disabled" @click="maxOut">MAX</button>
+      <div class="col_big_in">
+        <big-num-input-shared
+          ref="bigIn"
+          class="bigIn"
+          contenteditable="bigIn"
+          :denomination="denomination"
+          :disabled="disabled"
+          :max="max_amount"
+          :placeholder="placeholder"
+          :step="stepSize"
+          @change="amount_in"
+        ></big-num-input-shared>
+        <p :active="isAvax" class="usd_val">
+          ${{ amountUSD.toLocaleString(2) }}
         </p>
       </div>
+    </div>
+    <BalanceDropdown
+      v-if="asset_now"
+      v-model="asset_now"
+      :disabled="disabled"
+      :disabled-assets="disabledAssets"
+    ></BalanceDropdown>
+    <div class="col_balance">
+      <p>
+        {{ $t("misc.balance") }}:
+        {{ maxAmountBig.toLocaleString(denomination) }}
+      </p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Emit, Watch } from "vue-property-decorator";
+import type AvaAsset from "@/js/AvaAsset";
+import type { IWalletAssetsDict, priceDict } from "@/stores/vuex/types";
 
 import { BN } from "@metalblockchain/metaljs";
-import Dropdown from "@/components/misc/Dropdown.vue";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { BigNumInput } from "@avalabs/vue_components";
-import type AvaAsset from "@/js/AvaAsset";
-import type { ICurrencyInputDropdownValue } from "@/components/wallet/transfer/types";
-import type { IWalletAssetsDict, priceDict } from "@/store/types";
-
-import BalanceDropdown from "@/components/misc/BalancePopup/BalanceDropdown.vue";
-import { avm } from "@/AVA";
 import Big from "big.js";
-import { bnToBig } from "@/helpers/helper";
+import { defineComponent } from "vue";
+import BalanceDropdown from "@/components/misc/BalancePopup/BalanceDropdown.vue";
 
-@Component({
+import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
+import { bnToBig } from "@/helpers/helper";
+import { avm } from "@/misc/AVA";
+
+export const CurrencyInputDropdown = defineComponent({
   components: {
-    Dropdown,
-    BigNumInput,
+    BigNumInputShared,
     BalanceDropdown,
   },
-})
-export class CurrencyInputDropdown extends Vue {
-  amount: BN = new BN(0);
-  asset_now: AvaAsset = this.walletAssetsArray[0];
+  props: {
+    disabledAssets: {
+      type: Array as PropType<AvaAsset[]>,
+      default: () => [],
+    },
+    initial: {
+      type: String,
+      default: "",
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["change"],
+  setup() {
+    const amount = ref(new BN(0));
+    const asset_now = ref<AvaAsset>();
 
-  @Prop({ default: () => [] }) disabled_assets!: AvaAsset[];
-  @Prop({ default: "" }) initial!: string;
-  @Prop({ default: false }) disabled!: boolean;
+    return {
+      amount,
+      asset_now,
+    };
+  },
+  computed: {
+    stepSize() {
+      if (this.denomination > 3) {
+        const stepNum = Math.pow(10, this.denomination - 2);
+        return new BN(stepNum.toString());
+      } else {
+        const stepNum = Math.pow(10, this.denomination);
+        return new BN(stepNum.toString());
+      }
+    },
+    amountUSD(): Big {
+      const usdPrice = this.priceDict.usd;
+      const bigAmt = bnToBig(this.amount, this.denomination);
+      const usdBig = bigAmt.times(usdPrice);
+      return usdBig;
+    },
 
-  $refs!: {
-    bigIn: typeof BigNumInput;
-  };
+    isEmpty(): boolean {
+      return this.walletAssetsArray.length === 0 ? true : false;
+    },
 
+    isAvax(): boolean {
+      if (this.asset_now && this.asset_now.id === this.avaxAsset?.id)
+        return true;
+      return false;
+    },
+
+    display(): string {
+      return "";
+    },
+
+    placeholder(): string {
+      if (this.isEmpty || !this.asset_now) return "0.00";
+      const deno = this.asset_now.denomination;
+      let res = "0";
+      if (deno > 2) {
+        res = "0.00";
+      }
+      return res;
+    },
+
+    denomination(): number {
+      if (!this.asset_now) return 0;
+      return this.asset_now.denomination;
+    },
+
+    walletAssetsArray(): AvaAsset[] {
+      // return this.$store.getters.walletAssetsArray
+      return this.$store.getters["Assets/walletAssetsArray"];
+    },
+
+    walletAssetsDict(): IWalletAssetsDict {
+      // return this.$store.getters['walletAssetsDict']
+      return this.$store.getters["Assets/walletAssetsDict"];
+    },
+
+    avaxAsset(): AvaAsset | null {
+      return this.$store.getters["Assets/AssetAVA"];
+    },
+
+    max_amount(): null | BN {
+      if (!this.asset_now) return null;
+      if (!this.avaxAsset) return null;
+
+      const assetId = this.asset_now.id;
+      const balance = this.walletAssetsDict[assetId];
+      if (!balance) {
+        return null;
+      }
+
+      const avaxId = this.avaxAsset.id;
+
+      // Max amount is BALANCE - FEE for AVAX
+      if (assetId === avaxId) {
+        const fee = avm.getTxFee();
+        // console.log(fee);
+        return fee.gte(balance.amount) ? new BN(0) : balance.amount.sub(fee);
+      }
+
+      if (balance.amount.isZero()) return null;
+      return balance.amount;
+    },
+
+    maxAmountBig(): Big {
+      if (!this.max_amount) return Big(0);
+      return bnToBig(this.max_amount, this.denomination);
+    },
+
+    priceDict(): priceDict {
+      return this.$store.state.prices;
+    },
+  },
+  watch: {
+    asset_now: [
+      {
+        handler: "drop_change",
+      },
+    ],
+  },
   mounted() {
     if (this.isEmpty) return;
     if (this.initial) {
@@ -82,146 +183,45 @@ export class CurrencyInputDropdown extends Vue {
     } else {
       this.drop_change(this.walletAssetsArray[0]);
     }
-  }
+  },
+  methods: {
+    maxOut() {
+      (this.$refs.bigIn as typeof BigNumInputShared).maxout();
+    },
 
-  @Watch("asset_now")
-  drop_change(val: AvaAsset) {
-    this.asset_now = val;
-    this.$refs.bigIn.clear();
-    // this.amount_in(new BN(0))
-    this.onchange();
-  }
+    amount_in(val: BN) {
+      this.amount = val;
+      this.onchange();
+    },
 
-  get stepSize() {
-    if (this.denomination > 3) {
-      const stepNum = Math.pow(10, this.denomination - 2);
-      return new BN(stepNum.toString());
-    } else {
-      const stepNum = Math.pow(10, this.denomination);
-      return new BN(stepNum.toString());
-    }
-  }
-  maxOut() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    this.$refs.bigIn.maxout();
-  }
-
-  amount_in(val: BN) {
-    this.amount = val;
-    this.onchange();
-  }
-
-  // onchange event for the Component
-  @Emit("change")
-  onchange(): ICurrencyInputDropdownValue {
-    return {
-      asset: this.asset_now,
-      amount: this.amount,
-    };
-  }
-
-  onfocus() {
-    console.log("focus");
-  }
-
-  get amountUSD(): Big {
-    const usdPrice = this.priceDict.usd;
-    const bigAmt = bnToBig(this.amount, this.denomination);
-    const usdBig = bigAmt.times(usdPrice);
-    return usdBig;
-  }
-
-  get isEmpty(): boolean {
-    if (this.walletAssetsArray.length === 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  get isAvax(): boolean {
-    if (this.asset_now.id === this.avaxAsset?.id) return true;
-    return false;
-  }
-
-  get display(): string {
-    return "";
-  }
-
-  get placeholder(): string {
-    if (this.isEmpty || !this.asset_now) return "0.00";
-    const deno = this.asset_now.denomination;
-    let res = "0";
-    if (deno > 2) {
-      res = "0.00";
-    }
-    return res;
-  }
-
-  get denomination(): number {
-    if (!this.asset_now) return 0;
-    return this.asset_now.denomination;
-  }
-
-  get walletAssetsArray(): AvaAsset[] {
-    // return this.$store.getters.walletAssetsArray
-    return this.$store.getters["Assets/walletAssetsArray"];
-  }
-
-  get walletAssetsDict(): IWalletAssetsDict {
-    // return this.$store.getters['walletAssetsDict']
-    return this.$store.getters["Assets/walletAssetsDict"];
-  }
-
-  get avaxAsset(): AvaAsset | null {
-    return this.$store.getters["Assets/AssetAVA"];
-  }
-
-  get max_amount(): null | BN {
-    if (!this.asset_now) return null;
-    if (!this.avaxAsset) return null;
-
-    const assetId = this.asset_now.id;
-    const balance = this.walletAssetsDict[assetId];
-
-    const avaxId = this.avaxAsset.id;
-
-    // Max amount is BALANCE - FEE for AVAX
-    if (assetId === avaxId) {
-      const fee = avm.getTxFee();
-      // console.log(fee);
-      if (fee.gte(balance.amount)) {
-        return new BN(0);
-      } else {
-        return balance.amount.sub(fee);
-      }
-    }
-
-    if (balance.amount.isZero()) return null;
-    return balance.amount;
-  }
-
-  get maxAmountBig(): Big {
-    if (!this.max_amount) return Big(0);
-    return bnToBig(this.max_amount, this.denomination);
-  }
-
-  get priceDict(): priceDict {
-    return this.$store.state.prices;
-  }
-}
+    onfocus() {
+      console.log("focus");
+    },
+    onchange() {
+      this.$emit("change", {
+        asset: this.asset_now,
+        amount: this.amount,
+      });
+    },
+    drop_change(val?: AvaAsset) {
+      this.asset_now = val;
+      (this.$refs.bigIn as typeof BigNumInputShared).clear();
+      // this.amount_in(new BN(0))
+      this.onchange();
+    },
+  },
+});
 export default CurrencyInputDropdown;
 </script>
+
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .bigIn {
   width: 100%;
   border: none !important;
   font-size: 15px;
   font-family: monospace;
-  /*background-color: #303030;*/
 }
 
 .max_in_cont {
@@ -325,13 +325,13 @@ input {
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .balance {
     grid-template-columns: 1fr;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .balance,
   .curr_in_drop {
     grid-template-columns: 1fr 80px;

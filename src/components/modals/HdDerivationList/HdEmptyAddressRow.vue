@@ -5,7 +5,7 @@
       <span>{{ address }}</span>
       &nbsp;
       <!-- TODO Why ledger type doesn't have any action -->
-      <span class="verify" v-if="walletType === 'ledger'" @click="() => {}">
+      <span v-if="walletType === 'ledger'" class="verify" @click="() => {}">
         {{ $t("create.verify") }}
       </span>
     </p>
@@ -13,23 +13,30 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import type { WalletType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
 
-@Component
-export class HdEmptyAddressRow extends Vue {
-  @Prop() index!: number;
-  @Prop() path!: number;
-  @Prop() address!: string;
-
-  get wallet() {
-    return this.$store.state.activeWallet as WalletType;
-  }
-
-  get walletType() {
-    return this.wallet.type;
-  }
-}
+export const HdEmptyAddressRow = defineComponent({
+  props: {
+    index: {
+      type: Number,
+    },
+    path: {
+      type: Number,
+    },
+    address: {
+      type: String,
+    },
+  },
+  computed: {
+    wallet() {
+      return this.$store.state.activeWallet as WalletType;
+    },
+    walletType() {
+      return this.wallet.type;
+    },
+  },
+});
 export default HdEmptyAddressRow;
 </script>
 <style scoped lang="scss">

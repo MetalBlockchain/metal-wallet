@@ -1,7 +1,13 @@
-import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-import type { WalletType } from "@/js/wallets/types";
-
 import type { BN, Buffer } from "@metalblockchain/metaljs";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type ERC721Token from "@/js/ERC721Token";
+
+import type { WalletType } from "@/js/wallets/types";
+import { issueX } from "@/helpers/issueTx";
 import {
   buildCreateNftFamilyTx,
   buildEvmTransferErc20Tx,
@@ -9,20 +15,14 @@ import {
   buildEvmTransferNativeTx,
   buildMintNftTx,
 } from "@/js/TxHelper";
-import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { ITransaction } from "@/components/wallet/transfer/types";
+import { web3 } from "@/misc/evm";
 
-import { web3 } from "@/evm";
-import type Erc20Token from "@/js/Erc20Token";
-import type ERC721Token from "@/js/ERC721Token";
-import { issueX } from "@/helpers/issueTx";
-
-class WalletHelper {
-  static async createNftFamily(
+const WalletHelper = {
+  async createNftFamily(
     wallet: WalletType,
     name: string,
     symbol: string,
-    groupNum: number
+    groupNum: number,
   ) {
     const fromAddresses = wallet.getDerivedAddresses();
     const changeAddress = wallet.getChangeAddressAvm();
@@ -38,18 +38,18 @@ class WalletHelper {
       fromAddresses,
       minterAddress,
       changeAddress,
-      utxoSet
+      utxoSet,
     );
 
     const signed = await wallet.signX(unsignedTx);
     return issueX(signed);
-  }
+  },
 
-  static async mintNft(
+  async mintNft(
     wallet: WalletType,
     mintUtxo: AVMUTXO,
     payload: PayloadBase,
-    quantity: number
+    quantity: number,
   ) {
     const ownerAddress = wallet.getCurrentAddressAvm();
     const changeAddress = wallet.getChangeAddressAvm();
@@ -64,35 +64,35 @@ class WalletHelper {
       ownerAddress,
       changeAddress,
       sourceAddresses,
-      utxoSet
+      utxoSet,
     );
     const signed = await wallet.signX(tx);
     return issueX(signed);
-  }
+  },
 
-  static async issueBatchTx(
+  async issueBatchTx(
     wallet: WalletType,
     orders: (ITransaction | AVMUTXO)[],
     addr: string,
-    memo: Buffer | undefined
+    memo: Buffer | undefined,
   ): Promise<string> {
     const unsignedTx = await wallet.buildUnsignedTransaction(
       orders,
       addr,
-      memo
+      memo,
     );
     const tx = await wallet.signX(unsignedTx);
     const txId: string = await issueX(tx);
 
     return txId;
-  }
+  },
 
-  static async sendEth(
+  async sendEth(
     wallet: WalletType,
     to: string,
     amount: BN, // in wei
     gasPrice: BN,
-    gasLimit: number
+    gasLimit: number,
   ) {
     const fromAddr = "0x" + wallet.getEvmAddress();
 
@@ -101,7 +101,7 @@ class WalletHelper {
       to,
       amount,
       gasPrice,
-      gasLimit
+      gasLimit,
     );
 
     const signedTx = await wallet.signEvm(tx);
@@ -109,15 +109,15 @@ class WalletHelper {
     const txHex = signedTx.serialize().toString("hex");
     const hash = await web3.eth.sendSignedTransaction("0x" + txHex);
     return hash.transactionHash;
-  }
+  },
 
-  static async sendErc20(
+  async sendErc20(
     wallet: WalletType,
     to: string,
     amount: BN,
     gasPrice: BN,
     gasLimit: number,
-    token: Erc20Token
+    token: Erc20Token,
   ) {
     const fromAddr = "0x" + wallet.getEvmAddress();
     const tx = await buildEvmTransferErc20Tx(
@@ -126,22 +126,22 @@ class WalletHelper {
       amount,
       gasPrice,
       gasLimit,
-      token
+      token,
     );
 
     const signedTx = await wallet.signEvm(tx);
     const txHex = signedTx.serialize().toString("hex");
     const hash = await web3.eth.sendSignedTransaction("0x" + txHex);
     return hash.transactionHash;
-  }
+  },
 
-  static async sendErc721(
+  async sendErc721(
     wallet: WalletType,
     to: string,
     gasPrice: BN,
     gasLimit: number,
     token: ERC721Token,
-    tokenId: string
+    tokenId: string,
   ) {
     const fromAddr = "0x" + wallet.getEvmAddress();
     const tx = await buildEvmTransferErc721Tx(
@@ -150,34 +150,34 @@ class WalletHelper {
       gasPrice,
       gasLimit,
       token,
-      tokenId
+      tokenId,
     );
     const signedTx = await wallet.signEvm(tx);
     const txHex = signedTx.serialize().toString("hex");
     const hash = await web3.eth.sendSignedTransaction("0x" + txHex);
     return hash.transactionHash;
-  }
+  },
 
-  static async estimateTxGas(wallet: WalletType, tx: any) {
+  async estimateTxGas(wallet: WalletType, tx: any) {
     const fromAddr = "0x" + wallet.getEvmAddress();
     const estGas = await tx.estimateGas({ from: fromAddr });
     return Math.round(estGas * 1.1);
-  }
+  },
 
-  static async estimateGas(
+  async estimateGas(
     wallet: WalletType,
     to: string,
     amount: BN,
-    token: Erc20Token
+    token: Erc20Token,
   ) {
     const from = "0x" + wallet.getEvmAddress();
     const tx = token.createTransferTx(to, amount);
     const estGas = await tx.estimateGas({
-      from: from,
+      from,
     });
     // Return 10% more
     return Math.round(estGas * 1.1);
-  }
-}
+  },
+};
 
 export { WalletHelper };

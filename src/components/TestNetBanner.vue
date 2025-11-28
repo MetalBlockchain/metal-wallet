@@ -4,21 +4,20 @@
   </div>
 </template>
 <script lang="ts">
-import { AvaNetwork } from "@/js/AvaNetwork";
-import "reflect-metadata";
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class TestNetBanner extends Vue {
-  get isVisible() {
-    const network = this.$store.state.Network.selectedNetwork;
-    if (!network) return false;
-    const netId = parseInt(network.networkId);
+export default defineComponent({
+  computed: {
+    isVisible() {
+      const network = this.$store.state.Network.selectedNetwork;
+      if (!network) return false;
+      const netId = Number.parseInt(network.networkId);
 
-    if (netId == 1) return false;
-    return true;
-  }
-}
+      if (netId == 1) return false;
+      return true;
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 $h: 24px;

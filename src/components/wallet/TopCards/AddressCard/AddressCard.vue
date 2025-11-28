@@ -2,9 +2,9 @@
   <div class="addr_card">
     <q-r-modal ref="qr_modal" :address="activeAddress"></q-r-modal>
     <paper-wallet
-      ref="print_modal"
       v-if="walletType === 'mnemonic'"
-      :wallet="activeWallet"
+      ref="print_modal"
+      :wallet="mnemonicWallet"
     ></paper-wallet>
     <p class="addr_info">{{ addressMsg }}</p>
     <div class="bottom_tabs">
@@ -23,35 +23,35 @@
         <div class="buts">
           <button
             v-if="chainNow === 'C'"
-            :tooltip="`View the bech32 encoded C-Chain address`"
             class="bech32"
+            :data-active="showBech"
+            :tooltip="`View the bech32 encoded C-Chain address`"
             @click="toggleBech32"
-            :active="showBech"
           >
             Bech32
           </button>
           <button
+            class="qr_but"
             :tooltip="$t('top.hover1')"
             @click="viewQRModal"
-            class="qr_but"
           ></button>
           <button
             v-if="walletType === 'mnemonic'"
+            class="print_but"
             :tooltip="$t('top.hover2')"
             @click="viewPrintModal"
-            class="print_but"
           ></button>
           <!-- TODO Ledger doesn't have action here -->
           <button
             v-if="walletType === 'ledger'"
+            class="ledger_but"
             :tooltip="$t('create.verify')"
             @click="() => {}"
-            class="ledger_but"
           ></button>
           <CopyText
+            class="copy_but"
             :tooltip="$t('top.hover3')"
             :value="activeAddress"
-            class="copy_but"
           ></CopyText>
         </div>
       </div>
@@ -59,218 +59,228 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
-import CopyText from "@/components/misc/CopyText.vue";
-import QRModal from "@/components/modals/QRModal.vue";
-import PaperWallet from "@/components/modals/PaperWallet/PaperWallet.vue";
+import type { ChainIdType } from "@/constants";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { WalletNameType, WalletType } from "@/js/wallets/types";
 import QRCode from "qrcode";
 
-import type { WalletType, WalletNameType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
 
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import CopyText from "@/components/misc/CopyText.vue";
 
+import PaperWallet from "@/components/modals/PaperWallet/PaperWallet.vue";
+import QRModal from "@/components/modals/QRModal.vue";
 import ChainSelect from "@/components/wallet/TopCards/AddressCard/ChainSelect.vue";
-import type { ChainIdType } from "@/constants";
 
-@Component({
+export const AddressCard = defineComponent({
   components: {
     CopyText,
     PaperWallet,
     QRModal,
     ChainSelect,
   },
-})
-export class AddressCard extends Vue {
-  colorLight = "#FFF";
-  colorDark = "#242729";
-  chainNow: ChainIdType = "X";
-  showBech = false; // If true C-Chain shows the bech32 Address
-  $refs!: {
-    qr_modal: QRModal;
-    print_modal: PaperWallet;
-    qr: HTMLCanvasElement;
-  };
+  data(): {
+    colorLight: string;
+    colorDark: string;
+    chainNow: ChainIdType;
+    showBech: boolean;
+  } {
+    const chainNow: ChainIdType = "X";
 
-  @Watch("activeAddress")
-  onaddrchange() {
-    this.updateQR();
-  }
-
-  @Watch("$root.theme", { immediate: true })
-  onthemechange(val: string) {
-    if (val === "night") {
-      this.colorDark = "#E5E5E5";
-      this.colorLight = "#242729";
-    } else {
-      this.colorDark = "#242729";
-      this.colorLight = "#FFF";
-    }
-    this.updateQR();
-  }
-
-  @Watch("chainNow")
-  onChainChange(val: ChainIdType) {
-    if (val !== "C") {
-      this.showBech = false;
-    }
-  }
-
-  toggleBech32() {
-    this.showBech = !this.showBech;
-  }
-
-  get addressLabel(): string {
-    switch (this.chainNow) {
-      default:
-        return this.$t("top.address.title_x") as string;
-      case "P":
-        return this.$t("top.address.title_p") as string;
-      case "C":
-        return this.showBech
-          ? "Derived C-Chain Address"
-          : (this.$t("top.address.title_c") as string);
-    }
-  }
-
-  get addressMsg(): string {
-    switch (this.chainNow) {
-      default:
-        return this.getAddressMsgX();
-      case "P":
-        return this.$t("top.address.desc_p") as string;
-      case "C":
-        return this.showBech
-          ? "Used internally when moving funds to or from C-Chain"
-          : (this.$t("top.address.desc_c") as string);
-    }
-  }
-
-  getAddressMsgX() {
-    if (this.activeWallet?.type === "singleton") {
-      return this.$t("top.address.desc_x_1") as string;
-    } else {
-      return `${this.$t("top.address.desc_x_1")} ${this.$t(
-        "top.address.desc_x_2"
-      )}` as string;
-    }
-  }
-
-  get isDayTheme(): boolean {
-    return this.$root.$data.theme === "day";
-  }
-
-  get walletType(): WalletNameType {
-    const wallet = this.activeWallet;
-    if (!wallet) return "mnemonic";
-    return wallet.type;
-  }
-
-  get activeWallet(): WalletType | null {
-    return this.$store.state.activeWallet;
-  }
-  get address() {
-    const wallet = this.activeWallet;
-    if (!wallet) {
-      return "-";
-    }
-    return wallet.getCurrentAddressAvm();
-  }
-
-  get addressPVM() {
-    const wallet = this.activeWallet;
-    if (!wallet) {
-      return "-";
-    }
-
-    return wallet.getCurrentAddressPlatform();
-  }
-
-  get addressEVM() {
-    const wallet = this.activeWallet;
-    if (!wallet) {
-      return "-";
-    }
-
-    return wallet.getEvmChecksumAddress();
-  }
-
-  get addressEVMBech32() {
-    const wallet = this.activeWallet;
-    if (!wallet) {
-      return "-";
-    }
-
-    return wallet.getEvmAddressBech();
-  }
-
-  get activeAddress(): string {
-    switch (this.chainNow) {
-      case "X":
-        return this.address;
-      case "P":
-        return this.addressPVM;
-      case "C":
-        return this.showBech ? this.addressEVMBech32 : this.addressEVM;
-    }
-    return this.address;
-  }
-
-  get activeIdx(): number {
-    const wallet = this.activeWallet as MnemonicWallet;
-    const walletType = wallet.type;
-
-    if (walletType === "singleton") return 0;
-
-    switch (this.chainNow) {
-      case "X":
-        return wallet.getExternalActiveIndex();
-      case "P":
-        return wallet.getPlatformActiveIndex();
-      default:
-        return 0;
-    }
-  }
-
-  viewQRModal() {
-    this.$refs.qr_modal.open();
-  }
-  viewPrintModal() {
-    const modal = this.$refs.print_modal;
-    modal.open();
-  }
-  updateQR() {
-    const canvas = this.$refs.qr as HTMLCanvasElement;
-    if (!canvas) return;
-
-    const size = canvas.clientWidth;
-    QRCode.toCanvas(
-      canvas,
-      this.activeAddress,
-      {
-        scale: 6,
-        color: {
-          light: this.colorLight,
-          dark: this.colorDark,
-        },
-        width: size,
-        // height: size,
-      },
-      function (error: any) {
-        if (error) console.error(error);
+    return {
+      colorLight: "#FFF",
+      colorDark: "#242729",
+      chainNow,
+      showBech: false,
+    };
+  },
+  computed: {
+    addressLabel(): string {
+      switch (this.chainNow) {
+        default: {
+          return this.$t("top.address.title_x") as string;
+        }
+        case "P": {
+          return this.$t("top.address.title_p") as string;
+        }
+        case "C": {
+          return this.showBech
+            ? "Derived C-Chain Address"
+            : (this.$t("top.address.title_c") as string);
+        }
       }
-    );
-  }
+    },
+    addressMsg(): string {
+      switch (this.chainNow) {
+        default: {
+          return this.getAddressMsgX();
+        }
+        case "P": {
+          return this.$t("top.address.desc_p") as string;
+        }
+        case "C": {
+          return this.showBech
+            ? "Used internally when moving funds to or from C-Chain"
+            : (this.$t("top.address.desc_c") as string);
+        }
+      }
+    },
+    walletType(): WalletNameType {
+      const wallet = this.activeWallet;
+      if (!wallet) return "mnemonic";
+      return wallet.type;
+    },
+    activeWallet(): WalletType | undefined {
+      return this.$store.state.activeWallet || undefined;
+    },
+    mnemonicWallet(): MnemonicWallet | undefined {
+      return this.activeWallet as MnemonicWallet;
+    },
+    address() {
+      const wallet = this.activeWallet;
+      if (!wallet) {
+        return "-";
+      }
+      return wallet.getCurrentAddressAvm();
+    },
+    addressPVM() {
+      const wallet = this.activeWallet;
+      if (!wallet) {
+        return "-";
+      }
 
+      return wallet.getCurrentAddressPlatform();
+    },
+    addressEVM() {
+      const wallet = this.activeWallet;
+      if (!wallet) {
+        return "-";
+      }
+
+      return wallet.getEvmChecksumAddress();
+    },
+    addressEVMBech32() {
+      const wallet = this.activeWallet;
+      if (!wallet) {
+        return "-";
+      }
+
+      return wallet.getEvmAddressBech();
+    },
+    activeAddress(): string {
+      switch (this.chainNow) {
+        case "X": {
+          return this.address;
+        }
+        case "P": {
+          return this.addressPVM;
+        }
+        case "C": {
+          return this.showBech ? this.addressEVMBech32 : this.addressEVM;
+        }
+      }
+      return this.address;
+    },
+    activeIdx(): number {
+      const wallet = this.activeWallet as MnemonicWallet;
+      const walletType = wallet.type;
+
+      if (walletType === "singleton") return 0;
+
+      switch (this.chainNow) {
+        case "X": {
+          return wallet.getExternalActiveIndex();
+        }
+        case "P": {
+          return wallet.getPlatformActiveIndex();
+        }
+        default: {
+          return 0;
+        }
+      }
+    },
+  },
+  watch: {
+    activeAddress: [
+      {
+        handler: "onaddrchange",
+      },
+    ],
+    "$root.theme": [{ immediate: true, handler: "onthemechange" }],
+    chainNow: [
+      {
+        handler: "onChainChange",
+      },
+    ],
+  },
   mounted() {
     this.updateQR();
-  }
-}
+  },
+  methods: {
+    toggleBech32() {
+      this.showBech = !this.showBech;
+    },
+    getAddressMsgX() {
+      return this.activeWallet?.type === "singleton"
+        ? (this.$t("top.address.desc_x_1") as string)
+        : (`${this.$t("top.address.desc_x_1")} ${this.$t(
+            "top.address.desc_x_2",
+          )}` as string);
+    },
+    viewQRModal() {
+      (this.$refs.qr_modal as typeof QRModal).open();
+    },
+    viewPrintModal() {
+      const modal = this.$refs.print_modal as typeof PaperWallet;
+      modal.open();
+    },
+    updateQR() {
+      const canvas = this.$refs.qr as HTMLCanvasElement;
+      if (!canvas) return;
+
+      const size = canvas.clientWidth;
+      QRCode.toCanvas(
+        canvas,
+        this.activeAddress,
+        {
+          scale: 6,
+          color: {
+            light: this.colorLight,
+            dark: this.colorDark,
+          },
+          width: size,
+          // height: size,
+        },
+        function (error: any) {
+          if (error) console.error(error);
+        },
+      );
+    },
+    onaddrchange() {
+      this.updateQR();
+    },
+    onthemechange(val: string) {
+      if (val === "night") {
+        this.colorDark = "#E5E5E5";
+        this.colorLight = "#242729";
+      } else {
+        this.colorDark = "#242729";
+        this.colorLight = "#FFF";
+      }
+      this.updateQR();
+    },
+    onChainChange(val: ChainIdType) {
+      if (val !== "C") {
+        this.showBech = false;
+      }
+    },
+  },
+});
 export default AddressCard;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
+@use "@/styles/abstracts/mixins";
+@use "@/styles/abstracts/vars";
 
 .addr_card {
   display: flex;
@@ -319,7 +329,7 @@ export default AddressCard;
   font-weight: bold;
   width: auto;
 
-  &[active] {
+  &[data-active="true"] {
     color: var(--secondary-color) !important;
   }
 }
@@ -333,7 +343,7 @@ export default AddressCard;
   background-image: url("/img/modal_icons/mainnet_addr.svg");
 }
 
-@include main.night-mode {
+@include mixins.night-mode {
   .qr_but {
     background-image: url("/img/qr_icon_night.svg");
   }
@@ -389,7 +399,7 @@ $qr_width: 110px;
   margin: 0px 10px !important;
   text-align: center;
   font-size: 0.7rem;
-  background-color: main.$secondary-color;
+  background-color: vars.$secondary-color;
   color: #fff;
   padding: 3px 6px;
   border-radius: 3px;
@@ -408,7 +418,7 @@ $qr_width: 110px;
   min-height: 55px;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   //.bottom{
   //    display: block;
   //}
@@ -441,7 +451,7 @@ $qr_width: 110px;
   width: 100%;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .addr_info {
     display: none;
   }

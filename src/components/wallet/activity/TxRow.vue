@@ -1,13 +1,13 @@
 <template>
-  <div class="tx_row" :day_change="source.isDayChange">
+  <div class="tx_row" :day_change="source?.isDayChange">
     <div class="tx_cols">
       <div class="explorer_col">
         <a
           v-if="explorerUrl"
+          class="explorer_link"
           :href="explorerUrl"
           target="_blank"
           tooltip="View in Explorer"
-          class="explorer_link"
         >
           <fa icon="search"></fa>
         </a>
@@ -31,120 +31,123 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { AssetsDict, NftFamilyDict } from "@/store/modules/assets/types";
-import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 
-import StakingTx from "@/components/SidePanels/History/ViewTypes/StakingTx.vue";
+<script lang="ts">
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
+import type { PropType } from "vue";
+
+import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
+import type {
+  AssetsDict,
+  NftFamilyDict,
+} from "@/stores/vuex/modules/assets/types";
+import moment from "moment";
+import { defineComponent } from "vue";
 import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";
 import ImportExport from "@/components/SidePanels/History/ViewTypes/ImportExport.vue";
-import moment from "moment";
+import StakingTx from "@/components/SidePanels/History/ViewTypes/StakingTx.vue";
 import { getUrlFromTransaction } from "@/js/Glacier/getUrlFromTransaction";
 import {
   isCChainImportTransaction,
-  isTransactionX,
   isTransactionC,
+  isTransactionX,
 } from "@/js/Glacier/models";
-import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
-import { ava } from "@/AVA";
+import { ava } from "@/misc/AVA";
 
-@Component({
+export const TxRow = defineComponent({
   components: {
     StakingTx,
     BaseTx,
     ImportExport,
   },
-})
-export class TxRow extends Vue {
-  @Prop() index!: number;
-  @Prop() source!: TransactionType & {
-    isMonthChange: boolean;
-    isDayChange: boolean;
-  };
-
-  get explorerUrl(): string | null {
-    const netID = ava.getNetworkID();
-    return getUrlFromTransaction(netID, this.source);
-  }
-
-  get hasMultisig() {
-    if (!isCChainImportTransaction(this.source)) {
-      if (!this.source.emittedUtxos) return false;
-      let totMultiSig = 0;
-      this.source.emittedUtxos.forEach((utxo: Utxo | PChainUtxo) => {
-        if (utxo.addresses.length > 1) {
-          totMultiSig++;
+  props: {
+    index: {
+      type: Number,
+    },
+    source: {
+      type: Object as PropType<
+        TransactionType & {
+          isMonthChange: boolean;
+          isDayChange: boolean;
         }
-      });
-      return totMultiSig > 0;
-    }
-    return false;
-  }
-
-  get timestamp() {
-    if (isTransactionX(this.source) || isTransactionC(this.source)) {
-      return this.source.timestamp * 1000;
-    } else {
-      return this.source.blockTimestamp * 1000;
-    }
-  }
-
-  get date() {
-    return new Date(this.timestamp);
-  }
-  get type(): TransactionTypeName {
-    return this.source.txType;
-  }
-
-  get tx_comp() {
-    switch (this.type) {
-      case "ExportTx":
-      case "ImportTx":
-        return ImportExport;
-      case "AddDelegatorTx":
-      case "AddPermissionlessDelegatorTx":
-      case "AddValidatorTx":
-      case "AddPermissionlessValidatorTx":
-        return StakingTx;
-      default:
-        return BaseTx;
-    }
-  }
-
-  get assets(): AssetsDict {
-    return this.$store.state.Assets.assetsDict;
-  }
-
-  get nftFams(): NftFamilyDict {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  // get memo(): string | null {
-  //     const memo = this.source.memo
-  //     return getMemoFromByteString(memo)
-  // }
-
-  get mom() {
-    return moment(this.timestamp);
-  }
-  get dayLabel() {
-    return this.mom.format("dddd Do");
-  }
-
-  get monthLabel(): string {
-    const month = this.mom.format("MMMM");
-    return month;
-  }
-
-  get yearLabel(): string {
-    return this.mom.format("Y");
-  }
-}
+      >,
+    },
+  },
+  computed: {
+    explorerUrl(): string | null {
+      if (!this.source) return null;
+      const netID = ava.getNetworkID();
+      return getUrlFromTransaction(netID, this.source);
+    },
+    hasMultisig() {
+      if (!this.source) return false;
+      if (!isCChainImportTransaction(this.source)) {
+        if (!this.source.emittedUtxos) return false;
+        let totMultiSig = 0;
+        // eslint-disable-next-line unicorn/no-array-for-each
+        this.source.emittedUtxos.forEach((utxo: Utxo | PChainUtxo) => {
+          if (utxo.addresses.length > 1) {
+            totMultiSig++;
+          }
+        });
+        return totMultiSig > 0;
+      }
+      return false;
+    },
+    timestamp() {
+      if (!this.source) return 0;
+      return isTransactionX(this.source) || isTransactionC(this.source)
+        ? this.source.timestamp * 1000
+        : this.source.blockTimestamp * 1000;
+    },
+    date() {
+      return new Date(this.timestamp);
+    },
+    type(): TransactionTypeName {
+      return this.source?.txType ?? "";
+    },
+    tx_comp() {
+      switch (this.type) {
+        case "ExportTx":
+        case "ImportTx": {
+          return ImportExport;
+        }
+        case "AddDelegatorTx":
+        case "AddPermissionlessDelegatorTx":
+        case "AddValidatorTx":
+        case "AddPermissionlessValidatorTx": {
+          return StakingTx;
+        }
+        default: {
+          return BaseTx;
+        }
+      }
+    },
+    assets(): AssetsDict {
+      return this.$store.state.Assets.assetsDict;
+    },
+    nftFams(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+    mom() {
+      return moment(this.timestamp);
+    },
+    dayLabel() {
+      return this.mom.format("dddd Do");
+    },
+    monthLabel(): string {
+      const month = this.mom.format("MMMM");
+      return month;
+    },
+    yearLabel(): string {
+      return this.mom.format("Y");
+    },
+  },
+});
 export default TxRow;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 .tx_row {
   //display: grid;
   //grid-template-columns: 1fr 1fr;
@@ -240,7 +243,7 @@ label {
   color: var(--error);
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .tx_cols {
     grid-template-columns: max-content 1fr;
   }

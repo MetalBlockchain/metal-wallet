@@ -2,100 +2,101 @@
   <div class="add_mnemonic">
     <textarea
       v-model="phrase"
-      placeholder="web  jar  rack  cereal  inherit ...."
-      autocomplete="off"
       autocapitalize="off"
+      autocomplete="off"
+      placeholder="web  jar  rack  cereal  inherit ...."
     ></textarea>
     <p class="err">{{ err }}</p>
     <v-btn
+      block
+      class="addKeyBut button_primary ava_button"
+      depressed
       :disabled="!canSubmit"
       :loading="isLoading"
       @click="access"
-      class="addKeyBut button_primary ava_button"
-      depressed
-      block
     >
       {{ $t("keys.import_key_button") }}
     </v-btn>
   </div>
 </template>
+
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
 import * as bip39 from "bip39";
+import { defineComponent } from "vue";
 
-@Component
-export default class AddMnemonic extends Vue {
-  phrase = "";
-  err = "";
-  isLoading = false;
-
-  errCheck() {
-    const phrase = this.phrase.trim();
-    const words = phrase.split(" ");
-
-    // not a valid key phrase
-    if (words.length !== 24) {
-      this.err =
-        "Invalid key phrase. Your phrase must be 24 words separated by a single space.";
-      return false;
-    }
-
-    if (!bip39.validateMnemonic(phrase)) {
-      this.err = "Not a valid mnemonic phrase.";
-      return false;
-    }
-
-    return true;
-  }
-
-  clear() {
-    this.phrase = "";
-    this.err = "";
-    this.isLoading = false;
-  }
-
-  async access() {
-    const phrase = this.phrase.trim();
-    this.err = "";
-    this.isLoading = true;
-
-    if (!this.errCheck()) {
-      this.isLoading = false;
-      return;
-    }
-
-    setTimeout(async () => {
-      try {
-        await this.$store.dispatch("addWalletMnemonic", phrase);
-        this.isLoading = false;
-        this.handleImportSuccess();
-      } catch (e: any) {
-        this.isLoading = false;
-        if (e.message.includes("already")) {
-          this.err = this.$t("keys.import_mnemonic_duplicate_err") as string;
-        } else {
-          this.err = this.$t("keys.import_mnemonic_err") as string;
-        }
+export default defineComponent({
+  emits: ["success"],
+  data() {
+    return {
+      phrase: "",
+      err: "",
+      isLoading: false,
+    };
+  },
+  computed: {
+    wordCount(): number {
+      return this.phrase.trim().split(" ").length;
+    },
+    canSubmit() {
+      if (this.wordCount < 24) {
+        return false;
       }
-    }, 500);
-  }
+      return true;
+    },
+  },
+  methods: {
+    errCheck() {
+      const phrase = this.phrase.trim();
+      const words = phrase.split(" ");
 
-  handleImportSuccess() {
-    this.phrase = "";
-    this.$emit("success");
-  }
+      // not a valid key phrase
+      if (words.length !== 24) {
+        this.err =
+          "Invalid key phrase. Your phrase must be 24 words separated by a single space.";
+        return false;
+      }
 
-  get wordCount(): number {
-    return this.phrase.trim().split(" ").length;
-  }
+      if (!bip39.validateMnemonic(phrase)) {
+        this.err = "Not a valid mnemonic phrase.";
+        return false;
+      }
 
-  get canSubmit() {
-    if (this.wordCount < 24) {
-      return false;
-    }
-    return true;
-  }
-}
+      return true;
+    },
+    clear() {
+      this.phrase = "";
+      this.err = "";
+      this.isLoading = false;
+    },
+    async access() {
+      const phrase = this.phrase.trim();
+      this.err = "";
+      this.isLoading = true;
+
+      if (!this.errCheck()) {
+        this.isLoading = false;
+        return;
+      }
+
+      setTimeout(async () => {
+        try {
+          await this.$store.dispatch("addWalletMnemonic", phrase);
+          this.isLoading = false;
+          this.handleImportSuccess();
+        } catch (error: any) {
+          this.isLoading = false;
+          this.err = error.message.includes("already")
+            ? (this.$t("keys.import_mnemonic_duplicate_err") as string)
+            : (this.$t("keys.import_mnemonic_err") as string);
+        }
+      }, 500);
+    },
+    handleImportSuccess() {
+      this.phrase = "";
+      this.$emit("success");
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .add_mnemonic {

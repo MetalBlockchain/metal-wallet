@@ -1,6 +1,6 @@
 import type { AvaNetwork } from "@/js/AvaNetwork";
 import { ethers } from "ethers";
-import store from "@/store";
+import store from "@/stores/vuex";
 import type { WalletType } from "@/js/wallets/types";
 
 const SOCKET_RECONNECT_TIMEOUT = 1000;
@@ -60,7 +60,7 @@ export function updateEVMSubscriptions() {
 }
 
 function removeBlockHeaderListener(
-  provider: ethers.providers.WebSocketProvider
+  provider: ethers.providers.WebSocketProvider,
 ) {
   provider.off("block", blockHeaderCallback);
 }

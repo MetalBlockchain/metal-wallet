@@ -1,16 +1,16 @@
-import type { ChainAlias } from "@/js/wallets/types";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-
-import { BN, Buffer } from "@metalblockchain/metaljs";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-import { ava, avm, bintools, pChain } from "@/AVA";
 import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-import type HDKey from "hdkey";
-import { HdHelper } from "@/js/HdHelper";
+
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import { buildUnsignedTransaction } from "../TxHelper";
-import { AbstractWallet } from "@/js/wallets/AbstractWallet";
+import type HDKey from "hdkey";
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type { ChainAlias } from "@/js/wallets/types";
+import { BN, Buffer } from "@metalblockchain/metaljs";
 import { digestMessage } from "@/helpers/helper";
+import { HdHelper } from "@/js/HdHelper";
+import { AbstractWallet } from "@/js/wallets/AbstractWallet";
+import { ava, avm, bintools, pChain } from "@/misc/AVA";
+import { buildUnsignedTransaction } from "../TxHelper";
 
 /**
  * A base class other HD wallets are based on.
@@ -34,13 +34,13 @@ abstract class AbstractHdWallet extends AbstractWallet {
       "m/0",
       accountHdKey,
       undefined,
-      isPublic
+      isPublic,
     );
     this.internalHelper = new HdHelper(
       "m/1",
       accountHdKey,
       undefined,
-      isPublic
+      isPublic,
     );
     this.platformHelper = new HdHelper("m/0", accountHdKey, "P", isPublic);
     this.accountNodeXP = accountHdKey;
@@ -64,7 +64,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
     return bintools.addressToString(
       ava.getHRP(),
       "C",
-      this.ethHdNode.pubKeyHash as any
+      this.ethHdNode.pubKeyHash as any,
     );
   }
 
@@ -159,7 +159,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
     // They share the same address space, so whatever has the highest index
     const externalIndex = Math.max(
       this.externalHelper.hdIndex,
-      this.platformHelper.hdIndex
+      this.platformHelper.hdIndex,
     );
 
     const internal = this.internalHelper.getAllDerivedAddresses(internalIndex);
@@ -177,21 +177,23 @@ abstract class AbstractHdWallet extends AbstractWallet {
 
   getChangePath(chainId?: ChainAlias): string {
     switch (chainId) {
-      case "P":
+      case "P": {
         return this.platformHelper.changePath;
-      case "X":
-      default:
+      }
+      default: {
         return this.internalHelper.changePath;
+      }
     }
   }
 
   getChangeIndex(chainId?: ChainAlias): number {
     switch (chainId) {
-      case "P":
+      case "P": {
         return this.platformHelper.hdIndex;
-      case "X":
-      default:
+      }
+      default: {
         return this.internalHelper.hdIndex;
+      }
     }
   }
 
@@ -199,11 +201,12 @@ abstract class AbstractHdWallet extends AbstractWallet {
     if (idx === undefined || idx === null) return null;
 
     switch (chainId) {
-      case "P":
+      case "P": {
         return this.platformHelper.getAddressForIndex(idx);
-      case "X":
-      default:
+      }
+      default: {
         return this.internalHelper.getAddressForIndex(idx);
+      }
     }
   }
 
@@ -247,7 +250,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
   async buildUnsignedTransaction(
     orders: (ITransaction | UTXO)[],
     addr: string,
-    memo?: Buffer
+    memo?: Buffer,
   ) {
     const changeAddress = this.getChangeAddressAvm();
     const derivedAddresses: string[] = this.getDerivedAddresses();
@@ -259,7 +262,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
       derivedAddresses,
       utxoset,
       changeAddress,
-      memo
+      memo,
     );
   }
 
@@ -268,7 +271,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
     const indexX = this.externalHelper.findAddressIndex(address);
     const indexP = this.platformHelper.findAddressIndex(address);
 
-    const index = indexX !== null ? indexX : indexP;
+    const index = indexX === null ? indexP : indexX;
 
     if (indexX === null && indexP === null)
       throw new Error("Address not found.");
@@ -283,7 +286,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
 
   async signMessageByExternalIndex(
     msgStr: string,
-    index: number
+    index: number,
   ): Promise<string> {
     const digest = digestMessage(msgStr);
 
@@ -300,7 +303,7 @@ abstract class AbstractHdWallet extends AbstractWallet {
 
   abstract signHashByExternalIndex(
     index: number,
-    hash: Buffer
+    hash: Buffer,
   ): Promise<string>;
 }
 export { AbstractHdWallet };

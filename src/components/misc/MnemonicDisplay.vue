@@ -4,14 +4,14 @@
     :style="{ gridTemplateColumns: `repeat(${rowSize}, 1fr)` }"
     translate="no"
   >
-    <template v-for="(word, i) in phraseArray" class="word">
-      <div v-if="i % 2 == 0" :key="i" class="word">
+    <template v-for="(word, i) in phraseArray" :key="i">
+      <div v-if="i % 2 == 0" class="word">
         <p class="index">{{ i / 2 + 1 }}.</p>
         <span class="phrase_word" translate="no">
           {{ word }}
         </span>
       </div>
-      <div v-else class="fake" :key="i">
+      <div v-else class="fake">
         <p class="index">{{ i }}.</p>
         <span class="phrase_word" translate="no">
           {{ word }}
@@ -21,34 +21,40 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import { defineComponent } from "vue";
 import { getRandomMnemonicWord } from "@/helpers/getRandomMnemonicWord";
 
-@Component
-export default class MnemonicDisplay extends Vue {
-  @Prop({ default: "#FFFFFF" }) bgColor?: string;
-  @Prop({ default: 4 }) rowSize!: number;
-  @Prop() phrase!: MnemonicPhrase;
-
-  get phraseArray(): string[] {
-    const words = this.phrase.getValue().split(" ");
-    const mixedMnemonic = [];
-    for (const i in words) {
-      mixedMnemonic.push(words[i]);
-      mixedMnemonic.push(this.getFakeWord());
-    }
-    return mixedMnemonic;
-  }
-
-  getFakeWord() {
-    return getRandomMnemonicWord();
-  }
-}
+export default defineComponent({
+  props: {
+    bgColor: { default: "#FFFFFF", type: String },
+    rowSize: { default: 4, type: Number },
+    phrase: {
+      type: Object as PropType<MnemonicPhrase>,
+    },
+  },
+  computed: {
+    phraseArray(): string[] {
+      const mixedMnemonic = [];
+      if (this.phrase) {
+        const words = this.phrase.getValue().split(" ");
+        for (const i in words) {
+          mixedMnemonic.push(words[i] ?? "", this.getFakeWord() ?? "");
+        }
+      }
+      return mixedMnemonic;
+    },
+  },
+  methods: {
+    getFakeWord() {
+      return getRandomMnemonicWord();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .mnemonic_display {
   display: grid;
@@ -103,7 +109,7 @@ span {
   opacity: 0;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .word {
     * {
       padding: 4px 2px;
@@ -112,9 +118,6 @@ span {
 
   .mnemonic_display {
     grid-template-columns: 1fr 1fr 1fr !important;
-  }
-
-  .phrase_word {
   }
 }
 </style>

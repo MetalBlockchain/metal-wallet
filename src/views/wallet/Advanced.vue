@@ -18,34 +18,31 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
+import { defineComponent } from "vue";
+import TokenListModal from "@/components/modals/TokenList/TokenListModal.vue";
 import ChainImport from "@/components/wallet/advanced/ChainImport.vue";
 import SignMessage from "@/components/wallet/advanced/SignMessage/SignMessage.vue";
 import VerifyMessage from "@/components/wallet/advanced/VerifyMessage.vue";
-import TokenListModal from "@/components/modals/TokenList/TokenListModal.vue";
 
-@Component({
-  name: "advanced",
+export const Advanced = defineComponent({
+  name: "Advanced",
   components: {
     TokenListModal,
     ChainImport,
     SignMessage,
     VerifyMessage,
   },
-})
-export default class Advanced extends Vue {
-  $refs!: {
-    token_list: TokenListModal;
-  };
-  openTokenlist() {
-    this.$refs.token_list.open();
-  }
-}
+
+  methods: {
+    openTokenlist() {
+      (this.$refs.token_list as typeof TokenListModal).open();
+    },
+  },
+});
+export default Advanced;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .header_title {
   display: flex;
@@ -84,13 +81,13 @@ h1 {
   border: 1px solid var(--border-secondary-light);
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .grids {
     grid-template-columns: none;
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .grids {
     grid-template-columns: none;
   }

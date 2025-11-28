@@ -23,7 +23,7 @@ class AvaNetwork {
     networkId: number,
     explorerUrl?: string,
     explorerSiteUrl?: string,
-    readonly = false
+    readonly = false,
   ) {
     this.id = network_id++;
     this.name = name;
@@ -51,7 +51,7 @@ class AvaNetwork {
         },
         {
           withCredentials: true,
-        }
+        },
       )
       .catch((err) => {
         return false;
@@ -72,7 +72,7 @@ class AvaNetwork {
         },
         {
           withCredentials: true,
-        }
+        },
       );
       this.withCredentials = true;
     } catch (e) {
@@ -83,18 +83,25 @@ class AvaNetwork {
   updateURL(url: string) {
     const split: string[] = url.split("://");
 
-    this.protocol = split[0];
-
+    const protocol = split[0];
+    if (protocol) {
+      this.protocol = protocol;
+    }
     // port is set
-    if (split[1].includes(":")) {
+    if (split[1]?.includes(":")) {
       const urlSplit: string[] = split[1].split(":");
-      const ip: string = urlSplit[0];
-      const port: string = urlSplit[1];
+      const ip = urlSplit[0];
+      const port = urlSplit[1];
 
-      this.ip = ip;
-      this.port = parseInt(port);
+      if (ip) {
+        this.ip = ip;
+      }
+      this.port = parseInt(port ?? "9650");
     } else {
-      this.ip = split[1];
+      const ip = split[1];
+      if (ip) {
+        this.ip = ip;
+      }
       if (this.protocol === "http") {
         this.port = 80;
       } else {

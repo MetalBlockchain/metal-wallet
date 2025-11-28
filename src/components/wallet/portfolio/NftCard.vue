@@ -1,8 +1,8 @@
 <template>
   <div class="nft_card">
-    <p class="count" v-if="quantity > 1">{{ quantity }}</p>
+    <p v-if="quantity > 1" class="count">{{ quantity }}</p>
     <NFTViewModal ref="modal" :payload="payload"></NFTViewModal>
-    <NftPayloadView :payload="payload" class="view"></NftPayloadView>
+    <NftPayloadView class="view" :payload="payload"></NftPayloadView>
     <div class="nft_info">
       <div class="meta_bar">
         <div>
@@ -15,27 +15,27 @@
 
         <div>
           <Tooltip
-            :text="$t('portfolio.collectibles.send')"
-            @click.native="transfer"
             v-if="utxo"
             class="nft_button"
+            :text="$t('portfolio.collectibles.send')"
+            @click="transfer"
           >
             <fa icon="share"></fa>
           </Tooltip>
           <Tooltip
-            :text="$t('portfolio.collectibles.expand')"
-            @click.native="expand"
             class="nft_button"
+            :text="$t('portfolio.collectibles.expand')"
+            @click="expand"
           >
             <fa icon="expand"></fa>
           </Tooltip>
         </div>
       </div>
-      <div class="generic_nft_meta" v-if="nftTitle || nftDesc">
-        <p class="nft_title" v-if="nftTitle">
+      <div v-if="nftTitle || nftDesc" class="generic_nft_meta">
+        <p v-if="nftTitle" class="nft_title">
           {{ nftTitle }}
         </p>
-        <p class="nft_desc" v-if="nftDesc">
+        <p v-if="nftDesc" class="nft_desc">
           {{ nftDesc }}
         </p>
       </div>
@@ -43,78 +43,80 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+
+import type { PropType } from "vue";
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
+import { defineComponent } from "vue";
+import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import Tooltip from "@/components/misc/Tooltip.vue";
+import NFTViewModal from "@/components/modals/NFTViewModal.vue";
 
 const payloadtypes = PayloadTypes.getInstance();
 
-import Tooltip from "@/components/misc/Tooltip.vue";
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
-import NFTViewModal from "@/components/modals/NFTViewModal.vue";
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-@Component({
+export default defineComponent({
   components: { NFTViewModal, NftPayloadView, Tooltip },
-})
-export default class NftCard extends Vue {
-  @Prop() payload!: PayloadBase;
-  @Prop({ default: 1 }) quantity!: number;
-  @Prop() groupID!: number;
-  @Prop() utxo?: UTXO;
+  props: {
+    payload: {
+      type: Object as PropType<PayloadBase>,
+    },
+    quantity: { default: 1, type: Number },
+    groupID: {
+      type: Number,
+    },
+    utxo: {
+      type: Object as PropType<UTXO>,
+    },
+  },
+  computed: {
+    payloadTypeID() {
+      return this.payload?.typeID();
+    },
+    payloadTypeName() {
+      return this.payloadTypeID
+        ? payloadtypes.lookupType(this.payloadTypeID)
+        : "Unknown Type";
+    },
+    payloadContent() {
+      return this.payload?.getContent().toString() ?? "";
+    },
+    nftTitle() {
+      try {
+        const json = JSON.parse(this.payloadContent);
+        return json.avalanche.title;
+      } catch {
+        return "";
+      }
+    },
+    nftDesc() {
+      try {
+        const json = JSON.parse(this.payloadContent);
+        return json.avalanche.desc;
+      } catch {
+        return "";
+      }
+    },
+  },
+  methods: {
+    transfer(ev: MouseEvent) {
+      ev.stopPropagation();
+      if (!this.utxo) return;
 
-  $refs!: {
-    modal: NFTViewModal;
-  };
-
-  transfer(ev: MouseEvent) {
-    ev.stopPropagation();
-    if (!this.utxo) return;
-
-    const utxoId = this.utxo.getUTXOID();
-    this.$router.push({
-      path: "/wallet/transfer",
-      query: {
-        nft: utxoId,
-        chain: "X",
-      },
-    });
-  }
-
-  expand() {
-    this.$refs.modal.open();
-  }
-
-  get payloadTypeID() {
-    return this.payload.typeID();
-  }
-
-  get payloadTypeName() {
-    return payloadtypes.lookupType(this.payloadTypeID) || "Unknown Type";
-  }
-
-  get payloadContent() {
-    return this.payload.getContent().toString();
-  }
-
-  get nftTitle() {
-    try {
-      const json = JSON.parse(this.payloadContent);
-      return json.avalanche.title;
-    } catch (err) {
-      return "";
-    }
-  }
-
-  get nftDesc() {
-    try {
-      const json = JSON.parse(this.payloadContent);
-      return json.avalanche.desc;
-    } catch (err) {
-      return "";
-    }
-  }
-}
+      const utxoId = this.utxo.getUTXOID();
+      this.$router.push({
+        path: "/wallet/transfer",
+        query: {
+          nft: utxoId,
+          chain: "X",
+        },
+      });
+    },
+    expand() {
+      (this.$refs.modal as typeof NFTViewModal).open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 @use "nft_card";

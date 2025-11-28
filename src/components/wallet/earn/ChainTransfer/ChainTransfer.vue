@@ -4,10 +4,10 @@
       <div class="form">
         <ChainSwapForm
           ref="form"
-          @change="onFormChange"
-          :is-confirm="isConfirm"
           :balance="balanceBig"
+          :is-confirm="isConfirm"
           :max-amt="formMaxAmt"
+          @change="onFormChange"
         ></ChainSwapForm>
 
         <div v-if="!isSuccess && !isLoading">
@@ -36,10 +36,10 @@
                 {{ $t("earn.transfer.err_desc") }}
               </p>
               <v-btn
-                depressed
-                class="button_secondary"
-                small
                 block
+                class="button_secondary"
+                depressed
+                small
                 @click="startAgain"
               >
                 {{ $t("earn.transfer.success.again") }}
@@ -48,38 +48,38 @@
             <template v-else>
               <v-btn
                 v-if="!isConfirm"
-                data-cy="confirm"
-                class="button_secondary"
-                @click="confirm"
-                :disabled="!canSubmit"
                 block
+                class="button_secondary"
+                data-cy="confirm"
                 depressed
+                :disabled="!canSubmit"
                 :loading="isLoading"
+                @click="confirm"
               >
                 {{ $t("earn.transfer.confirm") }}
               </v-btn>
               <template v-else>
                 <v-btn
-                  data-cy="submit"
-                  class="button_secondary"
-                  @click="submit"
-                  :loading="isLoading"
-                  depressed
                   block
+                  class="button_secondary"
+                  data-cy="submit"
+                  depressed
+                  :loading="isLoading"
+                  @click="submit"
                 >
                   {{ $t("earn.transfer.submit") }}
                 </v-btn>
                 <v-btn
                   v-if="!isLoading"
+                  block
                   data-cy="cancel"
+                  depressed
                   style="
                     color: var(--secondary-color);
                     margin: 12px 0 !important;
                   "
-                  @click="cancelConfirm"
-                  depressed
                   text
-                  block
+                  @click="cancelConfirm"
                 >
                   {{ $t("earn.transfer.cancel") }}
                 </v-btn>
@@ -94,10 +94,10 @@
             {{ $t("earn.transfer.success.message") }}
           </p>
           <v-btn
-            depressed
-            class="button_secondary"
-            small
             block
+            class="button_secondary"
+            depressed
+            small
             @click="startAgain"
           >
             {{ $t("earn.transfer.success.again") }}
@@ -108,571 +108,582 @@
         <ChainCard :chain="sourceChain"></ChainCard>
         <ChainCard :chain="targetChain" :is-source="false"></ChainCard>
         <TxStateCard
+          :reason="exportReason"
           :state="exportState"
           :status="exportStatus"
-          :reason="exportReason"
           :tx-id="exportId"
         ></TxStateCard>
         <TxStateCard
+          :is-export="false"
+          :reason="importReason"
           :state="importState"
           :status="importStatus"
-          :reason="importReason"
           :tx-id="importId"
-          :is-export="false"
         ></TxStateCard>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Component, Vue, Watch } from "vue-property-decorator";
-import Dropdown from "@/components/misc/Dropdown.vue";
-import AvaxInput from "@/components/misc/AvaxInput.vue";
-import type AvaAsset from "@/js/AvaAsset";
-import { BN } from "@metalblockchain/metaljs";
-import { avm, cChain, pChain } from "@/AVA";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import Spinner from "@/components/misc/Spinner.vue";
-import ChainCard from "@/components/wallet/earn/ChainTransfer/ChainCard.vue";
-import TxStateCard from "@/components/wallet/earn/ChainTransfer/TxState.vue";
-import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
-import { TxState } from "@/components/wallet/earn/ChainTransfer/types";
-import type { ChainIdType } from "@/constants";
-
-import ChainSwapForm from "@/components/wallet/earn/ChainTransfer/Form.vue";
-
-import type { WalletType } from "@/js/wallets/types";
 import type {
   ExportChainsC,
   ExportChainsP,
   ExportChainsX,
 } from "@metalblockchain/metal-wallet-sdk";
-import {
-  GasHelper,
-  Big,
-  bnToBig,
-  bnToAvaxX,
-  bnToBigAvaxX,
-  bnToBigAvaxC,
-  bigToBN,
-  avaxCtoX,
-  TxHelper,
-} from "@metalblockchain/metal-wallet-sdk";
-import { sortUTxoSetP } from "@/helpers/sortUTXOs";
-import { selectMaxUtxoForExportP } from "@/helpers/utxoSelection/selectMaxUtxoForExportP";
 import type {
   FeeConfig,
   FeeState,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
+import type { ChainIdType } from "@/constants";
+import type AvaAsset from "@/js/AvaAsset";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { WalletType } from "@/js/wallets/types";
+import {
+  avaxCtoX,
+  Big,
+  bigToBN,
+  bnToAvaxX,
+  bnToBig,
+  bnToBigAvaxC,
+  bnToBigAvaxX,
+  GasHelper,
+  TxHelper,
+} from "@metalblockchain/metal-wallet-sdk";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import ChainCard from "@/components/wallet/earn/ChainTransfer/ChainCard.vue";
+import ChainSwapForm from "@/components/wallet/earn/ChainTransfer/Form.vue";
+import TxStateCard from "@/components/wallet/earn/ChainTransfer/TxState.vue";
+import { TxState } from "@/components/wallet/earn/ChainTransfer/types";
+import { sortUTxoSetP } from "@/helpers/sortUTXOs";
+import { selectMaxUtxoForExportP } from "@/helpers/utxoSelection/selectMaxUtxoForExportP";
+import { avm, cChain, pChain } from "@/misc/AVA";
 
 const IMPORT_DELAY = 5000; // in ms
 const BALANCE_DELAY = 2000; // in ms
 
-@Component({
-  name: "chain_transfer",
+export const ChainTransfer = defineComponent({
+  name: "ChainTransfer",
   components: {
-    Spinner,
-    Dropdown,
-    AvaxInput,
     ChainCard,
     ChainSwapForm,
     TxStateCard,
   },
-})
-export class ChainTransfer extends Vue {
-  $refs!: {
-    form: ChainSwapForm;
-  };
-  sourceChain: ChainIdType = "X";
-  targetChain: ChainIdType = "P";
-  isLoading = false;
-  amt: BN = new BN(0);
-  err = "";
+  data(): {
+    sourceChain: ChainIdType;
+    targetChain: ChainIdType;
+    isLoading: boolean;
+    amt: BN;
+    err: string;
+    isImportErr: boolean;
+    isConfirm: boolean;
+    isSuccess: boolean;
+    formAmt: BN;
+    baseFee: BN;
+    importFee: Big;
+    exportFee: Big;
+    exportId: string;
+    exportState: TxState;
+    exportStatus: string | null;
+    exportReason: string | null;
+    importId: string;
+    importState: TxState;
+    importStatus: string | null;
+    importReason: string | null;
+    txMaxAmount: BN | undefined;
+    feeConfig: FeeConfig | undefined;
+    feeState: FeeState | undefined;
+  } {
+    const feeState: FeeState | undefined = undefined;
+    const feeConfig: FeeConfig | undefined = undefined;
+    const txMaxAmount: BN | undefined = undefined;
+    const importReason: string | null = null;
+    const importStatus: string | null = null;
+    const importState: TxState = TxState.waiting;
+    const exportReason: string | null = null;
+    const exportStatus: string | null = null;
+    const exportState: TxState = TxState.waiting;
+    const exportFee: Big = new Big(0);
+    const importFee: Big = new Big(0);
+    const baseFee: BN = new BN(0);
+    const formAmt: BN = new BN(0);
+    const amt: BN = new BN(0);
+    const targetChain: ChainIdType = "P";
+    const sourceChain: ChainIdType = "X";
 
-  isImportErr = false;
-  isConfirm = false;
-  isSuccess = false;
-
-  formAmt: BN = new BN(0);
-
-  baseFee: BN = new BN(0);
-  importFee: Big = new Big(0);
-  exportFee: Big = new Big(0);
-
-  // Transaction ids
-  exportId = "";
-  exportState: TxState = TxState.waiting;
-  exportStatus: string | null = null;
-  exportReason: string | null = null;
-
-  importId = "";
-  importState: TxState = TxState.waiting;
-  importStatus: string | null = null;
-  importReason: string | null = null;
-
-  txMaxAmount: BN | undefined = undefined;
-
-  feeConfig: FeeConfig | undefined = undefined;
-  feeState: FeeState | undefined = undefined;
-
-  @Watch("sourceChain")
-  @Watch("targetChain")
-  onChainChange() {
-    if (this.sourceChain === "C" || this.targetChain === "C") {
-      this.updateBaseFee();
-    }
-  }
-
-  @Watch("sourceChain")
-  @Watch("targetChain")
-  @Watch("amt")
-  onChange() {
-    if (this.targetChain == "P" && this.amt.gt(new BN(0))) {
-      TxHelper.calculatePlatformImportFee().then((fee) => {
-        this.importFee = bnToBig(fee, 9);
-      });
-    } else {
-      this.importFee = this.getFee(this.targetChain, false);
-    }
-
-    if (this.sourceChain == "P" && this.amt.gt(new BN(0))) {
-      const utxos = this.wallet.getPlatformUTXOSet();
-      const fromAddrs = this.wallet.getAllAddressesP();
-      const destinationAddr =
-        this.targetChain === "C"
-          ? this.wallet.getEvmAddressBech()
-          : this.wallet.getCurrentAddressAvm();
-      const pChangeAddr = this.wallet.getCurrentAddressPlatform();
-
-      TxHelper.calculatePlatformExportFee(
-        utxos,
-        fromAddrs,
-        destinationAddr,
-        this.amt,
-        pChangeAddr,
-        this.targetChain as ExportChainsP
-      ).then((fee) => {
-        this.exportFee = bnToBig(fee, 9);
-      });
-    } else {
-      this.exportFee = this.getFee(this.sourceChain, true);
-    }
-  }
-
-  created() {
-    this.updateBaseFee();
-    this.getFeeVariables();
-  }
-
-  get ava_asset(): AvaAsset | null {
-    const ava = this.$store.getters["Assets/AssetAVA"];
-    return ava;
-  }
-
-  get platformBalance() {
-    return this.$store.getters["Assets/walletPlatformBalance"];
-  }
-
-  get platformUnlocked(): BN {
-    return this.platformBalance.available;
-  }
-
-  get avmUnlocked(): BN {
-    if (!this.ava_asset) return new BN(0);
-    return this.ava_asset.amount;
-  }
-
-  get evmUnlocked(): BN {
-    const balRaw = this.wallet.ethBalance;
-    return avaxCtoX(balRaw);
-  }
-
-  get balanceBN(): BN {
-    if (this.sourceChain === "P") {
-      return this.platformUnlocked;
-    } else if (this.sourceChain === "C") {
-      return this.evmUnlocked;
-    } else {
-      return this.avmUnlocked;
-    }
-  }
-
-  get balanceBig(): Big {
-    return bnToBig(this.balanceBN, 9);
-  }
-
-  get formAmtText() {
-    return bnToAvaxX(this.formAmt);
-  }
-
-  get fee(): Big {
-    return this.exportFee.add(this.importFee);
-  }
-
-  get feeBN(): BN {
-    return this.importFeeBN.add(this.exportFeeBN);
-  }
-
-  getFee(chain: ChainIdType, isExport: boolean): Big {
-    if (chain === "X") {
-      return bnToBigAvaxX(avm.getTxFee());
-    } else if (chain === "P") {
-      return bnToBigAvaxX(new BN(0));
-    } else {
-      const fee = isExport
-        ? GasHelper.estimateExportGasFeeFromMockTx(
-            this.targetChain as ExportChainsC,
-            this.amt,
-            this.wallet.getEvmAddress(),
-            this.wallet.getCurrentAddressPlatform()
-          )
-        : GasHelper.estimateImportGasFeeFromMockTx(1, 1);
-
-      const totFeeWei = this.baseFee.mul(new BN(fee));
-      return bnToBigAvaxC(totFeeWei);
-    }
-  }
-
-  /**
-   * Returns the import fee in nAVAX
-   */
-  get importFeeBN(): BN {
-    return bigToBN(this.importFee, 9);
-  }
-
-  get exportFeeBN(): BN {
-    return bigToBN(this.exportFee, 9);
-  }
-
-  /**
-   * User's spendable balance minus total fees
-   */
-  get maxAmt(): BN {
-    const max = this.balanceBN.sub(this.feeBN);
-
-    if (max.isNeg() || max.isZero()) {
-      return new BN(0);
-    } else {
-      return max;
-    }
-  }
-
-  /**
-   * Maximum amount that fits into a valid transaction (excluding export fee)
-   */
-  get formMaxAmt() {
-    const amt = this.txMaxAmount
-      ? BN.min(this.maxAmt, this.txMaxAmount)
-      : this.maxAmt;
-    return BN.max(amt, new BN(0));
-  }
-
-  @Watch("sourceChain")
-  @Watch("targetChain")
-  @Watch("balanceBN")
-  @Watch("feeBN")
-  @Watch("wallet")
-  updateMaxTxSize() {
-    if (this.sourceChain !== "P" || this.targetChain === "P") {
-      this.txMaxAmount = undefined;
-      return;
-    }
-
-    const utxoSet = this.wallet.getPlatformUTXOSet();
-    const sortedSet = sortUTxoSetP(utxoSet, false);
-
-    const res = selectMaxUtxoForExportP(sortedSet.getAllUTXOs());
-    // The maximum form amount is = max possible export amount - export and import fees
-    this.txMaxAmount = res.amount.sub(this.feeBN);
-  }
-
-  onFormChange(data: ChainSwapFormData) {
-    this.amt = data.amount;
-    this.sourceChain = data.sourceChain;
-    this.targetChain = data.destinationChain;
-  }
-
-  confirm() {
-    this.formAmt = this.amt.clone();
-    this.isConfirm = true;
-  }
-
-  cancelConfirm() {
-    this.isConfirm = false;
-    this.formAmt = new BN(0);
-  }
-
-  get wallet() {
-    const wallet: WalletType = this.$store.state.activeWallet;
-    return wallet;
-  }
-
-  async updateBaseFee() {
-    this.baseFee = await GasHelper.getBaseFeeRecommended();
-  }
-
-  async getFeeVariables() {
-    pChain.getFeeConfig().then((feeConfig) => {
-      this.feeConfig = feeConfig;
-    });
-    pChain.getFeeState().then((feeState) => {
-      this.feeState = feeState;
-    });
-  }
-
-  async submit() {
-    this.err = "";
-    this.isLoading = true;
-    this.isImportErr = false;
-
-    try {
-      this.chainExport(this.formAmt, this.sourceChain, this.targetChain).catch(
-        (e) => {
-          this.onerror(e);
-        }
-      );
-    } catch (err) {
-      this.onerror(err);
-    }
-  }
-
-  // Triggers export from chain
-  // STEP 1
-  async chainExport(
-    amt: BN,
-    sourceChain: ChainIdType,
-    destinationChain: ChainIdType
-  ) {
-    const wallet: WalletType = this.$store.state.activeWallet;
-    let exportTxId;
-    this.exportState = TxState.started;
-
-    switch (sourceChain) {
-      case "X":
-        exportTxId = await wallet.exportFromXChain(
-          amt,
-          destinationChain as ExportChainsX,
-          this.importFeeBN
-        );
-        break;
-      case "P":
-        exportTxId = await wallet.exportFromPChain(
-          amt,
-          destinationChain as ExportChainsP,
-          this.importFeeBN
-        );
-        break;
-      case "C":
-        exportTxId = await wallet.exportFromCChain(
-          amt,
-          destinationChain as ExportChainsC,
-          this.exportFeeBN
-        );
-        break;
-    }
-
-    this.exportId = exportTxId;
-    this.waitExportStatus(exportTxId);
-  }
-
-  // STEP 2
-  async waitExportStatus(txId: string, remainingTries = 15) {
-    let status;
-    if (this.sourceChain === "X") {
-      status = await avm.getTxStatus(txId);
-    } else if (this.sourceChain === "P") {
-      const resp = await pChain.getTxStatus(txId);
-      if (typeof resp === "string") {
-        status = resp;
+    return {
+      sourceChain,
+      targetChain,
+      isLoading: false,
+      amt,
+      err: "",
+      isImportErr: false,
+      isConfirm: false,
+      isSuccess: false,
+      formAmt,
+      baseFee,
+      importFee,
+      exportFee,
+      exportId: "",
+      exportState,
+      exportStatus,
+      exportReason,
+      importId: "",
+      importState,
+      importStatus,
+      importReason,
+      txMaxAmount,
+      feeConfig,
+      feeState,
+    };
+  },
+  computed: {
+    ava_asset(): AvaAsset | null {
+      const ava = this.$store.getters["Assets/AssetAVA"];
+      return ava;
+    },
+    platformBalance() {
+      return this.$store.getters["Assets/walletPlatformBalance"];
+    },
+    platformUnlocked(): BN {
+      return this.platformBalance.available;
+    },
+    avmUnlocked(): BN {
+      if (!this.ava_asset) return new BN(0);
+      return this.ava_asset.amount;
+    },
+    evmUnlocked(): BN {
+      const balRaw = this.wallet.ethBalance;
+      return avaxCtoX(balRaw);
+    },
+    balanceBN(): BN {
+      if (this.sourceChain === "P") {
+        return this.platformUnlocked;
+      } else if (this.sourceChain === "C") {
+        return this.evmUnlocked;
       } else {
-        status = resp.status;
-        this.exportReason = resp.reason;
+        return this.avmUnlocked;
       }
-    } else {
-      const resp = await cChain.getAtomicTxStatus(txId);
-      status = resp;
-    }
-    this.exportStatus = status;
+    },
+    balanceBig(): Big {
+      return bnToBig(this.balanceBN, 9);
+    },
+    formAmtText() {
+      return bnToAvaxX(this.formAmt);
+    },
+    fee(): Big {
+      return this.exportFee.add(this.importFee);
+    },
+    feeBN(): BN {
+      return this.importFeeBN.add(this.exportFeeBN);
+    },
+    importFeeBN(): BN {
+      return bigToBN(this.importFee, 9);
+    },
+    exportFeeBN(): BN {
+      return bigToBN(this.exportFee, 9);
+    },
+    maxAmt(): BN {
+      const max = this.balanceBN.sub(this.feeBN);
 
-    if (status === "Unknown" || status === "Processing") {
-      // If out of tries
-      if (remainingTries <= 0) {
-        this.exportState = TxState.failed;
-        this.exportStatus = "Timeout";
+      return max.isNeg() || max.isZero() ? new BN(0) : max;
+    },
+    formMaxAmt() {
+      const amt = this.txMaxAmount
+        ? BN.min(this.maxAmt, this.txMaxAmount)
+        : this.maxAmt;
+      return BN.max(amt, new BN(0));
+    },
+    wallet() {
+      const wallet: WalletType = this.$store.state.activeWallet;
+      return wallet;
+    },
+    canSubmit() {
+      if (this.amt.eq(new BN(0))) {
         return false;
       }
 
-      // if not confirmed ask again
-      setTimeout(() => {
-        this.waitExportStatus(txId, remainingTries - 1);
-      }, 1000);
-      return false;
-    } else if (status === "Dropped") {
-      // If dropped stop the process
-      this.exportState = TxState.failed;
-      return false;
-    } else {
-      // If success start import
-      this.exportState = TxState.success;
-
-      // Because the API nodes are behind a load balancer we are waiting for all api nodes to update
-      this.importState = TxState.started;
-      this.importStatus = "Waiting";
-      setTimeout(() => {
-        this.chainImport();
-      }, IMPORT_DELAY);
-    }
-
-    return true;
-  }
-
-  // STEP 3
-  async chainImport(canRetry = true) {
-    const wallet: MnemonicWallet = this.$store.state.activeWallet;
-    let importTxId;
-    try {
-      if (this.targetChain === "P") {
-        importTxId = await wallet.importToPlatformChain(
-          this.sourceChain as ExportChainsP
-        );
-      } else if (this.targetChain === "X") {
-        importTxId = await wallet.importToXChain(
-          this.sourceChain as ExportChainsX
-        );
-      } else {
-        //TODO: Import only the exported UTXO
-
-        importTxId = await wallet.importToCChain(
-          this.sourceChain as ExportChainsC,
-          this.importFeeBN
-        );
+      if (this.amt.gt(this.formMaxAmt)) {
+        return false;
       }
-    } catch (e) {
-      // Retry import one more time
-      if (canRetry) {
+
+      return true;
+    },
+  },
+  watch: {
+    sourceChain: [
+      {
+        handler: "onChainChange",
+      },
+      {
+        handler: "onChange",
+      },
+      {
+        handler: "updateMaxTxSize",
+      },
+    ],
+    targetChain: [
+      {
+        handler: "onChainChange",
+      },
+      {
+        handler: "onChange",
+      },
+      {
+        handler: "updateMaxTxSize",
+      },
+    ],
+    amt: [
+      {
+        handler: "onChange",
+      },
+    ],
+    balanceBN: [
+      {
+        handler: "updateMaxTxSize",
+      },
+    ],
+    feeBN: [
+      {
+        handler: "updateMaxTxSize",
+      },
+    ],
+    wallet: [
+      {
+        handler: "updateMaxTxSize",
+      },
+    ],
+  },
+  created() {
+    this.updateBaseFee();
+    this.getFeeVariables();
+  },
+  methods: {
+    getFee(chain: ChainIdType, isExport: boolean): Big {
+      if (chain === "X") {
+        return bnToBigAvaxX(avm.getTxFee());
+      } else if (chain === "P") {
+        return bnToBigAvaxX(new BN(0));
+      } else {
+        const fee = isExport
+          ? GasHelper.estimateExportGasFeeFromMockTx(
+              this.targetChain as ExportChainsC,
+              this.amt,
+              this.wallet.getEvmAddress(),
+              this.wallet.getCurrentAddressPlatform(),
+            )
+          : GasHelper.estimateImportGasFeeFromMockTx(1, 1);
+
+        const totFeeWei = this.baseFee.mul(new BN(fee));
+        return bnToBigAvaxC(totFeeWei);
+      }
+    },
+    onFormChange(data: ChainSwapFormData) {
+      this.amt = data.amount;
+      this.sourceChain = data.sourceChain;
+      this.targetChain = data.destinationChain;
+    },
+    confirm() {
+      this.formAmt = this.amt.clone();
+      this.isConfirm = true;
+    },
+    cancelConfirm() {
+      this.isConfirm = false;
+      this.formAmt = new BN(0);
+    },
+    async updateBaseFee() {
+      this.baseFee = await GasHelper.getBaseFeeRecommended();
+    },
+    async getFeeVariables() {
+      pChain.getFeeConfig().then((feeConfig) => {
+        this.feeConfig = feeConfig;
+      });
+      pChain.getFeeState().then((feeState) => {
+        this.feeState = feeState;
+      });
+    },
+    async submit() {
+      this.err = "";
+      this.isLoading = true;
+      this.isImportErr = false;
+
+      try {
+        this.chainExport(
+          this.formAmt,
+          this.sourceChain,
+          this.targetChain,
+        ).catch((error) => {
+          this.onerror(error);
+        });
+      } catch (error) {
+        this.onerror(error);
+      }
+    },
+    async chainExport(
+      amt: BN,
+      sourceChain: ChainIdType,
+      destinationChain: ChainIdType,
+    ) {
+      const wallet: WalletType = this.$store.state.activeWallet;
+      let exportTxId;
+      this.exportState = TxState.started;
+
+      switch (sourceChain) {
+        case "X": {
+          exportTxId = await wallet.exportFromXChain(
+            amt,
+            destinationChain as ExportChainsX,
+            this.importFeeBN,
+          );
+          break;
+        }
+        case "P": {
+          exportTxId = await wallet.exportFromPChain(
+            amt,
+            destinationChain as ExportChainsP,
+            this.importFeeBN,
+          );
+          break;
+        }
+        case "C": {
+          exportTxId = await wallet.exportFromCChain(
+            amt,
+            destinationChain as ExportChainsC,
+            this.exportFeeBN,
+          );
+          break;
+        }
+      }
+
+      this.exportId = exportTxId;
+      this.waitExportStatus(exportTxId);
+    },
+    async waitExportStatus(txId: string, remainingTries = 15) {
+      let status;
+      if (this.sourceChain === "X") {
+        status = await avm.getTxStatus(txId);
+      } else if (this.sourceChain === "P") {
+        const resp = await pChain.getTxStatus(txId);
+        if (typeof resp === "string") {
+          status = resp;
+        } else {
+          status = resp.status;
+          this.exportReason = resp.reason;
+        }
+      } else {
+        const resp = await cChain.getAtomicTxStatus(txId);
+        status = resp;
+      }
+      this.exportStatus = status;
+
+      if (status === "Unknown" || status === "Processing") {
+        // If out of tries
+        if (remainingTries <= 0) {
+          this.exportState = TxState.failed;
+          this.exportStatus = "Timeout";
+          return false;
+        }
+
+        // if not confirmed ask again
         setTimeout(() => {
-          this.chainImport(false);
+          this.waitExportStatus(txId, remainingTries - 1);
+        }, 1000);
+        return false;
+      } else if (status === "Dropped") {
+        // If dropped stop the process
+        this.exportState = TxState.failed;
+        return false;
+      } else {
+        // If success start import
+        this.exportState = TxState.success;
+
+        // Because the API nodes are behind a load balancer we are waiting for all api nodes to update
+        this.importState = TxState.started;
+        this.importStatus = "Waiting";
+        setTimeout(() => {
+          this.chainImport();
         }, IMPORT_DELAY);
+      }
+
+      return true;
+    },
+    async chainImport(canRetry = true) {
+      const wallet: MnemonicWallet = this.$store.state.activeWallet;
+      let importTxId;
+      try {
+        if (this.targetChain === "P") {
+          importTxId = await wallet.importToPlatformChain(
+            this.sourceChain as ExportChainsP,
+          );
+        } else if (this.targetChain === "X") {
+          importTxId = await wallet.importToXChain(
+            this.sourceChain as ExportChainsX,
+          );
+        } else {
+          //TODO: Import only the exported UTXO
+
+          importTxId = await wallet.importToCChain(
+            this.sourceChain as ExportChainsC,
+            this.importFeeBN,
+          );
+        }
+      } catch (error) {
+        // Retry import one more time
+        if (canRetry) {
+          setTimeout(() => {
+            this.chainImport(false);
+          }, IMPORT_DELAY);
+          return;
+        }
+        this.onerror(error);
+        this.onErrorImport(error);
         return;
       }
-      this.onerror(e);
-      this.onErrorImport(e);
-      return;
-    }
 
-    this.importId = importTxId;
-    this.importState = TxState.started;
+      this.importId = importTxId;
+      this.importState = TxState.started;
 
-    this.waitImportStatus(importTxId);
-  }
+      this.waitImportStatus(importTxId);
+    },
+    async waitImportStatus(txId: string) {
+      let status;
 
-  // STEP 4
-  async waitImportStatus(txId: string) {
-    let status;
-
-    if (this.targetChain === "X") {
-      status = await avm.getTxStatus(txId);
-    } else if (this.targetChain === "P") {
-      const resp = await pChain.getTxStatus(txId);
-      if (typeof resp === "string") {
-        status = resp;
+      if (this.targetChain === "X") {
+        status = await avm.getTxStatus(txId);
+      } else if (this.targetChain === "P") {
+        const resp = await pChain.getTxStatus(txId);
+        status = typeof resp === "string" ? resp : resp.status;
       } else {
-        status = resp.status;
+        const resp = await cChain.getAtomicTxStatus(txId);
+        status = resp;
       }
-    } else {
-      const resp = await cChain.getAtomicTxStatus(txId);
-      status = resp;
-    }
 
-    this.importStatus = status;
+      this.importStatus = status;
 
-    if (status === "Unknown" || status === "Processing") {
-      // if not confirmed ask again
-      setTimeout(() => {
-        this.waitImportStatus(txId);
-      }, 1000);
-      return false;
-    } else if (status === "Dropped") {
-      // If dropped stop the process
+      if (status === "Unknown" || status === "Processing") {
+        // if not confirmed ask again
+        setTimeout(() => {
+          this.waitImportStatus(txId);
+        }, 1000);
+        return false;
+      } else if (status === "Dropped") {
+        // If dropped stop the process
+        this.importState = TxState.failed;
+        return false;
+      } else {
+        // If success display success page
+        this.importState = TxState.success;
+        this.onsuccess();
+      }
+
+      return true;
+    },
+    onerror(err: any) {
+      console.error(err);
+      this.isLoading = false;
+      this.err = err;
+      this.$store.dispatch("Notifications/add", {
+        type: "error",
+        title: "Transfer Failed",
+        message: err,
+      });
+    },
+    onErrorImport(_: any) {
       this.importState = TxState.failed;
-      return false;
-    } else {
-      // If success display success page
-      this.importState = TxState.success;
-      this.onsuccess();
-    }
+      this.isImportErr = true;
+    },
+    startAgain() {
+      (this.$refs.form as typeof ChainSwapForm).clear();
 
-    return true;
-  }
+      this.err = "";
+      this.isImportErr = false;
+      this.isConfirm = false;
+      this.isLoading = false;
+      this.isSuccess = false;
 
-  onerror(err: any) {
-    console.error(err);
-    this.isLoading = false;
-    this.err = err;
-    this.$store.dispatch("Notifications/add", {
-      type: "error",
-      title: "Transfer Failed",
-      message: err,
-    });
-  }
+      this.exportId = "";
+      this.exportState = TxState.waiting;
+      this.exportStatus = null;
+      this.exportReason = null;
 
-  onErrorImport(err: any) {
-    this.importState = TxState.failed;
-    this.isImportErr = true;
-  }
+      this.importId = "";
+      this.importState = TxState.waiting;
+      this.importStatus = null;
+      this.importReason = null;
+    },
+    onsuccess() {
+      // Clear Form
+      this.isSuccess = true;
+      this.$store.dispatch("Notifications/add", {
+        type: "success",
+        title: "Transfer Complete",
+        message: "Funds transferred between chains.",
+      });
 
-  startAgain() {
-    this.$refs.form.clear();
+      setTimeout(() => {
+        this.$store.dispatch("Assets/updateUTXOs");
+        this.$store.dispatch("History/updateTransactionHistory");
+      }, BALANCE_DELAY);
+    },
+    onChainChange() {
+      if (this.sourceChain === "C" || this.targetChain === "C") {
+        this.updateBaseFee();
+      }
+    },
+    onChange() {
+      if (this.targetChain == "P" && this.amt.gt(new BN(0))) {
+        (TxHelper as any).calculatePlatformImportFee().then((fee: any) => {
+          this.importFee = bnToBig(fee, 9);
+        });
+      } else {
+        this.importFee = this.getFee(this.targetChain, false);
+      }
 
-    this.err = "";
-    this.isImportErr = false;
-    this.isConfirm = false;
-    this.isLoading = false;
-    this.isSuccess = false;
+      if (this.sourceChain == "P" && this.amt.gt(new BN(0))) {
+        const utxos = this.wallet.getPlatformUTXOSet();
+        const fromAddrs = this.wallet.getAllAddressesP();
+        const destinationAddr =
+          this.targetChain === "C"
+            ? this.wallet.getEvmAddressBech()
+            : this.wallet.getCurrentAddressAvm();
+        const pChangeAddr = this.wallet.getCurrentAddressPlatform();
 
-    this.exportId = "";
-    this.exportState = TxState.waiting;
-    this.exportStatus = null;
-    this.exportReason = null;
+        (TxHelper as any)
+          .calculatePlatformExportFee(
+            utxos,
+            fromAddrs,
+            destinationAddr,
+            this.amt,
+            pChangeAddr,
+            this.targetChain as ExportChainsP,
+          )
+          .then((fee: any) => {
+            this.exportFee = bnToBig(fee, 9);
+          });
+      } else {
+        this.exportFee = this.getFee(this.sourceChain, true);
+      }
+    },
+    updateMaxTxSize() {
+      if (this.sourceChain !== "P" || this.targetChain === "P") {
+        this.txMaxAmount = undefined;
+        return;
+      }
 
-    this.importId = "";
-    this.importState = TxState.waiting;
-    this.importStatus = null;
-    this.importReason = null;
-  }
+      const utxoSet = this.wallet.getPlatformUTXOSet();
+      const sortedSet = sortUTxoSetP(utxoSet, false);
 
-  onsuccess() {
-    // Clear Form
-    this.isSuccess = true;
-    this.$store.dispatch("Notifications/add", {
-      type: "success",
-      title: "Transfer Complete",
-      message: "Funds transferred between chains.",
-    });
-
-    setTimeout(() => {
-      this.$store.dispatch("Assets/updateUTXOs");
-      this.$store.dispatch("History/updateTransactionHistory");
-    }, BALANCE_DELAY);
-  }
-
-  get canSubmit() {
-    if (this.amt.eq(new BN(0))) {
-      return false;
-    }
-
-    if (this.amt.gt(this.formMaxAmt)) {
-      return false;
-    }
-
-    return true;
-  }
-}
+      const res = selectMaxUtxoForExportP(sortedSet.getAllUTXOs());
+      // The maximum form amount is = max possible export amount - export and import fees
+      this.txMaxAmount = res.amount.sub(this.feeBN);
+    },
+  },
+});
 export default ChainTransfer;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
+@use "@/styles/abstracts/mixins";
 
 .cols {
   display: grid;
@@ -850,7 +861,7 @@ h2 {
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .cols {
     //display: grid;
     //grid-template-columns: 1fr 2fr;
@@ -866,7 +877,7 @@ h2 {
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .cols {
     display: block;
     padding-bottom: 3vh;

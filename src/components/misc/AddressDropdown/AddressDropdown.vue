@@ -1,7 +1,7 @@
 <template>
   <div class="address_dropdown">
     <div class="display" @click="toggle">
-      <p class="placeholder" v-if="!value">Select Address</p>
+      <p v-if="!value" class="placeholder">Select Address</p>
       <div v-if="multiple" class="display_val">
         <p class="chip">{{ value[0] }}</p>
         <p v-if="value.length > 1">and {{ value.length - 1 }} others.</p>
@@ -12,17 +12,17 @@
       <p class="caret"><fa icon="caret-down"></fa></p>
     </div>
     <div
+      v-show="active"
       ref="popup_list"
       class="list"
-      v-show="active"
-      @focus="focus"
-      @blur="blur"
       tabindex="1"
+      @blur="blur"
+      @focus="focus"
     >
       <!--            <v-select></v-select>-->
       <ul>
-        <li class="select_all" @click="toggleAll" v-if="multiple">
-          <input type="checkbox" :checked="isAll" />
+        <li v-if="multiple" class="select_all" @click="toggleAll">
+          <input :checked="isAll" type="checkbox" />
           <p class="add_title">All Addresses</p>
         </li>
         <!--                <list-item v-for="(item, index) in items" :key="item" :value="item" :index="index"></list-item>-->
@@ -31,7 +31,7 @@
           :key="item"
           @click="toggleItem(item, index)"
         >
-          <input type="checkbox" :checked="value.includes(item)" />
+          <input :checked="value.includes(item)" type="checkbox" />
           <div>
             <p class="add_title">Address {{ index }}</p>
             <p class="add_val">{{ item }}</p>
@@ -42,36 +42,18 @@
   </div>
 </template>
 <script>
-// import ListItem from './ListItem';
-export default {
-  components: {
-    // ListItem
-  },
+import { defineComponent } from "vue";
+export const AddressDropdown = defineComponent({
   props: {
     multiple: {
       type: Boolean,
       default: false,
     },
-    default_val: {
+    defaultVal: {
       type: [Array, String],
     },
   },
-  mounted() {
-    if (this.default_val) {
-      // console.log(this.default_val);
-      if (Array.isArray(this.default_val)) {
-        if (this.multiple) {
-          this.value = this.default_val.slice();
-        } else {
-          this.value = this.default_val[0];
-        }
-      } else {
-        this.value = this.default_val;
-      }
-
-      this.emit();
-    }
-  },
+  emits: ["change"],
   data() {
     return {
       active: false,
@@ -84,6 +66,20 @@ export default {
       return this.$store.state.addresses;
     },
   },
+  mounted() {
+    if (this.default_val) {
+      // console.log(this.default_val);
+      if (Array.isArray(this.default_val)) {
+        this.value = this.multiple
+          ? this.default_val.slice()
+          : this.default_val[0];
+      } else {
+        this.value = this.default_val;
+      }
+
+      this.emit();
+    }
+  },
   methods: {
     blur() {
       this.active = false;
@@ -92,11 +88,10 @@ export default {
     focus() {},
 
     toggle() {
-      const parent = this;
       this.active = !this.active;
       this.$nextTick(() => {
-        if (parent.active) {
-          parent.$refs["popup_list"].focus();
+        if (this.active) {
+          this.$refs["popup_list"].focus();
         }
       });
     },
@@ -115,20 +110,12 @@ export default {
         }
       }
 
-      if (this.value.length !== this.items.length) {
-        this.isAll = false;
-      } else {
-        this.isAll = true;
-      }
+      this.isAll = this.value.length === this.items.length ? true : false;
       this.emit();
     },
 
     toggleAll() {
-      if (this.isAll) {
-        this.value = [];
-      } else {
-        this.value = this.items.slice();
-      }
+      this.value = this.isAll ? [] : this.items.slice();
       this.isAll = !this.isAll;
       this.emit();
     },
@@ -137,8 +124,10 @@ export default {
       this.$emit("change", this.value);
     },
   },
-};
+});
+export default AddressDropdown;
 </script>
+
 <style scoped>
 .address_dropdown {
   position: relative;

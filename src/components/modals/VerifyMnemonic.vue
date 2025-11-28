@@ -1,7 +1,7 @@
 <template>
-  <modal ref="modal" :title="title" class="modal_parent" icy>
+  <modal ref="modal" class="modal_parent" icy :title="title">
     <div class="mnemonic_body">
-      <button @click="close" class="close_but">
+      <button class="close_but" @click="close">
         <fa icon="times"></fa>
       </button>
       <h3>{{ $t("create.verify_desc") }}</h3>
@@ -9,9 +9,9 @@
         <div v-for="i in 24" :key="i" class="mnemonic_in" tabindex="-1">
           <p>{{ i }}.</p>
           <input
-            type="text"
             v-model="keysIn[i - 1]"
             :disabled="!hiddenIndices.includes(i - 1)"
+            type="text"
           />
         </div>
       </div>
@@ -24,106 +24,118 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
+import type { PropType } from "vue";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
 
-@Component({
+export default defineComponent({
   components: {
     Modal,
   },
-})
-export default class VerifyMnemonic extends Vue {
-  isActive = false;
-  keysIn: string[] = [];
-  hiddenIndices: number[] = [];
-  err = "";
-  title = "";
+  props: {
+    mnemonic: {
+      type: Object as PropType<MnemonicPhrase>,
+    },
+  },
+  emits: ["complete"],
+  data() {
+    const hiddenIndices: number[] = [];
+    const keysIn: string[] = [];
 
-  @Prop() mnemonic?: MnemonicPhrase;
-
-  @Watch("mnemonic")
-  onmnemonicchange(val: string) {
-    this.init();
-  }
+    return {
+      isActive: false,
+      keysIn,
+      hiddenIndices,
+      err: "",
+      title: "",
+    };
+  },
+  computed: {
+    words() {
+      return this.mnemonic ? this.mnemonic.getValue().split(" ") : [];
+    },
+  },
+  watch: {
+    mnemonic: [
+      {
+        handler: "onmnemonicchange",
+      },
+    ],
+  },
   created() {
     this.init();
     this.title = `${this.$t("create.verifytitle")}`;
-  }
+  },
+  methods: {
+    init() {
+      const wordsLen = 24;
+      this.keysIn = Array.from({ length: wordsLen }).join(".").split(".");
 
-  init() {
-    const wordsLen = 24;
-    this.keysIn = Array(wordsLen).join(".").split(".");
+      // Hide 4 words
+      const hideNum = 4;
+      const hidden: number[] = [];
 
-    // Hide 4 words
-    const hideNum = 4;
-    const hidden: number[] = [];
-
-    while (hidden.length < hideNum) {
-      const hideIndex = Math.floor(Math.random() * wordsLen);
-      if (!hidden.includes(hideIndex)) {
-        hidden.push(hideIndex);
-      }
-    }
-
-    this.words.forEach((word, i) => {
-      if (!hidden.includes(i)) {
-        this.keysIn[i] = word;
-      }
-    });
-
-    this.hiddenIndices = hidden;
-  }
-
-  get words() {
-    return this.mnemonic ? this.mnemonic.getValue().split(" ") : [];
-  }
-
-  open() {
-    // @ts-ignore
-    this.$refs.modal.open();
-  }
-
-  close() {
-    this.isActive = false;
-  }
-
-  formCheck() {
-    this.err = "";
-    const userWords = this.keysIn;
-
-    for (let i = 0; i < userWords.length; i++) {
-      const userWord = userWords[i].trim();
-      const trueWord = this.words[i].trim();
-
-      if (userWord.length === 0) {
-        this.err = `Oops, looks like you forgot to fill number ${i + 1}`;
-        return false;
+      while (hidden.length < hideNum) {
+        const hideIndex = Math.floor(Math.random() * wordsLen);
+        if (!hidden.includes(hideIndex)) {
+          hidden.push(hideIndex);
+        }
       }
 
-      if (userWord !== trueWord) {
-        this.err = `The mnemonic phrase you entered for word ${
-          i + 1
-        } not match the actual phrase.`;
-        return false;
+      for (const [i, word] of this.words.entries()) {
+        if (!hidden.includes(i)) {
+          this.keysIn[i] = word;
+        }
       }
-    }
 
-    return true;
-  }
+      this.hiddenIndices = hidden;
+    },
+    open() {
+      // @ts-ignore
+      this.$refs.modal.open();
+    },
+    close() {
+      this.isActive = false;
+    },
+    formCheck() {
+      this.err = "";
+      const userWords = this.keysIn;
 
-  verify() {
-    if (!this.formCheck()) return;
-    // @ts-ignore
-    this.$refs.modal.close();
-    this.$emit("complete");
-  }
-}
+      for (const [i, userWord_] of userWords.entries()) {
+        const userWord = userWord_.trim();
+        const trueWord = this.words[i]?.trim();
+
+        if (userWord.length === 0) {
+          this.err = `Oops, looks like you forgot to fill number ${i + 1}`;
+          return false;
+        }
+
+        if (userWord !== trueWord) {
+          this.err = `The mnemonic phrase you entered for word ${
+            i + 1
+          } not match the actual phrase.`;
+          return false;
+        }
+      }
+
+      return true;
+    },
+    verify() {
+      if (!this.formCheck()) return;
+      // @ts-ignore
+      this.$refs.modal.close();
+      this.$emit("complete");
+    },
+    onmnemonicchange(_: string) {
+      this.init();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .mnemonic_body {
   padding: 30px;
@@ -191,12 +203,12 @@ h3 {
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-bottom: 1px solid main.$primary-color-light;
+  border-bottom: 1px solid vars.$primary-color-light;
   outline: none;
 
   p {
     margin: 0 5px 0 0 !important;
-    color: main.$primary-color-light;
+    color: vars.$primary-color-light;
   }
 
   input {
@@ -229,7 +241,7 @@ h3 {
   color: var(--error);
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .mnemonic-body {
     width: 100%;
   }

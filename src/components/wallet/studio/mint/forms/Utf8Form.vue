@@ -2,41 +2,45 @@
   <div>
     <label>{{ $t("studio.mint.forms.utf8.label1") }}</label>
     <div class="input_cont">
-      <textarea maxlength="1024" type="text" v-model="val" @input="onInput" />
+      <textarea v-model="val" maxlength="1024" type="text" @input="onInput" />
       <p class="counter">{{ val.length }} / 1024</p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
 import type { UtfFormType } from "@/components/wallet/studio/mint/types";
+import { defineComponent } from "vue";
 
-@Component
-export class Utf8Form extends Vue {
-  val = "";
+export const Utf8Form = defineComponent({
+  emits: ["on-input"],
+  data() {
+    return {
+      val: "",
+    };
+  },
+  computed: {
+    isValid(): boolean {
+      if (this.val.length === 0 || this.val.length > 1024) {
+        return false;
+      }
 
-  get isValid(): boolean {
-    if (this.val.length === 0 || this.val.length > 1024) {
-      return false;
-    }
+      return true;
+    },
+  },
+  methods: {
+    onInput() {
+      let msg: null | UtfFormType = null;
 
-    return true;
-  }
+      msg = this.isValid
+        ? {
+            text: this.val,
+          }
+        : null;
 
-  onInput() {
-    let msg: null | UtfFormType = null;
-
-    if (this.isValid) {
-      msg = {
-        text: this.val,
-      };
-    } else {
-      msg = null;
-    }
-
-    this.$emit("onInput", msg);
-  }
-}
+      this.$emit("on-input", msg);
+    },
+  },
+});
 export default Utf8Form;
 </script>
 <style scoped lang="scss">

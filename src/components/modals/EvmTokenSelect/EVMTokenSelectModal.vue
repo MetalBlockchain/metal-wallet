@@ -1,9 +1,9 @@
 <template>
-  <modal ref="modal" title="Select Token" class="modal_main">
+  <modal ref="modal" class="modal_main" title="Select Token">
     <div class="token_select_body">
       <div class="list">
         <div class="token_row" @click="select('native')">
-          <img src="/img/metal_icon_circle.svg" class="col_img" />
+          <img class="col_img" src="/img/metal_icon_circle.svg" />
           <div class="col_name">
             <p>METAL</p>
             <p>Metal</p>
@@ -16,7 +16,7 @@
           class="token_row"
           @click="select(t)"
         >
-          <img v-if="t.data.logoURI" :src="t.data.logoURI" class="col_img" />
+          <img v-if="t.data.logoURI" class="col_img" :src="t.data.logoURI" />
           <p v-else class="col_img">?</p>
           <div class="col_name">
             <p>{{ t.data.symbol }}</p>
@@ -27,9 +27,9 @@
       </div>
       <div class="nft_list">
         <ERC721Row
-          class="nft_row"
           v-for="t in erc721s"
           :key="t.contractAddress"
+          class="nft_row"
           :token="t"
           @select="onERC721Select"
         ></ERC721Row>
@@ -37,79 +37,66 @@
     </div>
   </modal>
 </template>
+
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
-import type Erc20Token from "@/js/Erc20Token";
-import Big from "big.js";
-import type { WalletType } from "@/js/wallets/types";
-import { bnToBig } from "@/helpers/helper";
-import type ERC721Token from "@/js/ERC721Token";
-import ERC721Row from "@/components/modals/EvmTokenSelect/ERC721Row.vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type ERC721Token from "@/js/ERC721Token";
+import type { WalletType } from "@/js/wallets/types";
+import Big from "big.js";
+import { defineComponent } from "vue";
+import ERC721Row from "@/components/modals/EvmTokenSelect/ERC721Row.vue";
+import Modal from "@/components/modals/Modal.vue";
+import { bnToBig } from "@/helpers/helper";
 
-@Component({
+export const EVMTokenSelectModal = defineComponent({
   components: {
     ERC721Row,
     Modal,
   },
-})
-export class EVMTokenSelectModal extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
-  open(): void {
-    const modal = this.$refs.modal as Modal;
-    modal.open();
-  }
-
-  get tokens(): Erc20Token[] {
-    const tokens: Erc20Token[] =
-      this.$store.getters["Assets/networkErc20Tokens"];
-    const filt = tokens.filter((t) => {
-      if (t.balanceBN.isZero()) return false;
-      return true;
-    });
-    return filt;
-  }
-
-  get erc721s(): ERC721Token[] {
-    const w: WalletType = this.$store.state.activeWallet;
-    return this.$store.getters["Assets/ERC721/networkContracts"];
-  }
-
-  // get symbol() {
-  //     if (this.selected === 'native') return 'AVAX'
-  //     else return this.selected.data.symbol
-  // }
-
-  get avaxBalance(): Big {
-    const w: WalletType | null = this.$store.state.activeWallet;
-    if (!w) return Big(0);
-    const balBN = w.ethBalance;
-    return bnToBig(balBN, 18);
-  }
-
-  select(token: Erc20Token | "native") {
-    this.$emit("select", token);
-    this.close();
-  }
-
-  onERC721Select(val: iErc721SelectInput) {
-    this.$emit("selectCollectible", val);
-    this.close();
-  }
-
-  close() {
-    this.$refs.modal.close();
-  }
-}
+  emits: ["select", "select-collectible"],
+  computed: {
+    tokens(): Erc20Token[] {
+      const tokens: Erc20Token[] =
+        this.$store.getters["Assets/networkErc20Tokens"];
+      const filt = tokens.filter((t) => {
+        if (t.balanceBN.isZero()) return false;
+        return true;
+      });
+      return filt;
+    },
+    erc721s(): ERC721Token[] {
+      return this.$store.getters["Assets/ERC721/networkContracts"];
+    },
+    avaxBalance(): Big {
+      const w: WalletType | null = this.$store.state.activeWallet;
+      if (!w) return Big(0);
+      const balBN = w.ethBalance;
+      return bnToBig(balBN, 18);
+    },
+  },
+  methods: {
+    open(): void {
+      const modal = this.$refs.modal as typeof Modal;
+      modal.open();
+    },
+    select(token: Erc20Token | "native") {
+      this.$emit("select", token);
+      this.close();
+    },
+    onERC721Select(val: iErc721SelectInput) {
+      this.$emit("select-collectible", val);
+      this.close();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+  },
+});
 export default EVMTokenSelectModal;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 .token_select_body {
   width: 420px;
@@ -185,7 +172,7 @@ $logo_w: 38px;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .token_select_body {
     width: 100%;
     height: 40vh;

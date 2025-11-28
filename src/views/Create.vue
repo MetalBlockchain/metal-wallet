@@ -4,49 +4,40 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
+import { useHead } from "@unhead/vue";
+import { defineComponent } from "vue";
 import CreateWallet from "@/components/CreateWalletWorkflow/CreateWallet.vue";
 
-@Component({
+export const Create = defineComponent({
   components: {
     CreateWallet,
   },
-  metaInfo: () => {
+  setup() {
     const description =
       "Here at Metal, we've made storing digital assets easy. Create a Metal wallet today is see what the buzz is all about!";
-    return {
+    useHead({
+      title: () => "Create",
       meta: [
         {
-          vmid: "description",
-          name: "description",
+          property: "og:description",
           content: description,
         },
         {
-          vmid: "og:description",
-          name: "description",
+          property: "description",
           content: description,
         },
         {
-          vmid: "og:title",
-          name: "og:title",
+          property: "og:title",
           content: "Create | Metal Wallet",
         },
       ],
-      title: "Create",
-    };
+    });
   },
-})
-export class Create extends Vue {}
+});
 export default Create;
 </script>
 <style scoped lang="scss">
-@use "../main";
-
 .access_view {
-  /*display: grid;*/
-  /*grid-template-columns: 1fr 1fr;*/
   display: flex;
   justify-content: center;
   align-items: center;

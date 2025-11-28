@@ -1,99 +1,88 @@
 <template>
-  <modal ref="modal" :title="title" @beforeClose="beforeClose">
+  <modal ref="modal" :title="title" @before-close="beforeClose">
     <div class="add_key_body">
-      <img src="@/assets/import_key_bg.png" class="bg" />
+      <img class="bg" src="@/assets/import_key_bg.png" />
       <p class="explain">Add additional keys to use with your wallet.</p>
       <v-tabs
-        height="38"
-        :grow="true"
         v-model="selectedTab"
-        :show-arrows="false"
         :centered="true"
+        :grow="true"
+        height="38"
         :mobile-breakpoint="900"
+        :show-arrows="false"
       >
         <v-tab key="mnemonic">{{ $t("keys.import_key_option1") }}</v-tab>
         <v-tab key="keystore">{{ $t("keys.import_key_option2") }}</v-tab>
         <v-tab key="priv_key">{{ $t("keys.import_key_option3") }}</v-tab>
-        <v-tab-item>
+        <v-window-item>
           <AddMnemonic
-            @success="handleImportSuccess"
             ref="mnemonic"
+            @success="handleImportSuccess"
           ></AddMnemonic>
-        </v-tab-item>
-        <v-tab-item>
+        </v-window-item>
+        <v-window-item>
           <add-key-file
-            @success="handleImportSuccess"
             ref="keyfile"
-          ></add-key-file>
-        </v-tab-item>
-        <v-tab-item>
-          <add-key-string
             @success="handleImportSuccess"
+          ></add-key-file>
+        </v-window-item>
+        <v-window-item>
+          <add-key-string
             ref="keyString"
+            @success="handleImportSuccess"
           ></add-key-string>
-        </v-tab-item>
+        </v-window-item>
       </v-tabs>
     </div>
   </modal>
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import AddKeyFile from "@/components/wallet/manage/AddKeyFile.vue";
 import AddKeyString from "@/components/wallet/manage/AddKeyString.vue";
 import AddMnemonic from "@/components/wallet/manage/AddMnemonic.vue";
-interface ITab {
-  id: number;
-  name: string;
-}
 
-@Component({
+export default defineComponent({
   components: {
     Modal,
     AddKeyFile,
     AddKeyString,
     AddMnemonic,
   },
-})
-export default class ImportKeys extends Vue {
-  title = "";
-  selectedTab = "";
-
-  $refs!: {
-    modal: Modal;
-    keyfile: AddKeyFile;
-    keyString: AddKeyString;
-    mnemonic: AddMnemonic;
-  };
+  data() {
+    return {
+      title: "",
+      selectedTab: "",
+    };
+  },
   created() {
     this.title = this.$t("keys.import_key_title") as string;
-  }
-
-  open() {
-    this.$refs.modal.open();
-    this.selectedTab = "private"; // explicitly set v-model value for modal
-  }
-
-  beforeClose() {
-    this.$refs.keyfile?.clear();
-    this.$refs.keyString?.clear();
-    this.$refs.mnemonic?.clear();
-  }
-
-  handleImportSuccess() {
-    this.$refs.modal.close();
-    this.$store.dispatch("Notifications/add", {
-      title: this.$t("keys.import_key_success_title"),
-      message: this.$t("keys.import_key_success_msg"),
-    });
-  }
-}
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+      this.selectedTab = "private"; // explicitly set v-model value for modal
+    },
+    beforeClose() {
+      (this.$refs.keyfile as typeof AddKeyFile)?.clear();
+      (this.$refs.keyString as typeof AddKeyString)?.clear();
+      (this.$refs.mnemonic as typeof AddMnemonic)?.clear();
+    },
+    handleImportSuccess() {
+      (this.$refs.modal as typeof Modal).close();
+      this.$store.dispatch("Notifications/add", {
+        title: this.$t("keys.import_key_success_title"),
+        message: this.$t("keys.import_key_success_msg"),
+      });
+    },
+  },
+});
 </script>
 
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .add_key_body {
   padding: 30px;
@@ -128,7 +117,7 @@ export default class ImportKeys extends Vue {
   margin: 14px 0 !important;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .add_key_body {
     max-width: 100%;
   }
@@ -136,15 +125,15 @@ export default class ImportKeys extends Vue {
 </style>
 
 <style lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
 
 .v-tab.v-tab {
   font-weight: 700;
 }
 
 .v-tabs-slider-wrapper {
-  color: main.$secondary-color;
-  caret-color: main.$secondary-color;
+  color: vars.$secondary-color;
+  caret-color: vars.$secondary-color;
   height: 3px !important;
 }
 </style>

@@ -3,44 +3,52 @@
     <button
       v-for="(key, i) in keys"
       :key="key"
-      @click="select(key)"
-      :active="selectionSet.has(key)"
       class="hover_border"
+      :data-active="selectionSet.has(key)"
       :disabled="disabled"
+      @click="select(key)"
     >
-      {{ labels[i] }}
+      {{ labels?.at(i) }}
     </button>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Model } from "vue-property-decorator";
-import RadioButtons from "./RadioButtons.vue";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 
-@Component
-export default class MultiSelect extends Vue {
-  @Prop() labels!: string[];
-  @Prop() keys!: string[];
-  @Prop({ default: false }) disabled!: boolean;
-
-  @Model("change", { type: Array }) readonly selection!: string[];
-
-  get selectionSet() {
-    return new Set(this.selection);
-  }
-
-  select(val: string) {
-    const now: Set<string> = new Set(this.selection);
-    if (now.has(val)) {
-      now.delete(val);
-    } else {
-      now.add(val);
-    }
-    this.$emit("change", Array.from(now));
-  }
-}
+export default defineComponent({
+  props: {
+    labels: {
+      type: Array as PropType<string[]>,
+    },
+    keys: {
+      type: Array as PropType<string[]>,
+    },
+    disabled: { default: false, type: Boolean },
+    modelValue: { type: Array as PropType<string[]> },
+  },
+  emits: ["update:modelValue"],
+  computed: {
+    selectionSet() {
+      return new Set(this.modelValue);
+    },
+  },
+  methods: {
+    select(val: string) {
+      const now: Set<string> = new Set(this.modelValue);
+      if (now.has(val)) {
+        now.delete(val);
+      } else {
+        now.add(val);
+      }
+      this.$emit("update:modelValue", Array.from(now));
+    },
+  },
+});
 </script>
+
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 .radio_buts {
   display: flex;
   flex-wrap: wrap;
@@ -60,7 +68,7 @@ button {
   transition-duration: 0.2s;
   font-family: Inconsolata, monospace;
 
-  &[active] {
+  &[data-active="true"] {
     color: var(--bg-wallet);
     background-color: var(--primary-color);
   }
@@ -70,7 +78,7 @@ button {
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   button {
     font-size: 11px;
     padding: 4px 8px;

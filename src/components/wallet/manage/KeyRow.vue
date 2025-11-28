@@ -1,78 +1,74 @@
 <template>
-  <div class="addressItem" :selected="is_default">
+  <div class="addressItem" :selected="isDefault">
     <ExportKeys
-      v-if="walletType === 'mnemonic'"
-      :wallets="[wallet]"
+      v-if="walletType === 'mnemonic' && mnemonicWallet"
       ref="export_wallet"
+      :wallets="[mnemonicWallet]"
     ></ExportKeys>
     <MnemonicPhraseModal
       v-if="walletType === 'mnemonic'"
-      :phrase="mnemonicPhrase"
       ref="modal"
+      :phrase="mnemonicPhrase"
     ></MnemonicPhraseModal>
     <HdDerivationListModal
-      :wallet="wallet"
-      ref="modal_hd"
       v-if="isHDWallet"
+      ref="modal_hd"
+      :wallet="mnemonicWallet"
     ></HdDerivationListModal>
     <PrivateKey
       v-if="walletType === 'singleton'"
-      :privateKey="privateKey"
       ref="modal_priv_key"
+      :private-key="privateKey"
     ></PrivateKey>
     <PrivateKey
       v-if="walletType !== 'ledger'"
-      :privateKey="privateKeyC"
       ref="modal_priv_key_c"
+      :private-key="privateKeyC"
     ></PrivateKey>
-    <XpubModal :xpub="xpubXP" v-if="isHDWallet" ref="modal_xpub"></XpubModal>
+    <XpubModal v-if="isHDWallet" ref="modal_xpub" :xpub="xpubXP"></XpubModal>
     <div class="rows">
       <div class="header">
-        <template v-if="is_default">
-          <img src="@/assets/key_active.svg" class="key_logo" />
+        <template v-if="isDefault">
+          <img class="key_logo" src="@/assets/key_active.svg" />
         </template>
         <template v-else>
-          <img
-            v-if="$root.$data.theme === 'day'"
-            src="@/assets/key_inactive.svg"
-            class="key_logo"
-          />
-          <img v-else src="@/assets/key_inactive_night.png" class="key_logo" />
+          <img v-if="isDay" class="key_logo" src="@/assets/key_inactive.svg" />
+          <img v-else class="key_logo" src="@/assets/key_inactive_night.png" />
         </template>
         <div class="header_cols">
           <div class="detail">
             <p class="addressVal">
               <b>{{ walletTitle }}</b>
             </p>
-            <Tooltip :text="$t('keys.tooltip')" v-if="isVolatile">
-              <fa icon="exclamation-triangle" class="volatile_alert"></fa>
+            <Tooltip v-if="isVolatile" :text="$t('keys.tooltip')">
+              <fa class="volatile_alert" icon="exclamation-triangle"></fa>
             </Tooltip>
           </div>
           <div class="buts">
-            <button class="selBut" @click="select" v-if="!is_default">
+            <button v-if="!isDefault" class="selBut" @click="select">
               <span>{{ $t("keys.activate_key") }}</span>
             </button>
             <Tooltip
-              :text="$t('keys.remove_key')"
+              v-if="!isDefault"
               class="row_but circle"
-              @click.native="remove"
-              v-if="!is_default"
+              :text="$t('keys.remove_key')"
+              @click="remove"
             >
               <img src="@/assets/trash_can_dark.svg" style="height: 16px" />
             </Tooltip>
             <Tooltip
               v-if="walletType !== 'singleton'"
-              :text="$t('keys.hd_addresses')"
               class="row_but circle"
-              @click.native="showPastAddresses"
+              :text="$t('keys.hd_addresses')"
+              @click="showPastAddresses"
             >
               <fa icon="list-ol"></fa>
             </Tooltip>
             <Tooltip
               v-if="walletType === 'mnemonic'"
-              :text="$t('keys.export_key')"
               class="row_but circle"
-              @click.native="showExportModal"
+              :text="$t('keys.export_key')"
+              @click="showExportModal"
             >
               <fa icon="upload"></fa>
             </Tooltip>
@@ -104,7 +100,7 @@
           <p v-if="Object.keys(balances).length === 0" class="balance_empty">
             {{ $t("keys.empty") }}
           </p>
-          <div class="addressBalance bal_cols" v-else>
+          <div v-else class="addressBalance bal_cols">
             <p>This key has:</p>
             <div class="bal_rows">
               <p v-for="bal in balances" :key="bal.id">
@@ -118,33 +114,34 @@
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import { bintools } from "@/AVA";
-import AvaAsset from "@/js/AvaAsset";
-import type { AssetsDict } from "@/store/modules/assets/types";
 import type { AmountOutput } from "@metalblockchain/metaljs/dist/apis/avm";
-import MnemonicPhraseModal from "@/components/modals/MnemonicPhraseModal.vue";
-import HdDerivationListModal from "@/components/modals/HdDerivationList/HdDerivationListModal.vue";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import Tooltip from "@/components/misc/Tooltip.vue";
-
-import ExportKeys from "@/components/modals/ExportKeys.vue";
-import PrivateKey from "@/components/modals/PrivateKey.vue";
-import type { WalletNameType, WalletType } from "@/js/wallets/types";
-
+import type { PropType } from "vue";
 import type { SingletonWallet } from "../../../js/wallets/SingletonWallet";
-import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
-import XpubModal from "@/components/modals/XpubModal.vue";
 import type { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
+import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { WalletNameType, WalletType } from "@/js/wallets/types";
+import type { AssetsDict } from "@/stores/vuex/modules/assets/types";
 
-interface IKeyBalanceDict {
+import { defineComponent } from "vue";
+import Tooltip from "@/components/misc/Tooltip.vue";
+import ExportKeys from "@/components/modals/ExportKeys.vue";
+
+import HdDerivationListModal from "@/components/modals/HdDerivationList/HdDerivationListModal.vue";
+import MnemonicPhraseModal from "@/components/modals/MnemonicPhraseModal.vue";
+import PrivateKey from "@/components/modals/PrivateKey.vue";
+import XpubModal from "@/components/modals/XpubModal.vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
+import AvaAsset from "@/js/AvaAsset";
+import { bintools } from "@/misc/AVA";
+
+export interface IKeyBalanceDict {
   [key: string]: AvaAsset;
 }
 
-@Component({
+export const KeyRow = defineComponent({
   components: {
     MnemonicPhraseModal,
     HdDerivationListModal,
@@ -153,160 +150,140 @@ interface IKeyBalanceDict {
     PrivateKey,
     XpubModal,
   },
-})
-export class KeyRow extends Vue {
-  @Prop() wallet!: WalletType;
-  @Prop({ default: false }) is_default?: boolean;
+  props: {
+    wallet: {
+      type: Object as PropType<WalletType>,
+    },
+    isDefault: { default: false, type: Boolean },
+  },
+  emits: ["remove", "select"],
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+  computed: {
+    mnemonicWallet(): MnemonicWallet | undefined {
+      return this.wallet as MnemonicWallet;
+    },
+    isVolatile() {
+      return this.$store.state.volatileWallets.includes(this.wallet);
+    },
+    walletTitle() {
+      return this.wallet?.getBaseAddress();
+    },
+    assetsDict(): AssetsDict {
+      return this.$store.state.Assets.assetsDict;
+    },
+    balances(): IKeyBalanceDict {
+      if (!this.wallet?.getUTXOSet()) return {};
 
-  $refs!: {
-    export_wallet: ExportKeys;
-    modal: MnemonicPhraseModal;
-    modal_hd: HdDerivationListModal;
-    modal_priv_key: PrivateKey;
-    modal_xpub: XpubModal;
-  };
+      const res: IKeyBalanceDict = {};
 
-  get isVolatile() {
-    return this.$store.state.volatileWallets.includes(this.wallet);
-  }
+      const addrUtxos = this.wallet.getUTXOSet().getAllUTXOs();
+      for (const utxo of addrUtxos) {
+        // ignore NFTS and mint outputs
+        //TODO: support nfts
+        const outId = utxo.getOutput().getOutputID();
+        if (outId === 11 || outId === 6 || outId === 10) continue;
 
-  get walletTitle() {
-    return this.wallet.getBaseAddress();
-  }
+        const utxoOut = utxo.getOutput() as AmountOutput;
 
-  get assetsDict(): AssetsDict {
-    return this.$store.state.Assets.assetsDict;
-  }
+        const amount = utxoOut.getAmount();
+        const assetIdBuff = utxo.getAssetID();
+        const assetId = bintools.cb58Encode(assetIdBuff);
 
-  get balances(): IKeyBalanceDict {
-    if (!this.wallet.getUTXOSet()) return {};
+        const assetObj: AvaAsset | undefined = this.assetsDict[assetId];
 
-    const res: IKeyBalanceDict = {};
+        if (!assetObj) {
+          const name = "?";
+          const symbol = "?";
+          const denomination = 0;
 
-    const addrUtxos = this.wallet.getUTXOSet().getAllUTXOs();
-    for (let n = 0; n < addrUtxos.length; n++) {
-      const utxo = addrUtxos[n];
+          const newAsset = new AvaAsset(assetId, name, symbol, denomination);
+          newAsset.addBalance(amount);
 
-      // ignore NFTS and mint outputs
-      //TODO: support nfts
-      const outId = utxo.getOutput().getOutputID();
-      if (outId === 11 || outId === 6 || outId === 10) continue;
+          res[assetId] = newAsset;
+          continue;
+        }
 
-      const utxoOut = utxo.getOutput() as AmountOutput;
+        const asset = res[assetId];
+        if (asset) {
+          asset.addBalance(amount);
+        } else {
+          const name = assetObj.name;
+          const symbol = assetObj.symbol;
+          const denomination = assetObj.denomination;
 
-      const amount = utxoOut.getAmount();
-      const assetIdBuff = utxo.getAssetID();
-      const assetId = bintools.cb58Encode(assetIdBuff);
+          const newAsset = new AvaAsset(assetId, name, symbol, denomination);
+          newAsset.addBalance(amount);
 
-      const assetObj: AvaAsset | undefined = this.assetsDict[assetId];
-
-      if (!assetObj) {
-        const name = "?";
-        const symbol = "?";
-        const denomination = 0;
-
-        const newAsset = new AvaAsset(assetId, name, symbol, denomination);
-        newAsset.addBalance(amount);
-
-        res[assetId] = newAsset;
-        continue;
+          res[assetId] = newAsset;
+        }
       }
 
-      const asset = res[assetId];
-      if (!asset) {
-        const name = assetObj.name;
-        const symbol = assetObj.symbol;
-        const denomination = assetObj.denomination;
-
-        const newAsset = new AvaAsset(assetId, name, symbol, denomination);
-        newAsset.addBalance(amount);
-
-        res[assetId] = newAsset;
-      } else {
-        asset.addBalance(amount);
+      return res;
+    },
+    walletType(): WalletNameType {
+      return this.wallet?.type ?? "mnemonic";
+    },
+    isHDWallet() {
+      return ["mnemonic", "ledger"].includes(this.walletType);
+    },
+    mnemonicPhrase(): MnemonicPhrase | undefined {
+      if (this.walletType !== "mnemonic") return undefined;
+      const wallet = this.wallet as MnemonicWallet;
+      return wallet.getMnemonicEncrypted();
+    },
+    privateKey(): string | undefined {
+      if (this.walletType !== "singleton") return undefined;
+      const wallet = this.wallet as SingletonWallet;
+      return wallet.key;
+    },
+    privateKeyC(): string | undefined {
+      if (this.walletType === "ledger") return undefined;
+      const wallet = this.wallet as SingletonWallet | MnemonicWallet;
+      return wallet.ethKey;
+    },
+    xpubXP() {
+      if (this.isHDWallet) {
+        return (this.wallet as AbstractHdWallet).getXpubXP();
       }
-    }
-
-    return res;
-  }
-
-  get walletType(): WalletNameType {
-    return this.wallet.type;
-  }
-
-  get isHDWallet() {
-    return ["mnemonic", "ledger"].includes(this.walletType);
-  }
-  get mnemonicPhrase(): MnemonicPhrase | null {
-    if (this.walletType !== "mnemonic") return null;
-    const wallet = this.wallet as MnemonicWallet;
-    return wallet.getMnemonicEncrypted();
-  }
-
-  get privateKey(): string | null {
-    if (this.walletType !== "singleton") return null;
-    const wallet = this.wallet as SingletonWallet;
-    return wallet.key;
-  }
-
-  get privateKeyC(): string | null {
-    if (this.walletType === "ledger") return null;
-    const wallet = this.wallet as SingletonWallet | MnemonicWallet;
-    return wallet.ethKey;
-  }
-
-  /**
-   * Extended public key of m/44'/9000'/0' used for X and P chain addresses
-   */
-  get xpubXP() {
-    if (this.isHDWallet) {
-      return (this.wallet as AbstractHdWallet).getXpubXP();
-    }
-    return null;
-  }
-
-  remove() {
-    this.$emit("remove", this.wallet);
-  }
-  select() {
-    this.$emit("select", this.wallet);
-  }
-
-  showModal() {
-    const modal = this.$refs.modal;
-    //@ts-ignore
-    modal.open();
-  }
-
-  showXpub() {
-    this.$refs.modal_xpub.open();
-  }
-
-  showPastAddresses() {
-    const modal = this.$refs.modal_hd;
-    //@ts-ignore
-    modal.open();
-  }
-
-  showExportModal() {
-    //@ts-ignore
-    this.$refs.export_wallet.open();
-  }
-
-  showPrivateKeyModal() {
-    //@ts-ignore
-    this.$refs.modal_priv_key.open();
-  }
-
-  showPrivateKeyCModal() {
-    //@ts-ignore
-    this.$refs.modal_priv_key_c.open();
-  }
-}
+      return undefined;
+    },
+  },
+  methods: {
+    remove() {
+      this.$emit("remove", this.wallet);
+    },
+    select() {
+      this.$emit("select", this.wallet);
+    },
+    showModal() {
+      (this.$refs.modal as typeof MnemonicPhraseModal).open();
+    },
+    showXpub() {
+      (this.$refs.modal_xpub as typeof XpubModal).open();
+    },
+    showPastAddresses() {
+      (this.$refs.modal_hd as typeof HdDerivationListModal).open();
+    },
+    showExportModal() {
+      (this.$refs.export_wallet as typeof ExportKeys).open();
+    },
+    showPrivateKeyModal() {
+      (this.$refs.modal_priv_key as typeof PrivateKey).open();
+    },
+    showPrivateKeyCModal() {
+      (this.$refs.modal_priv_key_c as typeof PrivateKey).open();
+    },
+  },
+});
 export default KeyRow;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 .addressItem {
   font-size: 14px;
@@ -478,7 +455,7 @@ export default KeyRow;
   margin-left: 6px;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .header_cols {
     display: block;
   }

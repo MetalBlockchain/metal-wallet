@@ -10,32 +10,32 @@
       <div>
         <div class="tabs">
           <button
-            @click="tab = 'fungibles'"
-            :active="tab === `fungibles`"
+            :data-active="tab === `fungibles`"
             data-cy="wallet_fungible"
+            @click="tab = 'fungibles'"
           >
             {{ $t("portfolio.assets1") }}
           </button>
           <button
-            @click="tab = 'collectibles'"
-            :active="tab === `collectibles`"
+            :data-active="tab === `collectibles`"
             data-cy="wallet_nft"
+            @click="tab = 'collectibles'"
           >
             {{ $t("portfolio.assets2") }}
           </button>
         </div>
         <div class="search hover_border">
-          <img v-if="$root.$data.theme === 'day'" src="@/assets/search.png" />
+          <img v-if="isDay" src="@/assets/search.png" />
           <img v-else src="@/assets/search_night.svg" />
           <input
-            :placeholder="$t('portfolio.search').toString()"
             v-model="search"
+            :placeholder="$t('portfolio.search').toString()"
           />
         </div>
       </div>
     </div>
     <div class="pages">
-      <transition-group name="fade" mode="out-in">
+      <transition-group mode="out-in" name="fade">
         <fungibles
           v-show="tab === `fungibles`"
           key="fungibles"
@@ -51,30 +51,46 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-import Fungibles from "@/components/wallet/portfolio/Fungibles.vue";
+import { defineComponent } from "vue";
 import Collectibles from "@/components/wallet/portfolio/Collectibles.vue";
+import Fungibles from "@/components/wallet/portfolio/Fungibles.vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-@Component({
+export const Navbar = defineComponent({
   name: "WalletHome",
   components: {
     Fungibles,
     Collectibles,
   },
-})
-export class Navbar extends Vue {
-  search = "";
-  tab = "fungibles";
-  @Watch("tab")
-  tab_change() {
-    this.search = "";
-  }
-}
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+  data() {
+    return {
+      search: "",
+      tab: "fungibles",
+    };
+  },
+  watch: {
+    tab: [
+      {
+        handler: "tab_change",
+      },
+    ],
+  },
+  methods: {
+    tab_change() {
+      this.search = "";
+    },
+  },
+});
 export default Navbar;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .home_view {
   display: grid;
@@ -121,7 +137,7 @@ export default Navbar;
     outline: none !important;
     color: var(--tertiary-color);
 
-    &[active] {
+    &[data-active="true"] {
       color: var(--secondary-color);
       background-color: var(--bg-3);
       border-radius: 6px;
@@ -140,7 +156,6 @@ export default Navbar;
 .search {
   background-color: var(--bg-light);
   border-radius: 4px;
-  /*flex-grow: 1;*/
   height: 46px;
   padding: 5px;
   display: flex;
@@ -156,7 +171,6 @@ export default Navbar;
     border-radius: 4px;
     padding: 10px 0px;
     background-color: var(--bg-wallet-light);
-    /*height: 100%;*/
     height: $icon_w;
     width: $icon_w;
     object-fit: contain;
@@ -175,11 +189,7 @@ export default Navbar;
   }
 }
 
-.pages {
-  /*margin-top: 30px;*/
-}
-
-@include main.mobile-device {
+@include mixins.mobile-device {
   .header {
     display: block;
 
@@ -198,27 +208,20 @@ export default Navbar;
   .search {
     margin: 15px 0px;
   }
-
-  .pages {
-    /*min-height: 100vh;*/
-    /*padding-bottom: 30px;*/
-  }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .header {
     button {
       font-size: 13px;
 
-      &[active] {
+      &[data-active="true"] {
         border-bottom-width: 2px;
       }
     }
   }
 
   .search {
-    //margin: 15px 0px;
-    //flex-basis: 100%;
     flex-grow: 1;
     height: 36px;
     flex-basis: auto;

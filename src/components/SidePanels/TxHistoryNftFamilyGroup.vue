@@ -1,81 +1,78 @@
 <template>
-  <div class="family_group" v-if="payload">
-    <p class="count" v-if="quantity > 1">{{ quantity }}</p>
+  <div v-if="payload" class="family_group">
+    <p v-if="quantity && quantity > 1" class="count">{{ quantity }}</p>
     <div class="nft_card">
       <NftPayloadView
-        :payload="payload"
         class="payload_view"
-        small="true"
+        :payload="payload"
+        :small="true"
       ></NftPayloadView>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
+import type { UTXO } from "@/stores/vuex/modules/history/types";
 import { Buffer } from "@metalblockchain/metaljs";
-import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
 
-import type { UTXO } from "@/store/modules/history/types";
+import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
+import { defineComponent } from "vue";
+import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 
 const payloadtypes = PayloadTypes.getInstance();
 
-@Component({
+export const TxHistoryNftFamilyGroup = defineComponent({
   components: { NftPayloadView },
-})
-export class TxHistoryNftFamilyGroup extends Vue {
-  // @Prop() payloads!: PayloadBase[]
-  @Prop() utxos!: UTXO[];
-  @Prop() assetID!: string;
+  props: {
+    utxos: {
+      type: Array as PropType<UTXO[]>,
+    },
+    assetID: {
+      type: String,
+    },
+  },
+  computed: {
+    nftFamsDict() {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+    quantity() {
+      return this.utxos?.length;
+    },
+    payload(): PayloadBase | null {
+      const payload = this.utxos?.at(0)?.payload;
+      if (!payload) return null;
 
+      try {
+        const parsed = this.parsePayload(payload);
+        return parsed;
+      } catch {
+        console.error("Unable to parse payload.");
+      }
+      return null;
+    },
+  },
   created() {
-    if (!this.nftFamsDict[this.assetID]) {
+    if (this.assetID && !this.nftFamsDict[this.assetID]) {
       this.$store.dispatch("Assets/addUnknownNftFamily", this.assetID);
     }
-  }
+  },
+  methods: {
+    parsePayload(rawPayload: string): PayloadBase {
+      let payload = Buffer.from(rawPayload, "base64");
+      payload = Buffer.concat([Buffer.alloc(4).fill(payload.length), payload]);
 
-  get nftFamsDict() {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  get quantity() {
-    return this.utxos.length;
-  }
-
-  parsePayload(rawPayload: string): PayloadBase {
-    let payload = Buffer.from(rawPayload, "base64");
-    payload = Buffer.concat([new Buffer(4).fill(payload.length), payload]);
-
-    // try {
-    const typeId = payloadtypes.getTypeID(payload);
-    const pl: Buffer = payloadtypes.getContent(payload);
-    const payloadbase: PayloadBase = payloadtypes.select(typeId, pl);
-    return payloadbase;
-    // } catch (e) {
-    //     console.error('Unable to parse payload.')
-    // console.error(e)
-    // }
-  }
-
-  get payload(): PayloadBase | null {
-    const payload = this.utxos[0].payload;
-    if (!payload) return null;
-
-    try {
-      const parsed = this.parsePayload(payload);
-      return parsed;
-    } catch (e) {
-      console.error("Unable to parse payload.");
-    }
-    return null;
-  }
-}
+      // try {
+      const typeId = payloadtypes.getTypeID(payload);
+      const pl: Buffer = payloadtypes.getContent(payload);
+      const payloadbase: PayloadBase = payloadtypes.select(typeId, pl);
+      return payloadbase;
+    },
+  },
+});
 export default TxHistoryNftFamilyGroup;
 </script>
 <style scoped lang="scss">
-@use "../../main";
 @use "sass:math";
 
 $countW: 18px;
@@ -111,8 +108,5 @@ $countW: 18px;
 }
 
 .payload_view {
-}
-
-@include main.mobile-device {
 }
 </style>

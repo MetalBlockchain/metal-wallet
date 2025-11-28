@@ -1,145 +1,171 @@
 <template>
   <div class="list_cont no_scroll_bar">
-    <v-tabs grow>
-      <v-tab>Internal</v-tab>
-      <v-tab>External</v-tab>
-      <v-tab>Platform</v-tab>
-      <v-tab-item>
+    <v-tabs v-model="tab" grow>
+      <v-tab value="internal">Internal</v-tab>
+      <v-tab value="external">External</v-tab>
+      <v-tab value="platform">Platform</v-tab>
+    </v-tabs>
+    <v-tabs-window v-model="tab">
+      <v-tabs-window-item value="internal">
         <HdChainTable
           :addresses="addrsInternal"
           :balance-dict="keyBalancesInternal"
-          :wallet="wallet"
-          :path="1"
           :helper="internalHelper"
+          :path="1"
+          :wallet="wallet"
         ></HdChainTable>
-      </v-tab-item>
-      <v-tab-item>
+      </v-tabs-window-item>
+      <v-tabs-window-item value="external">
         <HdChainTable
           :addresses="addrsExternal"
           :balance-dict="keyBalancesExternal"
-          :wallet="wallet"
-          :path="0"
           :helper="externalHelper"
+          :path="0"
+          :wallet="wallet"
         ></HdChainTable>
-      </v-tab-item>
-      <v-tab-item>
+      </v-tabs-window-item>
+      <v-tabs-window-item value="platform">
         <HdChainTable
           :addresses="addrsPlatform"
           :balance-dict="keyBalancesPlatform"
-          :wallet="wallet"
-          :path="0"
           :helper="platformHelper"
+          :path="0"
+          :wallet="wallet"
         ></HdChainTable>
-      </v-tab-item>
-    </v-tabs>
+      </v-tabs-window-item>
+    </v-tabs-window>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { BN } from "@metalblockchain/metaljs";
 import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm";
 
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { bintools } from "@/AVA";
-import type AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
-import { bnToBig } from "@/helpers/helper";
-import type { BN } from "@metalblockchain/metaljs";
+import type AvaAsset from "@/js/AvaAsset";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import { defineComponent } from "vue";
 import HdChainTable from "@/components/modals/HdDerivationList/HdChainTable.vue";
+import { bnToBig } from "@/helpers/helper";
+import { bintools } from "@/misc/AVA";
 
-@Component({
+export const HDDerivationList = defineComponent({
   components: {
     HdChainTable,
   },
-})
-export class HDDerivationList extends Vue {
-  @Prop() wallet!: MnemonicWallet;
+  props: {
+    wallet: {
+      type: Object as PropType<MnemonicWallet>,
+    },
+  },
+  data() {
+    const addrsPlatform: string[] = [];
+    const addrsInternal: string[] = [];
+    const addrsExternal: string[] = [];
+    const tab = "internal";
 
-  addrsExternal: string[] = [];
-  addrsInternal: string[] = [];
-  addrsPlatform: string[] = [];
+    return {
+      addrsExternal,
+      addrsInternal,
+      addrsPlatform,
+      tab,
+    };
+  },
+  computed: {
+    internalHelper() {
+      return this.wallet?.internalHelper;
+    },
+    externalHelper() {
+      return this.wallet?.externalHelper;
+    },
+    platformHelper() {
+      return this.wallet?.platformHelper;
+    },
+    assetsDict() {
+      return this.$store.state.Assets.assetsDict;
+    },
+    keyBalancesExternal(): DerivationListBalanceDict[] {
+      const wallet = this.wallet;
+      const utxoSet = wallet?.externalHelper.utxoSet as AVMUTXOSet;
+      const addrs = this.addrsExternal;
 
-  @Watch("wallet.internalHelper.utxoSet", { immediate: true })
-  onInternalUtxoChange() {
-    this.addrsInternal = this.wallet.internalHelper.getAllDerivedAddresses();
-  }
+      return this.utxoSetToBalanceDict(utxoSet, addrs);
+    },
+    keyBalancesInternal(): DerivationListBalanceDict[] {
+      const wallet = this.wallet;
+      const utxoSet = wallet?.internalHelper.utxoSet;
+      if (!utxoSet) return [];
+      const addrs = this.addrsInternal;
+      return this.utxoSetToBalanceDict(utxoSet, addrs);
+    },
+    keyBalancesPlatform(): DerivationListBalanceDict[] {
+      const wallet = this.wallet;
+      const utxoSet = wallet?.platformHelper.utxoSet;
+      if (!utxoSet) return [];
+      const addrs = this.addrsPlatform;
+      return this.utxoSetToBalanceDict(utxoSet, addrs);
+    },
+  },
+  watch: {
+    "wallet.internalHelper.utxoSet": [
+      { immediate: true, handler: "onInternalUtxoChange" },
+    ],
+    "wallet.externalHelper.utxoSet": [
+      { immediate: true, handler: "onExternalUtxoChange" },
+    ],
+    "wallet.platformHelper.utxoSet": [
+      { immediate: true, handler: "onPlatformUtxoChange" },
+    ],
+  },
+  methods: {
+    utxoSetToBalanceDict(
+      set: AVMUTXOSet | PlatformUTXOSet,
+      addrs: string[],
+    ): DerivationListBalanceDict[] {
+      const assets: AvaAsset[] = this.$store.state.Assets.assets;
 
-  @Watch("wallet.externalHelper.utxoSet", { immediate: true })
-  onExternalUtxoChange() {
-    this.addrsExternal = this.wallet.externalHelper.getAllDerivedAddresses();
-  }
-
-  @Watch("wallet.platformHelper.utxoSet", { immediate: true })
-  onPlatformUtxoChange() {
-    this.addrsPlatform = this.wallet.platformHelper.getAllDerivedAddresses();
-  }
-
-  get internalHelper() {
-    return this.wallet.internalHelper;
-  }
-  get externalHelper() {
-    return this.wallet.externalHelper;
-  }
-  get platformHelper() {
-    return this.wallet.platformHelper;
-  }
-
-  get assetsDict() {
-    return this.$store.state.Assets.assetsDict;
-  }
-
-  utxoSetToBalanceDict(
-    set: AVMUTXOSet | PlatformUTXOSet,
-    addrs: string[]
-  ): DerivationListBalanceDict[] {
-    const assets: AvaAsset[] = this.$store.state.Assets.assets;
-
-    const denoms: number[] = assets.map((asset) => {
-      return asset.denomination;
-    });
-    const assetIds: string[] = this.$store.getters["Assets/assetIds"];
-
-    const res = [];
-    for (let i = 0; i < addrs.length; i++) {
-      const balDict: DerivationListBalanceDict = {};
-      const addrBuff = bintools.stringToAddress(addrs[i]);
-      assetIds.forEach((assetId, index) => {
-        const bal: BN = set.getBalance([addrBuff], assetId);
-
-        if (!bal.isZero()) {
-          const balBig = bnToBig(bal, denoms[index]);
-          balDict[assetId] = balBig;
-        }
+      const denoms: number[] = assets.map((asset) => {
+        return asset.denomination;
       });
-      res.push(balDict);
-    }
-    return res;
-  }
+      const assetIds: string[] = this.$store.getters["Assets/assetIds"];
 
-  get keyBalancesExternal(): DerivationListBalanceDict[] {
-    const wallet = this.wallet;
-    const utxoSet = wallet.externalHelper.utxoSet as AVMUTXOSet;
-    const addrs = this.addrsExternal;
+      const res = [];
+      for (const addr of addrs) {
+        const balDict: DerivationListBalanceDict = {};
+        const addrBuff = bintools.stringToAddress(addr);
+        for (const [index, assetId] of assetIds.entries()) {
+          const bal: BN = set.getBalance([addrBuff], assetId);
 
-    return this.utxoSetToBalanceDict(utxoSet, addrs);
-  }
-
-  get keyBalancesInternal(): DerivationListBalanceDict[] {
-    const wallet = this.wallet;
-    const utxoSet = wallet.internalHelper.utxoSet;
-    const addrs = this.addrsInternal;
-    return this.utxoSetToBalanceDict(utxoSet, addrs);
-  }
-
-  get keyBalancesPlatform(): DerivationListBalanceDict[] {
-    const wallet = this.wallet;
-    const utxoSet = wallet.platformHelper.utxoSet;
-    const addrs = this.addrsPlatform;
-    return this.utxoSetToBalanceDict(utxoSet, addrs);
-  }
-}
+          if (!bal.isZero()) {
+            const balBig = bnToBig(bal, denoms[index]);
+            balDict[assetId] = balBig;
+          }
+        }
+        res.push(balDict);
+      }
+      return res;
+    },
+    onInternalUtxoChange() {
+      if (this.wallet) {
+        this.addrsInternal =
+          this.wallet.internalHelper.getAllDerivedAddresses();
+      }
+    },
+    onExternalUtxoChange() {
+      if (this.wallet) {
+        this.addrsExternal =
+          this.wallet.externalHelper.getAllDerivedAddresses();
+      }
+    },
+    onPlatformUtxoChange() {
+      if (this.wallet) {
+        this.addrsPlatform =
+          this.wallet.platformHelper.getAllDerivedAddresses();
+      }
+    },
+  },
+});
 export default HDDerivationList;
 </script>
 

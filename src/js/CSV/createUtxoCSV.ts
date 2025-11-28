@@ -1,12 +1,12 @@
-import {
-  isTransactionX,
-  isTransactionP,
-  isCChainExportTransaction,
-} from "@/js/Glacier/models";
-import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 import type { UtxoCsvRow } from "@/js/CSV/models";
+import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 import { createUtxoCsvData } from "@/js/CSV/createUtxoCsvData";
 import { getTxTimestamp } from "@/js/Glacier/getTxTimestamp";
+import {
+  isCChainExportTransaction,
+  isTransactionP,
+  isTransactionX,
+} from "@/js/Glacier/models";
 
 const SUPPORTED_TYPE: TransactionTypeName[] = [
   "BaseTx",
@@ -24,102 +24,100 @@ const SUPPORTED_TYPE: TransactionTypeName[] = [
 export async function createUtxoCSV(
   txs: TransactionType[],
   ownedAddresses: string[],
-  evmAddress: string
+  evmAddress: string,
 ) {
   const filtered = txs.filter((tx) => SUPPORTED_TYPE.includes(tx.txType));
 
-  return filtered
-    .map((tx) => {
-      const txRows: UtxoCsvRow[] = [];
+  return filtered.flatMap((tx) => {
+    const txRows: UtxoCsvRow[] = [];
 
-      const unixTime = getTxTimestamp(tx);
-      const date = new Date(unixTime);
+    const unixTime = getTxTimestamp(tx);
+    const date = new Date(unixTime);
 
-      const shared = {
-        txID: tx.txHash,
-        txType: tx.txType,
-        timeStamp: date,
-        unixTime: unixTime.toString(),
-      };
+    const shared = {
+      txID: tx.txHash,
+      txType: tx.txType,
+      timeStamp: date,
+      unixTime: unixTime.toString(),
+    };
 
-      if (isTransactionX(tx)) {
-        tx.consumedUtxos.forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: true,
-          });
-        });
-
-        tx.emittedUtxos.forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: false,
-          });
-        });
-      } else if (isTransactionP(tx)) {
-        (tx.consumedUtxos || []).forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: true,
-          });
-        });
-        (tx.emittedUtxos || []).forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: false,
-          });
-        });
-      } else if (isCChainExportTransaction(tx)) {
-        tx.evmInputs.forEach((evmIn) => {
-          txRows.push({
-            ...shared,
-            isInput: true,
-            amount: evmIn.asset.amount,
-            assetID: evmIn.asset.assetId,
-            chain: tx.sourceChain,
-            isOwner: evmAddress === evmIn.fromAddress,
-            owners: [evmIn.fromAddress],
-            locktime: 0,
-            threshold: 1,
-          });
-        });
-
-        tx.emittedUtxos.forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: false,
-          });
-        });
-      } else {
-        tx.consumedUtxos.forEach((utxo) => {
-          txRows.push({
-            ...shared,
-            ...createUtxoCsvData(utxo, ownedAddresses),
-            isInput: true,
-          });
-        });
-
-        tx.evmOutputs.forEach((evmOut) => {
-          txRows.push({
-            ...shared,
-            isInput: true,
-            amount: evmOut.asset.amount,
-            assetID: evmOut.asset.assetId,
-            chain: tx.destinationChain,
-            isOwner: evmAddress === evmOut.toAddress,
-            owners: [evmOut.toAddress],
-            locktime: 0,
-            threshold: 1,
-          });
+    if (isTransactionX(tx)) {
+      for (const utxo of tx.consumedUtxos) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: true,
         });
       }
 
-      return txRows;
-    })
-    .flat();
+      for (const utxo of tx.emittedUtxos) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: false,
+        });
+      }
+    } else if (isTransactionP(tx)) {
+      for (const utxo of tx.consumedUtxos || []) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: true,
+        });
+      }
+      for (const utxo of tx.emittedUtxos || []) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: false,
+        });
+      }
+    } else if (isCChainExportTransaction(tx)) {
+      for (const evmIn of tx.evmInputs) {
+        txRows.push({
+          ...shared,
+          isInput: true,
+          amount: evmIn.asset.amount,
+          assetID: evmIn.asset.assetId,
+          chain: tx.sourceChain,
+          isOwner: evmAddress === evmIn.fromAddress,
+          owners: [evmIn.fromAddress],
+          locktime: 0,
+          threshold: 1,
+        });
+      }
+
+      for (const utxo of tx.emittedUtxos) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: false,
+        });
+      }
+    } else {
+      for (const utxo of tx.consumedUtxos) {
+        txRows.push({
+          ...shared,
+          ...createUtxoCsvData(utxo, ownedAddresses),
+          isInput: true,
+        });
+      }
+
+      for (const evmOut of tx.evmOutputs) {
+        txRows.push({
+          ...shared,
+          isInput: true,
+          amount: evmOut.asset.amount,
+          assetID: evmOut.asset.assetId,
+          chain: tx.destinationChain,
+          isOwner: evmAddress === evmOut.toAddress,
+          owners: [evmOut.toAddress],
+          locktime: 0,
+          threshold: 1,
+        });
+      }
+    }
+
+    return txRows;
+  });
 }

@@ -2,52 +2,20 @@
   <!--    <p @keydown.up="up" @keydown.down="down"-->
   <!--       @input="input" >{{display}}</p>-->
   <input
-    type="text"
     v-model="raw"
-    @keydown.up="up"
-    @keydown.down="down"
     contenteditable="false"
-    @input="input"
+    type="text"
     @change="change"
+    @input="input"
+    @keydown.down="down"
+    @keydown.up="up"
   />
 </template>
-<script>
-import Big from "big.js";
+<script lang="ts">
 import { BN } from "@metalblockchain/metaljs";
+import Big from "big.js";
 
-export default {
-  data() {
-    return {
-      raw: "0",
-      value: null,
-    };
-  },
-  created() {
-    this.value = new Big(0);
-  },
-  computed: {
-    stepSize() {
-      return Math.pow(10, -this.denomination);
-    },
-    bigMax() {
-      if (this.max) {
-        // this.max is a BN in satoshis
-        const satoshi = Big(this.max);
-        const divider = Big(10).pow(this.denomination);
-        return satoshi.div(divider);
-      }
-      return null;
-    },
-    bigMin() {
-      if (typeof this.min != "undefined") {
-        return Big(this.min);
-      }
-      return null;
-    },
-  },
-  mounted() {
-    this.cleanInput();
-  },
+export const BigNumInput = defineComponent({
   props: {
     denomination: {
       type: Number,
@@ -61,30 +29,68 @@ export default {
       default: 0,
     },
   },
+  emits: ["change"],
+  data(): {
+    raw: string;
+    value: Big | null;
+  } {
+    return {
+      raw: "0",
+      value: null,
+    };
+  },
+  computed: {
+    stepSize() {
+      return Math.pow(10, -this.denomination);
+    },
+    bigMax() {
+      if (this.max) {
+        // this.max is a BN in satoshis
+        const satoshi = Big(this.max.toString());
+        const divider = Big(10).pow(this.denomination);
+        return satoshi.div(divider);
+      }
+      return null;
+    },
+    bigMin() {
+      if (this.min !== undefined) {
+        return Big(this.min);
+      }
+      return null;
+    },
+  },
   watch: {
     denomination() {
       this.cleanInput();
     },
   },
+  created() {
+    this.value = new Big(0);
+  },
+  mounted() {
+    this.cleanInput();
+  },
   methods: {
     // Emit in BN as satoshis!
     emit() {
-      // console.log(this.value.toString());
-      const tens = Big(10).pow(this.denomination);
-      const satoshis = this.value.times(tens);
-      const bn = new BN(satoshis.toFixed(0));
-      this.$emit("change", bn);
+      if (this.value) {
+        // console.log(this.value.toString());
+        const tens = Big(10).pow(this.denomination);
+        const satoshis = this.value.times(tens);
+        const bn = new BN(satoshis.toFixed(0));
+        this.$emit("change", bn);
+      }
     },
-    change(ev) {
+    change(_: Event) {
       this.cleanInput();
     },
-    input(ev) {
+    input(ev: InputEvent) {
       ev.preventDefault();
       const data = ev.data;
 
       if (data !== null) {
-        const num = parseInt(data);
-        if (isNaN(num)) {
+        const num = Number.parseInt(data);
+        if (Number.isNaN(num)) {
           this.cleanInput();
         }
       }
@@ -93,21 +99,21 @@ export default {
       let rawnum;
       // console.log('Raw:',this.raw);
       try {
-        if (this.raw === "") this.raw = 0;
+        if (this.raw === "") this.raw = "0";
         rawnum = new Big(this.raw);
-      } catch (err) {
+      } catch {
         rawnum = this.value;
       }
 
-      if (this.bigMax != null) {
+      if (this.bigMax != null && rawnum) {
         if (rawnum.gt(this.bigMax)) {
           rawnum = this.bigMax;
-        } else if (rawnum.lt(this.bigMin)) {
+        } else if (this.bigMin && rawnum.lt(this.bigMin)) {
           rawnum = this.bigMin;
         }
       }
       this.value = rawnum;
-      this.raw = rawnum.toFixed(this.denomination);
+      this.raw = rawnum ? rawnum.toFixed(this.denomination) : "";
       this.emit();
     },
     maxout() {
@@ -116,28 +122,33 @@ export default {
         this.valueToRaw();
       }
     },
-    up(ev) {
-      this.value = this.value.plus(this.stepSize);
+    up(_: Event) {
+      if (this.value) {
+        this.value = this.value.plus(this.stepSize);
+      }
       this.valueToRaw();
     },
     valueToRaw() {
       let val = this.value;
-      if (this.bigMax != null) {
+      if (this.bigMax != null && val) {
         if (val.gt(this.bigMax)) {
           val = this.bigMax;
           this.value = val;
-        } else if (val.lt(this.bigMin)) {
+        } else if (this.bigMin && val.lt(this.bigMin)) {
           val = this.bigMin;
           this.value = val;
         }
       }
-      this.raw = val.toFixed(this.denomination);
+      this.raw = val ? val.toFixed(this.denomination) : "";
       this.emit();
     },
-    down(ev) {
-      this.value = this.value.minus(this.stepSize);
-      this.valueToRaw();
+    down(_: Event) {
+      if (this.value) {
+        this.value = this.value.minus(this.stepSize);
+        this.valueToRaw();
+      }
     },
   },
-};
+});
+export default BigNumInput;
 </script>

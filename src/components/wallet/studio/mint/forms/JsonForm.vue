@@ -2,56 +2,51 @@
   <div>
     <label>{{ $t("studio.mint.forms.json.label1") }}</label>
     <div class="input_cont">
-      <textarea maxlength="1024" type="text" v-model="data" @input="onInput" />
+      <textarea v-model="data" maxlength="1024" type="text" @input="onInput" />
       <p class="counter">{{ data.length }} / 1024</p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
 import type { JsonFormType } from "@/components/wallet/studio/mint/types";
+import { defineComponent } from "vue";
 
 // const JSONEditor = require('jsoneditor')
 
-@Component
-export class JsonForm extends Vue {
-  data = "{\n\n}";
+export const JsonForm = defineComponent({
+  emits: ["on-input"],
+  data() {
+    return {
+      data: "{\n\n}",
+    };
+  },
+  computed: {
+    isValid(): boolean {
+      const data = this.data;
 
-  get isValid(): boolean {
-    const data = this.data;
+      if (data.length === 0) return false;
+      try {
+        JSON.parse(data);
+      } catch {
+        return false;
+      }
+      return true;
+    },
+  },
+  methods: {
+    onInput() {
+      let msg: null | JsonFormType = null;
 
-    if (data.length === 0) return false;
-    try {
-      JSON.parse(data);
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
+      msg = this.isValid
+        ? {
+            data: this.data,
+          }
+        : null;
 
-  mounted() {
-    // const container = this.$refs.editor
-    // const options = {
-    //     mode: 'text',
-    // }
-    // const editor = new JSONEditor(container, options)
-    //
-    // console.log(editor)
-  }
-  onInput() {
-    let msg: null | JsonFormType = null;
-
-    if (this.isValid) {
-      msg = {
-        data: this.data,
-      };
-    } else {
-      msg = null;
-    }
-
-    this.$emit("onInput", msg);
-  }
-}
+      this.$emit("on-input", msg);
+    },
+  },
+});
 export default JsonForm;
 </script>
 <style scoped lang="scss">

@@ -2,15 +2,15 @@
   <div>
     <div class="cols">
       <form @submit.prevent="">
-        <transition-group name="fade" mode="out-in">
+        <transition-group mode="out-in" name="fade">
           <div v-show="!isConfirm" key="form" class="ins_col">
             <div style="margin-bottom: 30px">
               <h4>{{ $t("earn.validate.label_1") }}</h4>
               <input
-                type="text"
                 v-model="nodeId"
-                style="width: 100%"
                 placeholder="NodeID-"
+                style="width: 100%"
+                type="text"
               />
             </div>
             <div style="margin: 30px 0">
@@ -19,19 +19,19 @@
                 The public key portion of the proof of possession:
               </p>
               <input
-                type="text"
                 v-model="signerPublicKey"
-                style="width: 100%; margin-bottom: 10px"
                 placeholder="Public Key"
+                style="width: 100%; margin-bottom: 10px"
+                type="text"
               />
               <p class="desc">
                 The signature portion of the proof of possession:
               </p>
               <input
-                type="text"
                 v-model="signerSignature"
-                style="width: 100%"
                 placeholder="Signature"
+                style="width: 100%"
+                type="text"
               />
             </div>
             <div style="margin: 30px 0">
@@ -52,8 +52,8 @@
               </p>
               <AvaxInput
                 v-model="stakeAmt"
-                :max="maxFormAmount"
                 class="amt_in"
+                :max="maxFormAmount"
               ></AvaxInput>
             </div>
             <div style="margin: 30px 0">
@@ -62,11 +62,11 @@
                 {{ $t("earn.validate.fee.desc") }}
               </p>
               <input
-                type="number"
-                :min="minFee"
-                max="100"
-                step="0.01"
                 v-model="delegationFee"
+                max="100"
+                :min="minFee"
+                step="0.01"
+                type="number"
                 @change="onFeeChange"
               />
             </div>
@@ -81,58 +81,58 @@
               </p>
               <div class="reward_tabs">
                 <button
-                  @click="rewardSelect('local')"
                   :selected="rewardDestination === 'local'"
+                  @click="rewardSelect('local')"
                 >
                   {{ $t("earn.delegate.form.reward.chip_1") }}
                 </button>
                 <span>or</span>
                 <button
-                  @click="rewardSelect('custom')"
                   :selected="rewardDestination === 'custom'"
+                  @click="rewardSelect('custom')"
                 >
                   {{ $t("earn.delegate.form.reward.chip_2") }}
                 </button>
               </div>
               <QrInput
-                style="height: 40px; border-radius: 2px"
                 v-model="rewardIn"
-                placeholder="Reward Address"
                 class="reward_addr_in"
+                placeholder="Reward Address"
+                style="height: 40px; border-radius: 2px"
               ></QrInput>
             </div>
             <Expandable>
-              <template v-slot:triggerOn>
+              <template #triggerOn>
                 <p>
                   {{ $t("earn.shared.advanced.toggle_on") }}
                 </p>
               </template>
-              <template v-slot:triggerOff>
+              <template #triggerOff>
                 <p>
                   {{ $t("earn.shared.advanced.toggle_off") }}
                 </p>
               </template>
-              <template v-slot:content>
+              <template #content>
                 <UtxoSelectForm
-                  style="margin: 10px 0"
                   v-model="formUtxos"
+                  style="margin: 10px 0"
                 ></UtxoSelectForm>
               </template>
             </Expandable>
           </div>
           <ConfirmPage
-            key="confirm"
             v-show="isConfirm"
-            :node-i-d="nodeId"
-            :end="formEnd"
+            key="confirm"
             :amount="formAmt"
             :delegation-fee="delegationFee"
+            :end="formEnd"
+            :node-i-d="nodeId"
             :reward-address="rewardIn"
             :reward-destination="rewardDestination"
           ></ConfirmPage>
         </transition-group>
         <div>
-          <div class="summary" v-if="!isSuccess">
+          <div v-if="!isSuccess" class="summary">
             <CurrencySelect v-model="currency_type"></CurrencySelect>
             <div>
               <label>
@@ -174,37 +174,37 @@
               <p class="err">{{ err }}</p>
               <v-btn
                 v-if="!isConfirm"
-                @click="confirm"
+                block
                 class="button_secondary"
                 depressed
-                :loading="isLoading"
                 :disabled="!canSubmit"
-                block
+                :loading="isLoading"
+                @click="confirm"
               >
                 {{ $t("earn.validate.confirm") }}
               </v-btn>
               <template v-else>
                 <v-btn
-                  @click="submit"
+                  block
                   class="button_secondary"
                   depressed
                   :loading="isLoading"
-                  block
+                  @click="submit"
                 >
                   {{ $t("earn.validate.submit") }}
                 </v-btn>
                 <v-btn
-                  text
-                  @click="cancelConfirm"
                   block
                   style="color: var(--primary-color); margin-top: 20px"
+                  text
+                  @click="cancelConfirm"
                 >
                   {{ $t("earn.validate.cancel") }}
                 </v-btn>
               </template>
             </div>
           </div>
-          <div class="success_cont" v-else>
+          <div v-else class="success_cont">
             <h2>{{ $t("earn.validate.success.title") }}</h2>
             <p>{{ $t("earn.validate.success.desc") }}</p>
             <p class="tx_id">Tx ID: {{ txId }}</p>
@@ -220,26 +220,26 @@
                   style="color: var(--primary-color)"
                 ></Spinner>
                 <p
-                  style="color: var(--success)"
                   v-if="txStatus === 'Committed'"
+                  style="color: var(--success)"
                 >
                   <fa icon="check-circle"></fa>
                 </p>
-                <p style="color: var(--error)" v-if="txStatus === 'Dropped'">
+                <p v-if="txStatus === 'Dropped'" style="color: var(--error)">
                   <fa icon="times-circle"></fa>
                 </p>
               </div>
             </div>
-            <div class="reason_cont" v-if="txReason">
+            <div v-if="txReason" class="reason_cont">
               <label>{{ $t("earn.validate.success.reason") }}</label>
               <p>{{ txReason }}</p>
             </div>
             <v-btn
-              @click="cancel"
+              v-if="txStatus"
               block
               class="button_secondary"
               depressed
-              v-if="txStatus"
+              @click="cancel"
             >
               Back to Earn
             </v-btn>
@@ -250,45 +250,41 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import AvaxInput from "@/components/misc/AvaxInput.vue";
-import { BN } from "@metalblockchain/metaljs";
-import Big from "big.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-import { QrInput } from "@avalabs/vue_components";
-import { bintools, pChain } from "@/AVA";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import ConfirmPage from "@/components/wallet/earn/Validate/ConfirmPage.vue";
-import moment from "moment";
-import { bnToBig, calculateStakingReward } from "@/helpers/helper";
-import Tooltip from "@/components/misc/Tooltip.vue";
-import CurrencySelect from "@/components/misc/CurrencySelect/CurrencySelect.vue";
-import Spinner from "@/components/misc/Spinner.vue";
-import DateForm from "@/components/wallet/earn/DateForm.vue";
-import UtxoSelectForm from "@/components/wallet/earn/UtxoSelectForm.vue";
-import Expandable from "@/components/misc/Expandable.vue";
 import type {
   AmountOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletType } from "@/js/wallets/types";
+
+import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
+import { BN } from "@metalblockchain/metaljs";
+import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import Big from "big.js";
+import moment from "moment";
+import { defineComponent } from "vue";
+import AvaxInput from "@/components/misc/AvaxInput.vue";
+import CurrencySelect from "@/components/misc/CurrencySelect/CurrencySelect.vue";
+import Expandable from "@/components/misc/Expandable.vue";
+import Spinner from "@/components/misc/Spinner.vue";
+import Tooltip from "@/components/misc/Tooltip.vue";
+import QrInput from "@/components/shared/QrInput.vue";
+import DateForm from "@/components/wallet/earn/DateForm.vue";
+import UtxoSelectForm from "@/components/wallet/earn/UtxoSelectForm.vue";
+import ConfirmPage from "@/components/wallet/earn/Validate/ConfirmPageValidate.vue";
+import { bnToBig, calculateStakingReward } from "@/helpers/helper";
 import { sortUTxoSetP } from "@/helpers/sortUTXOs";
 import { selectMaxUtxoForStaking } from "@/helpers/utxoSelection/selectMaxUtxoForStaking";
-import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
+import { bintools, pChain } from "@/misc/AVA";
 
-const MIN_MS = 60000;
+const MIN_MS = 60_000;
 const HOUR_MS = MIN_MS * 60;
 const DAY_MS = HOUR_MS * 24;
 
 const MAX_STAKE_DURATION = DAY_MS * 365;
 
-@Component({
-  name: "add_validator",
+export const AddValidator = defineComponent({
+  name: "AddValidator",
   components: {
     Tooltip,
     AvaxInput,
@@ -300,436 +296,439 @@ const MAX_STAKE_DURATION = DAY_MS * 365;
     Expandable,
     UtxoSelectForm,
   },
-})
-export class AddValidator extends Vue {
-  startDate: string = new Date(Date.now() + MIN_MS * 15).toISOString();
-  endDate: string = new Date().toISOString();
-  delegationFee = "2.0";
-  nodeId = "";
-  signerPublicKey = "";
-  signerSignature = "";
-  rewardIn = "";
-  rewardDestination = "local"; // local || custom
-  isLoading = false;
-  isConfirm = false;
-  err = "";
-  stakeAmt: BN = new BN(0);
+  emits: ["cancel"],
+  data(): {
+    startDate: string;
+    endDate: string;
+    delegationFee: string;
+    nodeId: string;
+    signerPublicKey: string;
+    signerSignature: string;
+    rewardIn: string;
+    rewardDestination: string;
+    isLoading: boolean;
+    isConfirm: boolean;
+    err: string;
+    stakeAmt: BN;
+    minFee: number;
+    formNodeId: string;
+    formSignerPublicKey: string;
+    formSignerSignature: string;
+    formAmt: BN;
+    formEnd: Date;
+    formFee: number;
+    formRewardAddr: string;
+    formUtxos: UTXO[];
+    txId: string;
+    txStatus: null | string;
+    txReason: null | string;
+    isSuccess: boolean;
+    currency_type: string;
+    maxTxSizeAmount: BN;
+    bnToAvaxP: typeof bnToAvaxP;
+  } {
+    const txReason: null | string = null;
+    const txStatus: string | null = null;
+    const formUtxos: UTXO[] = [];
+    const formEnd: Date = new Date();
+    const formAmt: BN = new BN(0);
+    const stakeAmt: BN = new BN(0);
+    const endDate: string = new Date().toISOString();
+    const startDate: string = new Date(Date.now() + MIN_MS * 15).toISOString();
 
-  minFee = 2;
+    return {
+      startDate,
+      endDate,
+      delegationFee: "2.0",
+      nodeId: "",
+      signerPublicKey: "",
+      signerSignature: "",
+      rewardIn: "",
+      rewardDestination: "local",
+      isLoading: false,
+      isConfirm: false,
+      err: "",
+      stakeAmt,
+      minFee: 2,
+      formNodeId: "",
+      formSignerPublicKey: "",
+      formSignerSignature: "",
+      formAmt,
+      formEnd,
+      formFee: 0,
+      formRewardAddr: "",
+      formUtxos,
+      txId: "",
+      txStatus,
+      txReason,
+      isSuccess: false,
+      currency_type: "AVAX",
+      maxTxSizeAmount: new BN(0),
+      bnToAvaxP: bnToAvaxP,
+    };
+  },
+  computed: {
+    rewardAddressLocal() {
+      const wallet: MnemonicWallet = this.$store.state.activeWallet;
+      return wallet.getPlatformRewardAddress();
+    },
+    warnShortDuration(): boolean {
+      const dur = this.stakeDuration;
 
-  formNodeId = "";
-  formSignerPublicKey = "";
-  formSignerSignature = "";
-  formAmt: BN = new BN(0);
-  formEnd: Date = new Date();
-  formFee = 0;
-  formRewardAddr = "";
-  formUtxos: UTXO[] = [];
+      // If duration is less than 16 days give a warning
+      if (dur <= DAY_MS * 16) {
+        return true;
+      }
+      return false;
+    },
+    stakeDuration(): number {
+      const start = new Date(this.startDate);
+      let end = new Date(this.endDate);
 
-  txId = "";
-  txStatus: string | null = null;
-  txReason: null | string = null;
+      if (this.isConfirm) {
+        end = this.formEnd;
+      }
 
-  isSuccess = false;
+      const diff = end.getTime() - start.getTime();
+      return diff;
+    },
+    durationText() {
+      const d = moment.duration(this.stakeDuration, "milliseconds");
+      const days = Math.floor(d.asDays());
+      return `${days} days ${d.hours()} hours ${d.minutes()} minutes`;
+    },
+    denomination() {
+      return 9;
+    },
+    platformUnlocked(): BN {
+      return this.$store.getters["Assets/walletPlatformBalance"].available;
+    },
+    platformLockedStakeable(): BN {
+      return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
+    },
+    feeAmt(): BN {
+      return pChain.getTxFee();
+    },
+    utxosBalance(): BN {
+      return this.formUtxos.reduce((acc, val) => {
+        const out = val.getOutput() as AmountOutput;
+        return acc.add(out.getAmount());
+      }, new BN(0));
+    },
+    maxAmt(): BN {
+      const pAmt = this.utxosBalance;
 
-  currency_type = "AVAX";
+      // absolute max stake
+      const mult = new BN(10).pow(new BN(6 + 9));
+      const absMaxStake = new BN(3).mul(mult);
 
-  maxTxSizeAmount = new BN(0);
-  bnToAvaxP = bnToAvaxP;
+      // If above stake limit
+      if (pAmt.gt(absMaxStake)) {
+        return absMaxStake;
+      }
+
+      // let res = pAmt.sub(fee);
+      const ZERO = new BN("0");
+      return pAmt.gt(ZERO) ? pAmt : ZERO;
+    },
+    wallet(): WalletType {
+      return this.$store.state.activeWallet;
+    },
+    showMaxTxSizeWarning() {
+      return this.maxTxSizeAmount.lt(this.maxAmt);
+    },
+    maxFormAmount() {
+      return this.showMaxTxSizeWarning ? this.maxTxSizeAmount : this.maxAmt;
+    },
+    maxDelegationAmt(): BN {
+      const stakeAmt = this.stakeAmt;
+
+      const maxRelative = stakeAmt.mul(new BN(5));
+
+      // absolute max stake
+      const mult = new BN(10).pow(new BN(6 + 9));
+      const absMaxStake = new BN(3).mul(mult);
+
+      const res = maxRelative.lt(absMaxStake)
+        ? maxRelative.sub(stakeAmt)
+        : absMaxStake.sub(stakeAmt);
+
+      return BN.max(res, new BN(0));
+    },
+    maxDelegationText() {
+      return bnToBig(this.maxDelegationAmt, 9).toLocaleString(9);
+    },
+    maxDelegationUsdText() {
+      const big = bnToBig(this.maxDelegationAmt, 9);
+      const res = big.times(this.avaxPrice);
+      return res.toLocaleString(2);
+    },
+    avaxPrice(): Big {
+      return Big(this.$store.state.prices.usd);
+    },
+    estimatedReward(): Big {
+      const start = new Date(this.startDate);
+      const end = new Date(this.endDate);
+      const duration = end.getTime() - start.getTime(); // in ms
+
+      const currentSupply = this.$store.state.Platform.currentSupply;
+      const estimation = calculateStakingReward(
+        this.stakeAmt,
+        duration / 1000,
+        currentSupply,
+      );
+      const res = bnToBig(estimation, 9);
+
+      return res;
+    },
+    estimatedRewardUSD() {
+      return this.estimatedReward.times(this.avaxPrice);
+    },
+    canSubmit() {
+      if (!this.nodeId || !this.signerPublicKey || !this.signerSignature) {
+        return false;
+      }
+
+      if (this.stakeAmt.isZero()) {
+        return false;
+      }
+
+      if (!this.rewardIn) {
+        return false;
+      }
+
+      return true;
+    },
+    minStakeAmt(): BN {
+      return this.$store.state.Platform.minStake;
+    },
+  },
+  watch: {
+    formUtxos: [
+      {
+        handler: "onFormUtxosChange",
+      },
+    ],
+    maxAmt: [
+      {
+        handler: "onFormUtxosChange",
+      },
+    ],
+  },
   mounted() {
     this.rewardSelect("local");
-  }
-
-  onFeeChange() {
-    const num = parseFloat(this.delegationFee);
-    if (num < this.minFee) {
-      this.delegationFee = this.minFee.toString();
-    } else if (num > 100) {
-      this.delegationFee = "100";
-    }
-  }
-
-  setEnd(val: string) {
-    this.endDate = val;
-  }
-
-  get rewardAddressLocal() {
-    const wallet: MnemonicWallet = this.$store.state.activeWallet;
-    return wallet.getPlatformRewardAddress();
-  }
-
-  rewardSelect(val: "local" | "custom") {
-    if (val === "local") {
-      this.rewardIn = this.rewardAddressLocal;
-    } else {
-      this.rewardIn = "";
-    }
-    this.rewardDestination = val;
-  }
-
-  // Returns true to show a warning about short validation periods that can not take any delegators
-  get warnShortDuration(): boolean {
-    const dur = this.stakeDuration;
-
-    // If duration is less than 16 days give a warning
-    if (dur <= DAY_MS * 16) {
-      return true;
-    }
-    return false;
-  }
-
-  get stakeDuration(): number {
-    const start = new Date(this.startDate);
-    let end = new Date(this.endDate);
-
-    if (this.isConfirm) {
-      end = this.formEnd;
-    }
-
-    const diff = end.getTime() - start.getTime();
-    return diff;
-  }
-
-  get durationText() {
-    const d = moment.duration(this.stakeDuration, "milliseconds");
-    const days = Math.floor(d.asDays());
-    return `${days} days ${d.hours()} hours ${d.minutes()} minutes`;
-  }
-
-  get denomination() {
-    return 9;
-  }
-
-  get platformUnlocked(): BN {
-    return this.$store.getters["Assets/walletPlatformBalance"].available;
-  }
-
-  get platformLockedStakeable(): BN {
-    return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
-  }
-
-  get feeAmt(): BN {
-    return pChain.getTxFee();
-  }
-
-  get utxosBalance(): BN {
-    return this.formUtxos.reduce((acc, val: UTXO) => {
-      const out = val.getOutput() as AmountOutput;
-      return acc.add(out.getAmount());
-    }, new BN(0));
-  }
-
-  get maxAmt(): BN {
-    const pAmt = this.utxosBalance;
-
-    // absolute max stake
-    const mult = new BN(10).pow(new BN(6 + 9));
-    const absMaxStake = new BN(3).mul(mult);
-
-    // If above stake limit
-    if (pAmt.gt(absMaxStake)) {
-      return absMaxStake;
-    }
-
-    // let res = pAmt.sub(fee);
-    const ZERO = new BN("0");
-    if (pAmt.gt(ZERO)) {
-      return pAmt;
-    } else {
-      return ZERO;
-    }
-  }
-
-  get wallet(): WalletType {
-    return this.$store.state.activeWallet;
-  }
-
-  @Watch("formUtxos")
-  @Watch("maxAmt")
-  onFormUtxosChange() {
-    // Amount of the biggest transaction that can be created with the selected UTXOs
-    const set = new UTXOSet();
-    set.addArray(this.formUtxos);
-
-    const fromAddresses = this.wallet.getAllAddressesP();
-    const changeAddress = this.wallet.getChangeAddressPlatform();
-    const sorted = sortUTxoSetP(set, false);
-    selectMaxUtxoForStaking(
-      sorted,
-      this.maxAmt,
-      fromAddresses,
-      changeAddress,
-      changeAddress,
-      changeAddress,
-      true
-    ).then((res) => {
-      this.maxTxSizeAmount = res.amount;
-    });
-  }
-
-  get showMaxTxSizeWarning() {
-    return this.maxTxSizeAmount.lt(this.maxAmt);
-  }
-
-  get maxFormAmount() {
-    return this.showMaxTxSizeWarning ? this.maxTxSizeAmount : this.maxAmt;
-  }
-
-  get maxDelegationAmt(): BN {
-    const stakeAmt = this.stakeAmt;
-
-    const maxRelative = stakeAmt.mul(new BN(5));
-
-    // absolute max stake
-    const mult = new BN(10).pow(new BN(6 + 9));
-    const absMaxStake = new BN(3).mul(mult);
-
-    let res;
-    if (maxRelative.lt(absMaxStake)) {
-      res = maxRelative.sub(stakeAmt);
-    } else {
-      res = absMaxStake.sub(stakeAmt);
-    }
-
-    return BN.max(res, new BN(0));
-  }
-
-  get maxDelegationText() {
-    return bnToBig(this.maxDelegationAmt, 9).toLocaleString(9);
-  }
-
-  get maxDelegationUsdText() {
-    const big = bnToBig(this.maxDelegationAmt, 9);
-    const res = big.times(this.avaxPrice);
-    return res.toLocaleString(2);
-  }
-
-  get avaxPrice(): Big {
-    return Big(this.$store.state.prices.usd);
-  }
-
-  get estimatedReward(): Big {
-    const start = new Date(this.startDate);
-    const end = new Date(this.endDate);
-    const duration = end.getTime() - start.getTime(); // in ms
-
-    const currentSupply = this.$store.state.Platform.currentSupply;
-    const estimation = calculateStakingReward(
-      this.stakeAmt,
-      duration / 1000,
-      currentSupply
-    );
-    const res = bnToBig(estimation, 9);
-
-    return res;
-  }
-
-  get estimatedRewardUSD() {
-    return this.estimatedReward.times(this.avaxPrice);
-  }
-
-  updateFormData() {
-    this.formNodeId = this.nodeId.trim();
-    this.formSignerPublicKey = this.signerPublicKey.trim();
-    this.formSignerSignature = this.signerSignature.trim();
-    this.formAmt = this.stakeAmt;
-    this.formEnd = new Date(this.endDate);
-    this.formRewardAddr = this.rewardIn;
-    this.formFee = parseFloat(this.delegationFee);
-  }
-
-  confirm() {
-    if (!this.formCheck()) return;
-    this.updateFormData();
-    this.isConfirm = true;
-  }
-  cancelConfirm() {
-    this.isConfirm = false;
-  }
-
-  cancel() {
-    this.$emit("cancel");
-  }
-
-  get canSubmit() {
-    if (!this.nodeId || !this.signerPublicKey || !this.signerSignature) {
-      return false;
-    }
-
-    if (this.stakeAmt.isZero()) {
-      return false;
-    }
-
-    if (!this.rewardIn) {
-      return false;
-    }
-
-    return true;
-  }
-
-  formCheck(): boolean {
-    this.err = "";
-
-    // Reward Address
-    if (this.rewardDestination !== "local") {
-      const rewardAddr = this.rewardIn;
-
-      // If it doesnt start with P
-      if (rewardAddr[0] !== "P") {
-        this.err = this.$t("earn.validate.errs.address") as string;
-        return false;
+  },
+  methods: {
+    onFeeChange() {
+      const num = Number.parseFloat(this.delegationFee);
+      if (num < this.minFee) {
+        this.delegationFee = this.minFee.toString();
+      } else if (num > 100) {
+        this.delegationFee = "100";
       }
-
-      // not a valid address
-      try {
-        bintools.stringToAddress(rewardAddr);
-      } catch (e) {
-        this.err = this.$t("earn.validate.errs.address") as string;
-        return false;
-      }
-    }
-
-    // Not a valid Node ID
-    if (!this.nodeId.includes("NodeID-")) {
-      this.err = this.$t("earn.validate.errs.id") as string;
-      return false;
-    }
-
-    // Delegation Fee
-    if (parseFloat(this.delegationFee) < this.minFee) {
-      this.err = this.$t("earn.validate.errs.fee", [this.minFee]) as string;
-      return false;
-    }
-
-    // Stake amount
-    if (this.stakeAmt.lt(this.minStakeAmt)) {
-      const big = Big(this.minStakeAmt.toString()).div(Math.pow(10, 9));
-      this.err = this.$t("earn.validate.errs.amount", [
-        big.toLocaleString(),
-      ]) as string;
-      return false;
-    }
-
-    return true;
-  }
-
-  async submit() {
-    if (!this.formCheck()) return;
-    const wallet: WalletType = this.$store.state.activeWallet;
-
-    // Start delegation in 5 minutes
-    let startDate = new Date(Date.now() + 5 * MIN_MS);
-    const endMs = this.formEnd.getTime();
-    const startMs = startDate.getTime();
-
-    // If End date - start date is greater than max stake duration, adjust start date
-    if (endMs - startMs > MAX_STAKE_DURATION) {
-      startDate = new Date(endMs - MAX_STAKE_DURATION);
-    }
-
-    try {
-      this.isLoading = true;
+    },
+    setEnd(val: string) {
+      this.endDate = val;
+    },
+    rewardSelect(val: "local" | "custom") {
+      this.rewardIn = val === "local" ? this.rewardAddressLocal : "";
+      this.rewardDestination = val;
+    },
+    updateFormData() {
+      this.formNodeId = this.nodeId.trim();
+      this.formSignerPublicKey = this.signerPublicKey.trim();
+      this.formSignerSignature = this.signerSignature.trim();
+      this.formAmt = this.stakeAmt;
+      this.formEnd = new Date(this.endDate);
+      this.formRewardAddr = this.rewardIn;
+      this.formFee = Number.parseFloat(this.delegationFee);
+    },
+    confirm() {
+      if (!this.formCheck()) return;
+      this.updateFormData();
+      this.isConfirm = true;
+    },
+    cancelConfirm() {
+      this.isConfirm = false;
+    },
+    cancel() {
+      this.$emit("cancel");
+    },
+    formCheck(): boolean {
       this.err = "";
-      const txId = await wallet.validate(
-        this.formNodeId,
-        this.formAmt,
-        startDate,
-        this.formEnd,
-        this.formFee,
-        this.formSignerPublicKey,
-        this.formSignerSignature,
-        this.formRewardAddr,
-        this.formUtxos
-      );
-      this.isLoading = false;
-      this.onTxSubmit(txId);
-    } catch (err) {
-      this.isLoading = false;
-      this.onerror(err);
-    }
-  }
 
-  onTxSubmit(txId: string) {
-    this.txId = txId;
-    this.isSuccess = true;
-    this.updateTxStatus(txId);
-  }
+      // Reward Address
+      if (this.rewardDestination !== "local") {
+        const rewardAddr = this.rewardIn;
 
-  onsuccess() {
-    this.$store.dispatch("Notifications/add", {
-      type: "success",
-      title: "Validator Added",
-      message: "Your tokens are now locked to stake.",
-    });
+        // If it doesnt start with P
+        if (rewardAddr[0] !== "P") {
+          this.err = this.$t("earn.validate.errs.address") as string;
+          return false;
+        }
 
-    // Update History
-    setTimeout(() => {
-      this.$store.dispatch("Assets/updateUTXOs");
-      this.$store.dispatch("History/updateTransactionHistory");
-    }, 3000);
-  }
-
-  async updateTxStatus(txId: string) {
-    const res = await pChain.getTxStatus(txId);
-
-    let status;
-    let reason = null;
-    if (typeof res === "string") {
-      status = res;
-    } else {
-      status = res.status;
-      reason = res.reason;
-    }
-
-    if (!status || status === "Processing" || status === "Unknown") {
-      setTimeout(() => {
-        this.updateTxStatus(txId);
-      }, 5000);
-    } else {
-      this.txStatus = status;
-      this.txReason = reason;
-
-      if (status === "Committed") {
-        this.onsuccess();
+        // not a valid address
+        try {
+          bintools.stringToAddress(rewardAddr);
+        } catch {
+          this.err = this.$t("earn.validate.errs.address") as string;
+          return false;
+        }
       }
-    }
-  }
 
-  get minStakeAmt(): BN {
-    return this.$store.state.Platform.minStake;
-  }
+      // Not a valid Node ID
+      if (!this.nodeId.includes("NodeID-")) {
+        this.err = this.$t("earn.validate.errs.id") as string;
+        return false;
+      }
 
-  onerror(err: any) {
-    const msg: string = err.message;
-    console.error(err);
+      // Delegation Fee
+      if (Number.parseFloat(this.delegationFee) < this.minFee) {
+        this.err = this.$t("earn.validate.errs.fee", [this.minFee]) as string;
+        return false;
+      }
 
-    if (msg.includes("startTime")) {
-      this.err = this.$t("earn.validate.errs.date") as string;
-    } else if (msg.includes("must be at least")) {
-      const minAmt = this.minStakeAmt;
-      const big = Big(minAmt.toString()).div(Math.pow(10, 9));
-      this.err = this.$t("earn.validate.errs.amount", [
-        big.toLocaleString(),
-      ]) as string;
-    } else if (msg.includes("nodeID")) {
-      this.err = this.$t("earn.validate.errs.id") as string;
-    } else if (msg.includes("address format")) {
-      this.err = this.$t("earn.validate.errs.address") as string;
-    } else {
-      this.err = err.message;
-    }
+      // Stake amount
+      if (this.stakeAmt.lt(this.minStakeAmt)) {
+        const big = Big(this.minStakeAmt.toString()).div(Math.pow(10, 9));
+        this.err = this.$t("earn.validate.errs.amount", [
+          big.toLocaleString(),
+        ]) as string;
+        return false;
+      }
 
-    this.$store.dispatch("Notifications/add", {
-      type: "error",
-      title: "Validation Failed",
-      message: "Failed to add validator.",
-    });
-  }
-}
+      return true;
+    },
+    async submit() {
+      if (!this.formCheck()) return;
+      const wallet: WalletType = this.$store.state.activeWallet;
+
+      // Start delegation in 5 minutes
+      let startDate = new Date(Date.now() + 5 * MIN_MS);
+      const endMs = this.formEnd.getTime();
+      const startMs = startDate.getTime();
+
+      // If End date - start date is greater than max stake duration, adjust start date
+      if (endMs - startMs > MAX_STAKE_DURATION) {
+        startDate = new Date(endMs - MAX_STAKE_DURATION);
+      }
+
+      try {
+        this.isLoading = true;
+        this.err = "";
+        const txId = await wallet.validate(
+          this.formNodeId,
+          this.formAmt,
+          startDate,
+          this.formEnd,
+          this.formFee,
+          this.formSignerPublicKey,
+          this.formSignerSignature,
+          this.formRewardAddr,
+          this.formUtxos as any,
+        );
+        this.isLoading = false;
+        this.onTxSubmit(txId);
+      } catch (error) {
+        this.isLoading = false;
+        this.onerror(error);
+      }
+    },
+    onTxSubmit(txId: string) {
+      this.txId = txId;
+      this.isSuccess = true;
+      this.updateTxStatus(txId);
+    },
+    onsuccess() {
+      this.$store.dispatch("Notifications/add", {
+        type: "success",
+        title: "Validator Added",
+        message: "Your tokens are now locked to stake.",
+      });
+
+      // Update History
+      setTimeout(() => {
+        this.$store.dispatch("Assets/updateUTXOs");
+        this.$store.dispatch("History/updateTransactionHistory");
+      }, 3000);
+    },
+    async updateTxStatus(txId: string) {
+      const res = await pChain.getTxStatus(txId);
+
+      let status;
+      let reason = null;
+      if (typeof res === "string") {
+        status = res;
+      } else {
+        status = res.status;
+        reason = res.reason;
+      }
+
+      if (!status || status === "Processing" || status === "Unknown") {
+        setTimeout(() => {
+          this.updateTxStatus(txId);
+        }, 5000);
+      } else {
+        this.txStatus = status;
+        this.txReason = reason;
+
+        if (status === "Committed") {
+          this.onsuccess();
+        }
+      }
+    },
+    onerror(err: any) {
+      const msg: string = err.message;
+      console.error(err);
+
+      if (msg.includes("startTime")) {
+        this.err = this.$t("earn.validate.errs.date") as string;
+      } else if (msg.includes("must be at least")) {
+        const minAmt = this.minStakeAmt;
+        const big = Big(minAmt.toString()).div(Math.pow(10, 9));
+        this.err = this.$t("earn.validate.errs.amount", [
+          big.toLocaleString(),
+        ]) as string;
+      } else if (msg.includes("nodeID")) {
+        this.err = this.$t("earn.validate.errs.id") as string;
+      } else if (msg.includes("address format")) {
+        this.err = this.$t("earn.validate.errs.address") as string;
+      } else {
+        this.err = err.message;
+      }
+
+      this.$store.dispatch("Notifications/add", {
+        type: "error",
+        title: "Validation Failed",
+        message: "Failed to add validator.",
+      });
+    },
+    onFormUtxosChange() {
+      // Amount of the biggest transaction that can be created with the selected UTXOs
+      const set = new UTXOSet();
+      set.addArray(this.formUtxos as any);
+
+      const fromAddresses = this.wallet.getAllAddressesP();
+      const changeAddress = this.wallet.getChangeAddressPlatform();
+      const sorted = sortUTxoSetP(set, false);
+      selectMaxUtxoForStaking(
+        sorted,
+        this.maxAmt,
+        fromAddresses,
+        changeAddress,
+        changeAddress,
+        changeAddress,
+        true,
+      ).then((res) => {
+        this.maxTxSizeAmount = res.amount;
+      });
+    },
+  },
+});
 export default AddValidator;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
+@use "@/styles/abstracts/mixins";
 .cols {
   /*display: grid;*/
   /*grid-template-columns: 1fr 1fr;*/
@@ -884,7 +883,7 @@ label {
   margin-bottom: 6px;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   form {
     grid-template-columns: 1fr;
   }

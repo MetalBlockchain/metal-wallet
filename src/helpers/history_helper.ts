@@ -1,5 +1,8 @@
-import type { ITransactionData, UTXO } from "@/store/modules/history/types";
 import type { WalletType } from "@/js/wallets/types";
+import type {
+  ITransactionData,
+  UTXO,
+} from "@/stores/vuex/modules/history/types";
 import { BN } from "@metalblockchain/metaljs";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 
@@ -45,28 +48,28 @@ function addToDict(
   amount: BN,
   dict: TokenSummaryResult,
   utxo: UTXO,
-  addresses: string[]
+  addresses: string[],
 ) {
   if (dict[assetId]) {
     dict[assetId].amount = dict[assetId].amount.add(amount);
 
     const addrDiff = addresses.filter(
-      (addr) => !dict[assetId].addresses.includes(addr)
+      (addr) => !dict[assetId]?.addresses.includes(addr),
     );
     dict[assetId].addresses.push(...addrDiff);
   } else {
     dict[assetId] = {
-      amount: amount,
+      amount,
       payload: utxo.payload,
       groupNum: utxo.groupID,
-      addresses: addresses,
+      addresses,
     };
   }
 }
 
 function getNFTsSummary(
   tx: ITransactionData,
-  wallet: WalletType
+  wallet: WalletType,
 ): BaseTxNFTSummary {
   const nftLoss = getLossNFT(tx, wallet);
   const nftGain = getGainNFT(tx, wallet);
@@ -78,10 +81,10 @@ function getNFTsSummary(
 
 function getLossNFT(
   tx: ITransactionData,
-  wallet: WalletType
+  wallet: WalletType,
 ): NFTSummaryResultDict {
   const walletAddrs = wallet.getHistoryAddresses();
-  const addrsStripped = walletAddrs.map((addr) => addr.split("-")[1]);
+  const addrsStripped = new Set(walletAddrs.map((addr) => addr.split("-")[1]));
 
   const inputs = tx.inputs || [];
   const outputs = tx.outputs;
@@ -103,32 +106,37 @@ function getLossNFT(
     return false;
   });
 
-  for (let i = 0; i < nfts.length; i++) {
-    const utxo = nfts[i].output;
-    const owners = utxo.addresses;
-    const assetID = utxo.assetID;
+  for (const [i, nft] of nfts.entries()) {
+    const utxo = nft?.output;
+    if (utxo) {
+      const owners = utxo.addresses;
+      const assetID = utxo.assetID;
 
-    const intersect = owners.filter((addr) => addrsStripped.includes(addr));
+      const intersect = owners.filter((addr) => addrsStripped.has(addr));
 
-    // Did we lose it?
-    if (intersect.length > 0) {
-      if (loss.assets[assetID]) {
-        loss.assets[assetID].push(utxo);
-      } else {
-        loss.assets[assetID] = [utxo];
-      }
+      // Did we lose it?
+      if (intersect.length > 0) {
+        if (loss.assets[assetID]) {
+          loss.assets[assetID].push(utxo);
+        } else {
+          loss.assets[assetID] = [utxo];
+        }
 
-      // Who did we lose it to?
-      for (let n = 0; i < nftsOuts.length; n++) {
-        const nftOut = nftsOuts[n];
-        const doesMatch =
-          nftOut.groupID === utxo.groupID && nftOut.assetID === utxo.assetID;
-        const addrNotAdded = nftOut.addresses.filter(
-          (addr) => !loss.addresses.includes(addr)
-        );
-        if (doesMatch) {
-          loss.addresses.push(...addrNotAdded);
-          break;
+        // Who did we lose it to?
+        for (let n = 0; i < nftsOuts.length; n++) {
+          const nftOut = nftsOuts[n];
+          const doesMatch =
+            nftOut &&
+            nftOut.groupID === utxo.groupID &&
+            nftOut.assetID === utxo.assetID;
+
+          if (doesMatch) {
+            const addrNotAdded = nftOut.addresses.filter(
+              (addr) => !loss.addresses.includes(addr),
+            );
+            loss.addresses.push(...addrNotAdded);
+            break;
+          }
         }
       }
     }
@@ -139,10 +147,10 @@ function getLossNFT(
 
 function getGainNFT(
   tx: ITransactionData,
-  wallet: WalletType
+  wallet: WalletType,
 ): NFTSummaryResultDict {
   const walletAddrs = wallet.getHistoryAddresses();
-  const addrsStripped = walletAddrs.map((addr) => addr.split("-")[1]);
+  const addrsStripped = new Set(walletAddrs.map((addr) => addr.split("-")[1]));
 
   const inputs = tx.inputs || [];
   const outputs = tx.outputs;
@@ -164,31 +172,35 @@ function getGainNFT(
     return false;
   });
 
-  for (let i = 0; i < nftsOuts.length; i++) {
-    const utxo = nftsOuts[i];
-    const owners = utxo.addresses;
-    const assetID = utxo.assetID;
+  for (const utxo of nftsOuts) {
+    if (utxo) {
+      const owners = utxo.addresses;
+      const assetID = utxo.assetID;
 
-    const intersect = owners.filter((addr) => addrsStripped.includes(addr));
+      const intersect = owners.filter((addr) => addrsStripped.has(addr));
 
-    // Did we gain it?
-    if (intersect.length > 0) {
-      if (gain.assets[assetID]) {
-        gain.assets[assetID].push(utxo);
-      } else {
-        gain.assets[assetID] = [utxo];
-      }
+      // Did we gain it?
+      if (intersect.length > 0) {
+        if (gain.assets[assetID]) {
+          gain.assets[assetID].push(utxo);
+        } else {
+          gain.assets[assetID] = [utxo];
+        }
 
-      // Who did we gain it from?
-      for (let n = 0; n < nftsIns.length; n++) {
-        const nftIn = nftsIns[n].output;
-        const doesMatch =
-          nftIn.groupID === utxo.groupID && nftIn.assetID === utxo.assetID;
-        const addrNotAdded = nftIn.addresses.filter(
-          (addr) => !gain.addresses.includes(addr)
-        );
-        if (doesMatch) {
-          gain.addresses.push(...addrNotAdded);
+        // Who did we gain it from?
+        for (const nftsIn of nftsIns) {
+          const nftIn = nftsIn?.output;
+          const doesMatch =
+            nftIn &&
+            nftIn.groupID === utxo.groupID &&
+            nftIn.assetID === utxo.assetID;
+
+          if (doesMatch) {
+            const addrNotAdded = nftIn.addresses.filter(
+              (addr) => !gain.addresses.includes(addr),
+            );
+            gain.addresses.push(...addrNotAdded);
+          }
         }
       }
     }
@@ -202,44 +214,45 @@ function getLoss(tx: ITransactionData, wallet: WalletType): TokenSummaryResult {
   const outs = tx.outputs;
 
   const walletAddrs = wallet.getHistoryAddresses();
-  const addrsStripped = walletAddrs.map((addr) => addr.split("-")[1]);
+  const addrsStripped = new Set(walletAddrs.map((addr) => addr.split("-")[1]));
 
   const loss: TokenSummaryResult = {};
 
   if (ins) {
-    for (let i = 0; i < ins.length; i++) {
-      const input = ins[i];
-      const utxo = input.output;
-      const outputType = utxo.outputType;
-      const isNft = outputType === AVMConstants.NFTXFEROUTPUTID;
+    for (const input of ins) {
+      const utxo = input?.output;
+      if (utxo) {
+        const outputType = utxo.outputType;
+        const isNft = outputType === AVMConstants.NFTXFEROUTPUTID;
 
-      if (isNft) continue;
+        if (isNft) continue;
 
-      const addrs = utxo.addresses;
+        const addrs = utxo.addresses;
 
-      const intersect = addrs.filter((addr) => addrsStripped.includes(addr));
+        const intersect = addrs.filter((addr) => addrsStripped.has(addr));
 
-      if (intersect.length === 0) continue;
+        if (intersect.length === 0) continue;
 
-      const assetId = utxo.assetID;
-      const amount = utxo.amount;
-      const amountBN = new BN(amount);
+        const assetId = utxo.assetID;
+        const amount = utxo.amount;
+        const amountBN = new BN(amount);
 
-      // Get who received this asset
-      const receivers: string[] = [];
-      outs.forEach((utxo) => {
-        if (utxo.assetID === assetId) {
-          const outAddrs = utxo.addresses;
-          // If not a wallet address and not added to receivers
-          const targets = outAddrs.filter(
-            (addr: string) =>
-              !addrsStripped.includes(addr) && !receivers.includes(addr)
-          );
-          receivers.push(...targets);
+        // Get who received this asset
+        const receivers: string[] = [];
+        for (const utxo of outs) {
+          if (utxo.assetID === assetId) {
+            const outAddrs = utxo.addresses;
+            // If not a wallet address and not added to receivers
+            const targets = outAddrs.filter(
+              (addr: string) =>
+                !addrsStripped.has(addr) && !receivers.includes(addr),
+            );
+            receivers.push(...targets);
+          }
         }
-      });
 
-      addToDict(assetId, amountBN, loss, utxo, receivers);
+        addToDict(assetId, amountBN, loss, utxo, receivers);
+      }
     }
   }
 
@@ -248,20 +261,21 @@ function getLoss(tx: ITransactionData, wallet: WalletType): TokenSummaryResult {
 
 function getProfit(
   tx: ITransactionData,
-  wallet: WalletType
+  wallet: WalletType,
 ): TokenSummaryResult {
   const outs = tx.outputs;
   const ins = tx.inputs || [];
 
   const walletAddrs = wallet.getHistoryAddresses();
-  const addrsStripped = walletAddrs.map((addr) => addr.split("-")[1]);
+  const addrsStripped = new Set(walletAddrs.map((addr) => addr.split("-")[1]));
 
   const profit: TokenSummaryResult = {};
 
   if (outs) {
-    for (let i = 0; i < outs.length; i++) {
-      const utxo = outs[i];
-      const outputType = utxo.outputType;
+    for (const utxo of outs) {
+      if (!utxo) continue;
+
+      const outputType = utxo?.outputType;
       const isNft = outputType === AVMConstants.NFTXFEROUTPUTID;
 
       // Skip NFTs
@@ -269,7 +283,7 @@ function getProfit(
 
       const addrs = utxo.addresses;
 
-      const intersect = addrs.filter((addr) => addrsStripped.includes(addr));
+      const intersect = addrs.filter((addr) => addrsStripped.has(addr));
 
       if (intersect.length === 0) continue;
 
@@ -279,18 +293,18 @@ function getProfit(
 
       // Get who sent this to you
       const senders: string[] = [];
-      ins.forEach((input) => {
+      for (const input of ins) {
         const utxo = input.output;
         if (utxo.assetID === assetId) {
           const outAddrs = utxo.addresses;
           // If not a wallet address and not added to senders
           const targets = outAddrs.filter(
             (addr: string) =>
-              !addrsStripped.includes(addr) && !senders.includes(addr)
+              !addrsStripped.has(addr) && !senders.includes(addr),
           );
           senders.push(...targets);
         }
-      });
+      }
 
       addToDict(assetId, amountBN, profit, utxo, senders);
     }
@@ -318,6 +332,8 @@ function getTransactionSummary(tx: ITransactionData, wallet: WalletType) {
   for (const assetId in losses) {
     const loss = losses[assetId];
 
+    if (!loss) continue;
+
     sum.tokens[assetId] = {
       amount: loss.amount.mul(new BN(-1)),
       payload: loss.payload,
@@ -329,9 +345,11 @@ function getTransactionSummary(tx: ITransactionData, wallet: WalletType) {
   for (const assetId in profits) {
     const profit = profits[assetId];
 
+    if (!profit) continue;
+
     if (sum.tokens[assetId]) {
       sum.tokens[assetId].amount = sum.tokens[assetId].amount.add(
-        profit.amount
+        profit.amount,
       );
     } else {
       sum.tokens[assetId] = {
@@ -354,8 +372,9 @@ export function filterDuplicateTransactions(txs: ITransactionData[]) {
   const txsIds: string[] = [];
   const filtered: ITransactionData[] = [];
 
-  for (let i = 0; i < txs.length; i++) {
-    const tx = txs[i];
+  for (const tx of txs) {
+    if (!tx) continue;
+
     const txId = tx.id;
 
     if (txsIds.includes(txId)) {

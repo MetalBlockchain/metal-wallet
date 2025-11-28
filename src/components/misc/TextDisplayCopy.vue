@@ -1,32 +1,35 @@
 <template>
   <div class="display_copy">
-    <input class="disp" type="text" disabled v-model="value" />
-    <copy-text :value="value" class="copy" @copy="oncopy()">
+    <input class="disp" disabled :model-value="value" type="text" />
+    <copy-text-shared class="copy" :value="value" @copy="oncopy()">
       <fa icon="copy"></fa>
-    </copy-text>
+    </copy-text-shared>
   </div>
 </template>
 <script lang="ts">
-import { CopyText } from "@avalabs/vue_components";
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-@Component({
-  components: {
-    CopyText,
-  },
-})
-export class TextDisplayCopy extends Vue {
-  @Prop()
-  value!: string;
+import { defineComponent } from "vue";
+import CopyTextShared from "@/components/shared/CopyTextShared.vue";
 
-  oncopy() {
-    this.$store.dispatch("Notifications/add", {
-      title: "Copy",
-      message: "Copied to clipboard.",
-    });
-    this.$emit("copy", this.value);
-  }
-}
+export const TextDisplayCopy = defineComponent({
+  components: {
+    CopyTextShared,
+  },
+  props: {
+    value: {
+      type: String,
+    },
+  },
+  emits: ["copy"],
+  methods: {
+    oncopy() {
+      this.$store.dispatch("Notifications/add", {
+        title: "Copy",
+        message: "Copied to clipboard.",
+      });
+      this.$emit("copy", this.value);
+    },
+  },
+});
 
 export default TextDisplayCopy;
 </script>

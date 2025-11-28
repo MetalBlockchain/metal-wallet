@@ -1,6 +1,6 @@
 <template>
-  <modal ref="modal" :title="$t('modal.print.title')" class="print_modal">
-    <div class="qr_body" ref="qr_body">
+  <modal ref="modal" class="print_modal" :title="$t('modal.print.title')">
+    <div ref="qr_body" class="qr_body">
       <img
         ref="bg"
         src="@/assets/paper_wallet/bg.png"
@@ -13,8 +13,8 @@
         }"
       />
       <canvas
-        class="pdf_preview"
         ref="pdf"
+        class="pdf_preview"
         :style="{
           width: `100%`,
           height: `${height}px`,
@@ -22,219 +22,223 @@
           // paddingTop: `${100 / aspectRatio}%`,
         }"
       ></canvas>
-      <v-btn depressed block @click="print">{{
+      <v-btn block depressed @click="print">{{
         $t("modal.print.submit")
       }}</v-btn>
     </div>
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 
-import Modal from "../Modal.vue";
-
-import { KeyPair as AVMKeyPair } from "@metalblockchain/metaljs/dist/apis/avm";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 
-import QRCode from "qrcode";
 import printjs from "print-js";
+import QRCode from "qrcode";
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
 
 const PDF_W = 8.5;
 const PDF_H = 11;
-const PDF_ASPECT_RATIO = PDF_W / PDF_H;
 
 // Contents of the pdf are set according to this value
 const designWidth = 525 - 60;
-@Component({
+export default defineComponent({
   components: {
     Modal,
   },
-})
-export default class PaperWallet extends Vue {
-  $refs!: {
-    modal: Modal;
-    pdf: HTMLCanvasElement;
-    bg: HTMLImageElement;
-  };
+  props: {
+    wallet: {
+      type: Object as PropType<MnemonicWallet>,
+    },
+  },
+  data(): {
+    qrImg: HTMLImageElement | null;
+    mnemonicImg: HTMLImageElement | null;
+    width: number;
+    height: number;
+  } {
+    return {
+      qrImg: null,
+      mnemonicImg: null,
+      width: 100,
+      height: 100,
+    };
+  },
+  computed: {
+    address() {
+      try {
+        const wallet: MnemonicWallet = this.$store.state.activeWallet;
+        if (!wallet) return "-";
 
-  qrImg: HTMLImageElement | null = null;
-  mnemonicImg: HTMLImageElement | null = null;
-
-  @Prop() wallet!: MnemonicWallet;
-  // Height and Width of the img and canvas
-  width = 100;
-  height = 100;
-
-  open() {
-    const modal = this.$refs.modal;
-    // @ts-ignore
-    modal.open();
-
-    setTimeout(() => {
-      this.setSizes();
-    }, 200);
-
-    setTimeout(() => {
-      // this.setSizes()
-      this.initBg();
-    }, 500);
-  }
-
-  get address() {
-    try {
-      const wallet: MnemonicWallet = this.$store.state.activeWallet;
-      if (!wallet) return "-";
-
-      const key = wallet.externalHelper.getKeyForIndex(0);
-      if (!key) {
+        const key = wallet.externalHelper.getKeyForIndex(0);
+        if (!key) {
+          return "-";
+        }
+        return key.getAddressString();
+      } catch {
         return "-";
       }
-      return key.getAddressString();
-    } catch (e) {
-      return "-";
-    }
-  }
-
-  get aspectRatio(): number {
-    return PDF_W / PDF_H;
-  }
-
-  initBg() {
-    const canv: HTMLCanvasElement = this.$refs.pdf;
-    const cont = canv.getContext("2d") as CanvasRenderingContext2D;
-    const img = this.$refs.bg;
-
-    const w = canv.clientWidth;
-    const h = canv.clientHeight;
-
-    const sizeFactor = 3;
-
-    canv.width = w * sizeFactor;
-    canv.height = h * sizeFactor;
-
-    cont.scale(sizeFactor, sizeFactor);
-    cont.drawImage(img, 0, 0, w, h);
-
-    this.writeInfo();
-  }
-
-  writeInfo() {
-    const canv: HTMLCanvasElement = this.$refs.pdf;
-    const cont = canv.getContext("2d") as CanvasRenderingContext2D;
-
-    // Top Address
-    const wrapChar = 25;
-    const addr = this.address;
-    const addr1 = addr.substr(0, wrapChar);
-    const addr2 = addr.substr(wrapChar);
-
-    cont.font = `${this.designPxToReal(8)}px Helvetica`;
-    cont.fillText(
-      addr1,
-      this.designPxToReal(352),
-      this.designPxToReal(140),
-      this.designPxToReal(120)
-    );
-    cont.fillText(
-      addr2,
-      this.designPxToReal(352),
-      this.designPxToReal(150),
-      this.designPxToReal(120)
-    );
-    cont.drawImage(
-      this.qrImg as HTMLImageElement,
-      this.designPxToReal(352),
-      this.designPxToReal(10),
-      this.designPxToReal(100),
-      this.designPxToReal(100)
-    );
-
-    // Bottom Address
-    cont.font = `${this.designPxToReal(10)}px Helvetica`;
-    cont.fillText(addr, this.designPxToReal(40), this.designPxToReal(380));
-    cont.drawImage(
-      this.qrImg as HTMLImageElement,
-      this.designPxToReal(352),
-      this.designPxToReal(335),
-      this.designPxToReal(90),
-      this.designPxToReal(90)
-    );
-
-    // Mnemonic
-    const mnemonicWords: string[] = this.wallet.getMnemonic().split(" ");
-    const row1 = mnemonicWords.slice(0, 8).join(" ");
-    const row2 = mnemonicWords.slice(8, 16).join(" ");
-    const row3 = mnemonicWords.slice(16).join(" ");
-    cont.fillText(row1, this.designPxToReal(40), this.designPxToReal(490));
-    cont.fillText(row2, this.designPxToReal(40), this.designPxToReal(505));
-    cont.fillText(row3, this.designPxToReal(40), this.designPxToReal(520));
-    cont.drawImage(
-      this.mnemonicImg as HTMLImageElement,
-      this.designPxToReal(352),
-      this.designPxToReal(445),
-      this.designPxToReal(90),
-      this.designPxToReal(90)
-    );
-  }
-
-  @Watch("address")
-  @Watch("mnemonic")
-  buildQr() {
-    const parent = this;
-    QRCode.toDataURL(
-      this.address,
+    },
+    aspectRatio(): number {
+      return PDF_W / PDF_H;
+    },
+  },
+  watch: {
+    address: [
       {
-        width: this.designPxToReal(100),
+        handler: "buildQr",
       },
-      function (err, url) {
-        const img = new Image();
-        img.src = url;
-        parent.qrImg = img;
-      }
-    );
-
-    QRCode.toDataURL(
-      this.wallet.getMnemonic(),
+    ],
+    mnemonic: [
       {
-        width: this.designPxToReal(90),
+        handler: "buildQr",
       },
-      function (err, url) {
-        const img = new Image();
-        img.src = url;
-        parent.mnemonicImg = img;
-      }
-    );
-  }
-
-  setSizes() {
-    // Set height and width
-    //@ts-ignore
-    const contW = this.$refs["pdf"].clientWidth;
-
-    this.width = contW;
-    this.height = contW / this.aspectRatio;
-  }
-
+    ],
+  },
   mounted() {
     this.buildQr();
-  }
+  },
+  methods: {
+    open() {
+      const modal = this.$refs.modal as typeof Modal;
+      modal.open();
 
-  designPxToReal(px: number) {
-    return (this.width / designWidth) * px;
-  }
+      new Promise((resolve) => {
+        setTimeout(() => {
+          this.setSizes();
+          resolve(void 0);
+        }, 1000);
+      }).then(() => {
+        this.initBg();
+      });
+    },
+    initBg() {
+      const canv = this.$refs.pdf as HTMLCanvasElement;
+      const cont = canv.getContext("2d") as CanvasRenderingContext2D;
+      const img = this.$refs.bg as HTMLImageElement;
 
-  print() {
-    const canv: HTMLCanvasElement = this.$refs.pdf;
-    printjs({
-      printable: canv.toDataURL(),
-      type: "image",
-      imageStyle: "width:100%; margin: 5px;",
-      maxWidth: 2800,
-      documentTitle: "",
-    });
-  }
-}
+      const w = canv.clientWidth;
+      const h = canv.clientHeight;
+
+      const sizeFactor = 3;
+
+      canv.width = w * sizeFactor;
+      canv.height = h * sizeFactor;
+
+      cont.scale(sizeFactor, sizeFactor);
+      cont.drawImage(img, 0, 0, w, h);
+
+      this.writeInfo();
+    },
+    writeInfo() {
+      const canv = this.$refs.pdf as HTMLCanvasElement;
+      const cont = canv.getContext("2d") as CanvasRenderingContext2D;
+
+      // Top Address
+      const wrapChar = 25;
+      const addr = this.address;
+      const addr1 = addr.slice(0, Math.max(0, wrapChar));
+      const addr2 = addr.slice(wrapChar);
+
+      cont.font = `${this.designPxToReal(8)}px Helvetica`;
+      cont.fillText(
+        addr1,
+        this.designPxToReal(352),
+        this.designPxToReal(140),
+        this.designPxToReal(120),
+      );
+      cont.fillText(
+        addr2,
+        this.designPxToReal(352),
+        this.designPxToReal(150),
+        this.designPxToReal(120),
+      );
+      cont.drawImage(
+        this.qrImg as HTMLImageElement,
+        this.designPxToReal(352),
+        this.designPxToReal(10),
+        this.designPxToReal(100),
+        this.designPxToReal(100),
+      );
+
+      // Bottom Address
+      cont.font = `${this.designPxToReal(10)}px Helvetica`;
+      cont.fillText(addr, this.designPxToReal(40), this.designPxToReal(380));
+      cont.drawImage(
+        this.qrImg as HTMLImageElement,
+        this.designPxToReal(352),
+        this.designPxToReal(335),
+        this.designPxToReal(90),
+        this.designPxToReal(90),
+      );
+
+      // Mnemonic
+      const mnemonicWords: string[] =
+        this.wallet?.getMnemonic().split(" ") ?? [];
+      const row1 = mnemonicWords.slice(0, 8).join(" ");
+      const row2 = mnemonicWords.slice(8, 16).join(" ");
+      const row3 = mnemonicWords.slice(16).join(" ");
+      cont.fillText(row1, this.designPxToReal(40), this.designPxToReal(490));
+      cont.fillText(row2, this.designPxToReal(40), this.designPxToReal(505));
+      cont.fillText(row3, this.designPxToReal(40), this.designPxToReal(520));
+      cont.drawImage(
+        this.mnemonicImg as HTMLImageElement,
+        this.designPxToReal(352),
+        this.designPxToReal(445),
+        this.designPxToReal(90),
+        this.designPxToReal(90),
+      );
+    },
+    setSizes() {
+      // Set height and width
+      const contW = (this.$refs.pdf as HTMLCanvasElement).clientWidth;
+
+      this.width = contW;
+      this.height = contW / this.aspectRatio;
+    },
+    designPxToReal(px: number) {
+      return (this.width / designWidth) * px;
+    },
+    print() {
+      const canv = this.$refs.pdf as HTMLCanvasElement;
+      printjs({
+        printable: canv.toDataURL(),
+        type: "image",
+        imageStyle: "width:100%; margin: 5px;",
+        maxWidth: 2800,
+        documentTitle: "",
+      });
+    },
+    buildQr() {
+      if (this.wallet) {
+        QRCode.toDataURL(
+          this.address,
+          {
+            width: this.designPxToReal(100),
+          },
+          (_: any, url: string) => {
+            const img = new Image();
+            img.src = url;
+            this.qrImg = img;
+          },
+        );
+
+        QRCode.toDataURL(
+          this.wallet.getMnemonic(),
+          {
+            width: this.designPxToReal(90),
+          },
+          (_: any, url: string) => {
+            const img = new Image();
+            img.src = url;
+            this.mnemonicImg = img;
+          },
+        );
+      }
+    },
+  },
+});
 </script>
 <style scoped>
 .qr_body {

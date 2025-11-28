@@ -7,138 +7,138 @@
       </div>
       <form @submit.prevent="access">
         <v-text-field
-          class="pass"
-          :label="$t('password')"
-          dense
-          solo
-          flat
-          type="password"
-          v-model="pass"
           v-if="file"
+          v-model="pass"
+          class="pass"
+          dense
+          flat
           hide-details
+          :label="$t('password')"
+          solo
+          type="password"
         ></v-text-field>
         <p class="err">{{ error }}</p>
         <!--                <remember-key class="remember" v-model="rememberPass" v-if="file" @is-valid="isRememberValid"></remember-key>-->
         <v-btn
-          class="ava_button button_secondary"
-          @click="access"
-          :loading="isLoading"
           v-if="file"
-          :disabled="!canSubmit"
+          class="ava_button button_secondary"
           depressed
+          :disabled="!canSubmit"
+          :loading="isLoading"
+          @click="access"
         >
           {{ $t("access.mnemonic.submit") }}
         </v-btn>
       </form>
-      <router-link to="/access" class="link">{{
+      <router-link class="link" to="/access">{{
         $t("access.cancel")
       }}</router-link>
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-
-import FileInput from "../../components/misc/FileInput.vue";
-// import RememberKey from "../../components/misc/RememberKey.vue";
-import type { ImportKeyfileInput } from "@/store/types";
 import type { AllKeyFileTypes } from "@/js/IKeystore";
+import type { ImportKeyfileInput } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import FileInput from "@/components/misc/FileInput.vue";
 
-@Component({
+export const Keystore = defineComponent({
   components: {
-    // RememberKey,
     FileInput,
   },
-})
-export class Keystore extends Vue {
-  pass = "";
-  file: File | null = null;
-  fileText: string | null = null;
-  // rememberPass: string|null = null;
-  // rememberValid: boolean = true;
-  isLoading = false;
-  error = "";
-
-  onfile(val: File) {
-    this.file = val;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const parent = this;
-
-    const reader = new FileReader();
-    reader.addEventListener("load", async () => {
-      const res = reader.result as string;
-      parent.fileText = res;
-    });
-    reader.readAsText(val);
-  }
-
-  // isRememberValid(val: boolean){
-  //     this.rememberValid = val;
-  // }
-  access() {
-    if (!this.canSubmit || this.isLoading) return;
-
-    const parent = this;
-    this.error = "";
-
-    let fileData: AllKeyFileTypes;
-    try {
-      fileData = JSON.parse(this.fileText as string);
-    } catch (e) {
-      this.error = `${this.$t("access.json_error")}`;
-      return;
-    }
-
-    // console.log(this.fileText);
-    // return;
-
-    // let rememberPass = this.rememberPass;
-    const data: ImportKeyfileInput = {
-      password: this.pass,
-      data: fileData,
+  data(): {
+    pass: string;
+    file: File | null;
+    fileText: string | null;
+    isLoading: boolean;
+    error: string;
+  } {
+    return {
+      pass: "",
+      file: null,
+      fileText: null,
+      isLoading: false,
+      error: "",
     };
+  },
+  computed: {
+    canSubmit(): boolean {
+      if (!this.file || !this.pass || !this.fileText) {
+        return false;
+      }
 
-    this.isLoading = true;
+      return true;
+    },
+  },
+  methods: {
+    onfile(val: File) {
+      this.file = val;
+      const reader = new FileReader();
+      reader.addEventListener("load", async () => {
+        const res = reader.result as string;
+        this.fileText = res;
+      });
+      // eslint-disable-next-line unicorn/prefer-blob-reading-methods
+      reader.readAsText(val);
+    },
+    access() {
+      if (!this.canSubmit || this.isLoading) return;
 
-    setTimeout(() => {
-      this.$store
-        .dispatch("importKeyfile", data)
-        .then((res) => {
-          parent.isLoading = false;
+      this.error = "";
 
-          // if(rememberPass){
-          //     parent.$store.dispatch('rememberWallets', rememberPass)
-          // }
-        })
-        .catch((err) => {
-          console.log(err);
-          if (err === "INVALID_PASS") {
-            parent.error = this.$t("access.password_error").toString();
-          } else if (err === "INVALID_VERSION") {
-            parent.error = this.$t("access.keystore_error").toString();
-          } else {
-            parent.error = err.message;
-          }
-          parent.isLoading = false;
-        });
-    }, 200);
-  }
+      let fileData: AllKeyFileTypes;
+      try {
+        fileData = JSON.parse(this.fileText as string);
+      } catch {
+        this.error = `${this.$t("access.json_error")}`;
+        return;
+      }
 
-  get canSubmit(): boolean {
-    if (!this.file || !this.pass || !this.fileText) {
-      return false;
-    }
+      // console.log(this.fileText);
+      // return;
 
-    return true;
-  }
-}
+      // let rememberPass = this.rememberPass;
+      const data: ImportKeyfileInput = {
+        password: this.pass,
+        data: fileData,
+      };
+
+      this.isLoading = true;
+
+      setTimeout(() => {
+        this.$store
+          .dispatch("importKeyfile", data)
+          .then(() => {
+            this.isLoading = false;
+
+            // if(rememberPass){
+            //     parent.$store.dispatch('rememberWallets', rememberPass)
+            // }
+          })
+          .catch((error) => {
+            console.log(error);
+            if (error === "INVALID_PASS") {
+              this.error = this.$t("access.password_error").toString();
+            } else if (error === "INVALID_VERSION") {
+              this.error = this.$t("access.keystore_error").toString();
+            } else {
+              this.error = error.message;
+            }
+            this.isLoading = false;
+          });
+      }, 200);
+    },
+  },
+});
 export default Keystore;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .pass {
-  background-color: var(--bg) !important;
+  // background-color: var(--bg) !important;
 }
 .ava_button {
   width: 100%;
@@ -146,7 +146,7 @@ export default Keystore;
 }
 .access_card {
   /*max-width: 80vw;*/
-  padding: main.$container-padding;
+  padding: vars.$container-padding;
   width: 100%;
   /*max-width: 240px;*/
   /*max-width: 1000px;*/
@@ -170,14 +170,15 @@ export default Keystore;
 }
 
 h1 {
-  font-size: main.$m-size;
+  font-size: vars.$m-size;
   font-weight: 700;
   color: var(--tertiary-color);
   margin-bottom: 24px;
 }
 
 .file_in {
-  margin: 10px auto 10px;
+  // margin: 10px auto 10px;
+  padding: 20px 0;
   font-size: 13px;
   border: none !important;
   background-color: var(--bg) !important;
@@ -185,7 +186,7 @@ h1 {
 }
 
 a {
-  color: main.$primary-color-light !important;
+  color: vars.$primary-color-light !important;
   text-decoration: underline !important;
   margin: 10px 0 20px;
 }
@@ -197,15 +198,16 @@ a {
 .remember {
   margin: 12px 0;
 }
+
 .err {
   font-size: 13px;
   color: var(--error);
   margin: 14px 0px !important;
 }
 
-@media only screen and (max-width: main.$mobile_width) {
+@include mixins.mobile-device {
   h1 {
-    font-size: main.$m-size-mobile;
+    font-size: vars.$m-size-mobile;
   }
 
   .but_primary {

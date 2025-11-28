@@ -8,7 +8,7 @@
 export async function setTimeoutInterval(
   action: () => Promise<boolean>,
   interval: number,
-  timeout: number
+  timeout: number,
 ): Promise<void> {
   const start = performance.now();
   const end = start + timeout;

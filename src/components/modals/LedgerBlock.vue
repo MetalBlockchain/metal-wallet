@@ -1,15 +1,15 @@
 <template>
-  <modal ref="modal" title="Accessing Ledger Device" :can_close="false">
-    <div class="ledger_block" v-if="isActive">
+  <modal ref="modal" :can-close="false" title="Accessing Ledger Device">
+    <div v-if="isActive" class="ledger_block">
       <p v-if="isPrompt" style="font-size: 18px">
         {{ $t("modal.ledger.desc") }}
       </p>
-      <p class="alert" v-if="warning">{{ warning }}</p>
+      <p v-if="warning" class="alert">{{ warning }}</p>
 
       <p class="message">{{ title }}</p>
-      <p class="message" v-if="info">{{ info }}</p>
+      <p v-if="info" class="message">{{ info }}</p>
       <template v-else>
-        <div class="message block" v-for="(message, i) in messages" :key="i">
+        <div v-for="(message, i) in messages" :key="i" class="message block">
           <p class="title">{{ message.title }}</p>
           <p class="value">{{ message.value }}</p>
         </div>
@@ -20,67 +20,63 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
+import type { ILedgerBlockMessage } from "@/stores/vuex/modules/ledger/types";
+import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import Modal from "./Modal.vue";
-import type { ILedgerBlockMessage } from "../../store/modules/ledger/types";
 
-@Component({
+export const LedgerBlock = defineComponent({
   components: {
     Modal,
     Spinner,
   },
-})
-export class LedgerBlock extends Vue {
-  intervalId: ReturnType<typeof setTimeout> | null = null;
+  data() {
+    const intervalId: ReturnType<typeof setTimeout> | null = null;
 
-  $refs!: {
-    modal: Modal;
-  };
-
-  open() {
-    this.$refs.modal.open();
-  }
-  close() {
-    this.$refs.modal.close();
-  }
-
-  get title(): string {
-    return this.$store.state.Ledger.title;
-  }
-
-  get info(): string {
-    return this.$store.state.Ledger.info;
-  }
-
-  get messages(): Array<ILedgerBlockMessage> {
-    return this.$store.state.Ledger.messages;
-  }
-
-  get isActive(): boolean {
-    return this.$store.state.Ledger.isBlock;
-  }
-
-  get isPrompt(): boolean {
-    return this.$store.state.Ledger.isPrompt;
-  }
-
-  get warning() {
-    return this.$store.state.Ledger.warning;
-  }
-
-  @Watch("isActive", { immediate: true })
-  onActive(val: boolean): void {
-    if (!this.$refs.modal) return;
-    if (val) {
-      this.open();
-    } else {
-      this.close();
-    }
-  }
-}
+    return {
+      intervalId,
+    };
+  },
+  computed: {
+    title(): string {
+      return this.$store.state.Ledger.title;
+    },
+    info(): string {
+      return this.$store.state.Ledger.info;
+    },
+    messages(): Array<ILedgerBlockMessage> {
+      return this.$store.state.Ledger.messages;
+    },
+    isActive(): boolean {
+      return this.$store.state.Ledger.isBlock;
+    },
+    isPrompt(): boolean {
+      return this.$store.state.Ledger.isPrompt;
+    },
+    warning() {
+      return this.$store.state.Ledger.warning;
+    },
+  },
+  watch: {
+    isActive: [{ immediate: true, handler: "onActive" }],
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+    onActive(val: boolean): void {
+      if (!this.$refs.modal) return;
+      if (val) {
+        this.open();
+      } else {
+        this.close();
+      }
+    },
+  },
+});
 export default LedgerBlock;
 </script>
 

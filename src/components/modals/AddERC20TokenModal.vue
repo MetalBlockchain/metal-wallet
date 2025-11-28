@@ -1,5 +1,5 @@
 <template>
-  <modal ref="modal" title="Add Token" @beforeClose="beforeClose">
+  <modal ref="modal" title="Add Token" @before-close="beforeClose">
     <div class="add_token_body">
       <div>
         <label>Token Contract Address</label>
@@ -18,13 +18,13 @@
         </div>
         <div>
           <label>Decimals of Precision</label>
-          <input type="number" v-model="denomination" disabled />
+          <input v-model="denomination" disabled type="number" />
         </div>
       </div>
 
       <v-btn
-        class="button_secondary"
         block
+        class="button_secondary"
         depressed
         :disabled="!canAdd"
         @click="submit"
@@ -34,120 +34,124 @@
     </div>
   </modal>
 </template>
+
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
-import Modal from "./Modal.vue";
-import { web3 } from "@/evm";
-import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
 import type Erc20Token from "@/js/Erc20Token";
-import type { TokenListToken } from "@/store/modules/assets/types";
+import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
+import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
+import { defineComponent } from "vue";
+import { web3 } from "@/misc/evm";
+import Modal from "./Modal.vue";
 
-@Component({
+export const AddERC20TokenModal = defineComponent({
   components: {
     Modal,
   },
-})
-export class AddERC20TokenModal extends Vue {
-  tokenAddress = "";
-  name = "";
-  symbol = "";
-  denomination = 1;
-  canAdd = false;
-  err = "";
-  @Watch("tokenAddress")
-  async onAddressChange(val: string) {
-    this.err = "";
-    if (val === "") {
-      this.clear();
-      return;
-    }
-    await this.validateAddress(val);
-  }
+  data() {
+    return {
+      tokenAddress: "",
+      name: "",
+      symbol: "",
+      denomination: 1,
+      canAdd: false,
+      err: "",
+    };
+  },
+  watch: {
+    tokenAddress: [
+      {
+        handler: "onAddressChange",
+      },
+    ],
+  },
+  methods: {
+    async validateAddress(val: string) {
+      if (val === "") {
+        this.err = "";
+        return false;
+      }
+      try {
+        //@ts-ignore
+        const tokenInst = new web3.eth.Contract(ERC20Abi.abi, val);
+        const name = await tokenInst.methods.name().call();
+        const symbol = await tokenInst.methods.symbol().call();
+        const decimals = await tokenInst.methods.decimals().call();
 
-  async validateAddress(val: string) {
-    if (val === "") {
-      this.err = "";
-      return false;
-    }
-    try {
-      //@ts-ignore
-      const tokenInst = new web3.eth.Contract(ERC20Abi.abi, val);
-      const name = await tokenInst.methods.name().call();
-      const symbol = await tokenInst.methods.symbol().call();
-      const decimals = await tokenInst.methods.decimals().call();
+        this.symbol = symbol;
+        this.denomination = decimals;
+        this.name = name;
 
-      this.symbol = symbol;
-      this.denomination = decimals;
-      this.name = name;
-
-      this.canAdd = true;
-      return true;
-    } catch (e) {
+        this.canAdd = true;
+        return true;
+      } catch {
+        this.canAdd = false;
+        this.symbol = "-";
+        this.denomination = 0;
+        this.name = "-";
+        this.err = "Invalid contract address.";
+        return false;
+      }
+    },
+    clear() {
+      this.tokenAddress = "";
       this.canAdd = false;
       this.symbol = "-";
       this.denomination = 0;
       this.name = "-";
-      this.err = "Invalid contract address.";
-      return false;
-    }
-  }
+      this.err = "";
+    },
+    async submit() {
+      try {
+        const data: TokenListToken = {
+          address: this.tokenAddress,
+          name: this.name,
+          symbol: this.symbol,
+          decimals: this.denomination,
+          chainId: this.$store.state.Assets.evmChainId,
+          logoURI: "",
+        };
 
-  clear() {
-    this.tokenAddress = "";
-    this.canAdd = false;
-    this.symbol = "-";
-    this.denomination = 0;
-    this.name = "-";
-    this.err = "";
-  }
+        const token: Erc20Token = await this.$store.dispatch(
+          "Assets/addCustomErc20Token",
+          data,
+        );
 
-  async submit() {
-    try {
-      const data: TokenListToken = {
-        address: this.tokenAddress,
-        name: this.name,
-        symbol: this.symbol,
-        decimals: this.denomination,
-        chainId: this.$store.state.Assets.evmChainId,
-        logoURI: "",
-      };
-
-      const token: Erc20Token = await this.$store.dispatch(
-        "Assets/addCustomErc20Token",
-        data
-      );
-
-      this.$store.dispatch("Notifications/add", {
-        title: "ERC20 Token Added",
-        message: token.data.name,
-      });
-      this.close();
-    } catch (e: any) {
-      this.err = e.message;
-      console.error(e);
-    }
-  }
-
-  beforeClose() {
-    this.clear();
-  }
-
-  open() {
-    // @ts-ignore
-    this.$refs.modal.open();
-  }
-
-  close() {
-    // @ts-ignore
-    this.$refs.modal.close();
-  }
-}
+        this.$store.dispatch("Notifications/add", {
+          title: "ERC20 Token Added",
+          message: token.data.name,
+        });
+        this.close();
+      } catch (error: any) {
+        this.err = error.message;
+        console.error(error);
+      }
+    },
+    beforeClose() {
+      this.clear();
+    },
+    open() {
+      // @ts-ignore
+      this.$refs.modal.open();
+    },
+    close() {
+      // @ts-ignore
+      this.$refs.modal.close();
+    },
+    async onAddressChange(val: string) {
+      this.err = "";
+      if (val === "") {
+        this.clear();
+        return;
+      }
+      await this.validateAddress(val);
+    },
+  },
+});
 export default AddERC20TokenModal;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
+
 .add_token_body {
   padding: 30px 22px;
   text-align: center;
@@ -208,7 +212,7 @@ export default AddERC20TokenModal;
   text-align: center;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .add_token_body {
     width: 100%;
   }

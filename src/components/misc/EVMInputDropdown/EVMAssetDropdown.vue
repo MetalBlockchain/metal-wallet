@@ -1,72 +1,75 @@
 <template>
-  <div class="evm_dropdown hover_border" :active="isPopup" :disabled="disabled">
-    <button @click="showPopup" :disabled="disabled">
+  <div :active="isPopup" class="evm_dropdown hover_border" :disabled="disabled">
+    <button :disabled="disabled" @click="showPopup">
       {{ symbol }}
     </button>
     <EVMTokenSelectModal
       ref="select_modal"
       @select="select"
-      @selectCollectible="selectERC721"
+      @select-collectible="selectERC721"
     ></EVMTokenSelectModal>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type Erc20Token from "@/js/Erc20Token";
-import type { WalletType } from "@/js/wallets/types";
-
-import { bnToBig } from "@/helpers/helper";
-import Big from "big.js";
-import EVMTokenSelectModal from "@/components/modals/EvmTokenSelect/EVMTokenSelectModal.vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
+import type Erc20Token from "@/js/Erc20Token";
+
 import type ERC721Token from "@/js/ERC721Token";
-@Component({
+import type { WalletType } from "@/js/wallets/types";
+import Big from "big.js";
+import { defineComponent } from "vue";
+import EVMTokenSelectModal from "@/components/modals/EvmTokenSelect/EVMTokenSelectModal.vue";
+import { bnToBig } from "@/helpers/helper";
+
+export const EVMAssetDropdown = defineComponent({
   components: { EVMTokenSelectModal },
-})
-export class EVMAssetDropdown extends Vue {
-  isPopup = false;
-  selected: Erc20Token | ERC721Token | "native" = "native";
+  props: {
+    disabled: { default: false, type: Boolean },
+  },
+  emits: ["change", "change-collectible"],
+  data(): {
+    isPopup: boolean;
+    selected: Erc20Token | ERC721Token | "native";
+  } {
+    const selected: Erc20Token | ERC721Token | "native" = "native";
 
-  @Prop({ default: false }) disabled!: boolean;
-
-  $refs!: {
-    select_modal: EVMTokenSelectModal;
-  };
-
-  get symbol() {
-    if (this.selected === "native") return "METAL";
-    else return this.selected.data.symbol;
-  }
-
-  showPopup() {
-    this.$refs.select_modal.open();
-  }
-
-  get avaxBalance(): Big {
-    const w: WalletType | null = this.$store.state.activeWallet;
-    if (!w) return Big(0);
-    const balBN = w.ethBalance;
-    return bnToBig(balBN, 18);
-  }
-
-  select(token: Erc20Token | "native") {
-    this.selected = token;
-    this.$emit("change", token);
-  }
-
-  clear() {
-    this.select("native");
-  }
-
-  selectERC721(val: iErc721SelectInput) {
-    this.selected = val.token;
-    this.$emit("changeCollectible", val);
-  }
-}
+    return {
+      isPopup: false,
+      selected,
+    };
+  },
+  computed: {
+    symbol() {
+      return this.selected === "native" ? "METAL" : this.selected.data.symbol;
+    },
+    avaxBalance(): Big {
+      const w: WalletType | null = this.$store.state.activeWallet;
+      if (!w) return Big(0);
+      const balBN = w.ethBalance;
+      return bnToBig(balBN, 18);
+    },
+  },
+  methods: {
+    showPopup() {
+      (this.$refs.select_modal as typeof EVMTokenSelectModal).open();
+    },
+    select(token: Erc20Token | "native") {
+      this.selected = token;
+      this.$emit("change", token);
+    },
+    clear() {
+      this.select("native");
+    },
+    selectERC721(val: iErc721SelectInput) {
+      this.selected = val.token;
+      this.$emit("change-collectible", val);
+    },
+  },
+});
 export default EVMAssetDropdown;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 .evm_dropdown {
   position: relative;
 }
@@ -127,7 +130,7 @@ button {
   text-align: right;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .list {
     border-top-right-radius: 14px;
     border-top-left-radius: 14px;

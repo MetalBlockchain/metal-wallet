@@ -2,32 +2,33 @@
   <div class="bal_row">
     <p class="symbol">{{ symbol }}</p>
     <p class="name">{{ name }}</p>
-    <p class="amt">{{ asset.toString() }}</p>
+    <p class="amt">{{ asset?.toString() }}</p>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import { defineComponent } from "vue";
 
-@Component
-export default class BalanceRow extends Vue {
-  @Prop() asset!: AvaAsset;
-
-  get name() {
-    const name = this.asset.name;
-    return name;
-  }
-
-  get symbol() {
-    const sym = this.asset.symbol;
-    return sym;
-  }
-}
+export default defineComponent({
+  props: {
+    asset: {
+      type: Object as PropType<AvaAsset>,
+    },
+  },
+  computed: {
+    name() {
+      const name = this.asset?.name;
+      return name;
+    },
+    symbol() {
+      const sym = this.asset?.symbol;
+      return sym;
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../../main";
-
 .symbol {
   background-color: var(--bg-light);
   border-radius: 6px;
@@ -47,8 +48,5 @@ export default class BalanceRow extends Vue {
 
 .amt {
   text-align: right;
-}
-
-@include main.mobile-device {
 }
 </style>

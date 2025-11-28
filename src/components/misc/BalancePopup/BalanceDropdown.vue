@@ -1,6 +1,6 @@
 <template>
-  <div class="dropdown hover_border" :active="isPopup">
-    <button @click="showPopup" :disabled="disabled">
+  <div :active="isPopup" class="dropdown hover_border">
+    <button :disabled="disabled" @click="showPopup">
       {{ symbol }}
       <!--            <fa icon="caret-down" style="float: right"></fa>-->
     </button>
@@ -14,81 +14,60 @@
     <!--        ></BalancePopup>-->
     <AvmTokenSelect
       ref="token_modal"
-      @select="onselect"
       :assets="assetArray"
       :disabled-ids="disabledIds"
+      @select="onselect"
     ></AvmTokenSelect>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Ref, Model } from "vue-property-decorator";
-
-import BalancePopup from "@/components/misc/BalancePopup/BalancePopup.vue";
-import AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
+import type AvaAsset from "@/js/AvaAsset";
+import { defineComponent } from "vue";
 import AvmTokenSelect from "@/components/modals/AvmTokenSelect.vue";
 
-@Component({
+export default defineComponent({
   components: {
     AvmTokenSelect,
-    BalancePopup,
   },
-})
-export default class BalanceDropdown extends Vue {
-  isPopup = false;
-
-  @Prop({ default: () => [] }) disabled_assets!: AvaAsset[];
-  @Prop({ default: false }) disabled!: boolean;
-  @Model("change", { type: AvaAsset }) readonly asset!: AvaAsset;
-
-  get assetArray(): AvaAsset[] {
-    // return this.$store.getters.walletAssetsArray
-    return this.$store.getters["Assets/walletAssetsArray"];
-  }
-
-  $refs!: {
-    popup: BalancePopup;
-    token_modal: AvmTokenSelect;
-  };
-
-  get disabledIds(): string[] {
-    const disabledIds = this.disabled_assets.map((a) => a.id);
-    return disabledIds;
-  }
-
-  get symbol() {
-    const sym = this.asset.symbol;
-    return sym;
-  }
-
-  // get isPopup(){
-  //     if(this.balancePopup){
-  //         return this.balancePopup.isActive;
-  //     }
-  //     return false;
-  // }
-
-  showPopup() {
-    this.$refs.token_modal.open();
-    // this.balancePopup.isActive = true
-    // this.isPopup = true
-  }
-
-  onclose() {
-    // this.isPopup = false
-  }
-
-  onselect(asset: AvaAsset) {
-    // this.selected = asset;
-    // this.balancePopup.isActive = false
-    // this.isPopup = false
-
-    this.$emit("change", asset);
-  }
-}
+  props: {
+    disabledAssets: { default: () => [], type: Array as PropType<AvaAsset[]> },
+    disabled: { default: false, type: Boolean },
+    modelValue: { type: Object as PropType<AvaAsset> },
+  },
+  emits: ["update:modelValue"],
+  data() {
+    return {
+      isPopup: false,
+    };
+  },
+  computed: {
+    assetArray(): AvaAsset[] {
+      // return this.$store.getters.walletAssetsArray
+      return this.$store.getters["Assets/walletAssetsArray"];
+    },
+    disabledIds(): string[] {
+      const disabledIds = this.disabledAssets.map((a) => a.id);
+      return disabledIds;
+    },
+    symbol() {
+      const sym = this.modelValue?.symbol;
+      return sym;
+    },
+  },
+  methods: {
+    showPopup() {
+      (this.$refs.token_modal as typeof AvmTokenSelect).open();
+    },
+    onclose() {},
+    onselect(asset: AvaAsset) {
+      this.$emit("update:modelValue", asset);
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 button {
   padding: 4px 12px;
@@ -123,7 +102,7 @@ button {
   position: absolute;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   button {
     font-size: 13px;
   }

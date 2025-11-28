@@ -5,38 +5,45 @@
       <hr />
     </div>
     <div class="chain_select">
-      <button :active="formType === 'X'" @click="set('X')">Exchange</button>
-      <button :active="formType === 'C'" @click="set('C')">Contract</button>
+      <button :data-active="modelValue === 'X'" @click="set('X')">
+        Exchange
+      </button>
+      <button :data-active="modelValue === 'C'" @click="set('C')">
+        Contract
+      </button>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Model, Prop } from "vue-property-decorator";
 import type { ChainIdType } from "@/constants";
+import { defineComponent } from "vue";
 
-@Component
-export class ChainInput extends Vue {
-  @Model("change", { type: String }) readonly formType!: string;
-  @Prop({ default: false }) disabled!: boolean;
-
-  set(val: ChainIdType) {
-    if (this.disabled) return;
-    this.$emit("change", val);
-  }
-
-  get wallet() {
-    return this.$store.state.activeWallet;
-  }
-
-  get isEVMSupported() {
-    return this.wallet.ethAddress;
-  }
-}
+export const ChainInput = defineComponent({
+  props: {
+    disabled: { default: false, type: Boolean },
+    modelValue: { type: String },
+  },
+  emits: ["update:modelValue"],
+  computed: {
+    wallet() {
+      return this.$store.state.activeWallet;
+    },
+    isEVMSupported() {
+      return this.wallet.ethAddress;
+    },
+  },
+  methods: {
+    set(val: ChainIdType) {
+      if (this.disabled) return;
+      this.$emit("update:modelValue", val);
+    },
+  },
+});
 export default ChainInput;
 </script>
 
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 label {
   font-size: 20px;
@@ -78,7 +85,7 @@ label {
       opacity: 1;
       color: var(--secondary-color);
     }
-    &[active] {
+    &[data-active="true"] {
       opacity: 1;
       background-color: var(--bg-3);
       color: var(--secondary-color);
@@ -87,7 +94,7 @@ label {
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .chain_select {
     width: 100%;
     display: grid;
@@ -100,7 +107,7 @@ label {
       background-color: var(--bg-light);
       color: var(--primary-color-light);
 
-      &[active] {
+      &[data-active="true"] {
         //background-color: var(--secondary-color);
         color: var(--primary-color);
         //color: #fff;

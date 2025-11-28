@@ -2,7 +2,7 @@
   <modal
     ref="modal"
     :title="$t('modal.ledger_upgrade.title')"
-    @beforeClose="beforeClose"
+    @before-close="beforeClose"
   >
     <div class="ledger_block">
       <ol>
@@ -24,8 +24,8 @@
           app manager. The minimum version required to use the app is version
           {{ minV }}, more instructions can be found
           <a
-            target="_blank"
             href="https://support.avax.network/en/articles/6150237-how-to-use-a-ledger-nano-s-or-nano-x-with-avalanche"
+            target="_blank"
           >
             here
           </a>
@@ -38,60 +38,51 @@
 <script lang="ts">
 import type { WalletType } from "@/js/wallets/types";
 
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
-import Modal from "./Modal.vue";
+import { defineComponent } from "vue";
 import { MIN_LEDGER_V } from "@/js/wallets/constants";
+import Modal from "./Modal.vue";
 
-@Component({
+export const LedgerUpgrade = defineComponent({
   components: {
     Modal,
   },
-})
-export class LedgerUpgrade extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
-
-  open() {
-    this.$refs.modal.open();
-  }
-
-  close() {
-    this.$refs.modal.close();
-  }
-
-  beforeClose() {
+  computed: {
+    minV() {
+      return MIN_LEDGER_V;
+    },
+    isActive() {
+      return this.$store.state.Ledger.isUpgradeRequired;
+    },
+    wallet() {
+      return this.$store.state.activeWallet as WalletType;
+    },
+  },
+  watch: {
+    isActive: [{ immediate: true, handler: "onActive" }],
+  },
+  unmounted() {
     this.$store.commit("Ledger/setIsUpgradeRequired", false);
-  }
-
-  destroyed() {
-    this.$store.commit("Ledger/setIsUpgradeRequired", false);
-  }
-
-  get minV() {
-    return MIN_LEDGER_V;
-  }
-
-  get isActive() {
-    return this.$store.state.Ledger.isUpgradeRequired;
-  }
-
-  get wallet() {
-    return this.$store.state.activeWallet as WalletType;
-  }
-
-  @Watch("isActive", { immediate: true })
-  onActive(val: boolean): void {
-    if (!this.$refs.modal) return;
-    if (val) {
-      this.open();
-    } else {
-      this.close();
-    }
-  }
-}
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+    beforeClose() {
+      this.$store.commit("Ledger/setIsUpgradeRequired", false);
+    },
+    onActive(val: boolean): void {
+      if (!this.$refs.modal) return;
+      if (val) {
+        this.open();
+      } else {
+        this.close();
+      }
+    },
+  },
+});
 export default LedgerUpgrade;
 </script>
 <style scoped lang="scss">

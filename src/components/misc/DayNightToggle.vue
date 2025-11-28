@@ -5,52 +5,68 @@
   </button>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-@Component
-export class DayNightToggle extends Vue {
-  val = false;
-  setNight() {
-    this.val = true;
-    localStorage.setItem("theme", "night");
-    document.documentElement.setAttribute("data-theme", "night");
-    (this.$root.$data as any).theme = "night";
-  }
-  setDay() {
-    this.val = false;
-    localStorage.setItem("theme", "day");
-    document.documentElement.setAttribute("data-theme", "day");
-    (this.$root.$data as any).theme = "day";
-  }
-  toggle() {
-    this.val = !this.val;
-    if (this.val) {
-      this.setNight();
-    } else {
-      this.setDay();
-    }
-  }
+export const DayNightToggle = defineComponent({
+  setup() {
+    const { setNight, setDay } = useOwnTheme();
+    return {
+      setNight,
+      setDay,
+    };
+  },
+  data() {
+    return {
+      val: false,
+    };
+  },
   mounted() {
     const theme = localStorage.getItem("theme");
 
     if (!theme) {
-      this.setDay();
+      this.setOwnDay();
       return;
     }
 
-    if (theme === "night") {
-      this.setNight();
+    if (theme === "dark") {
+      this.setOwnNight();
     }
-  }
-}
+  },
+  methods: {
+    setOwnNight() {
+      this.val = true;
+      this.setValue("dark");
+      this.setNight();
+    },
+    setOwnDay() {
+      this.val = false;
+      this.setValue("light");
+      this.setDay();
+    },
+    toggle() {
+      this.val = !this.val;
+      if (this.val) {
+        this.setOwnNight();
+      } else {
+        this.setOwnDay();
+      }
+    },
+    setValue(value: string) {
+      localStorage.setItem("theme", value);
+      document.documentElement.dataset.theme = value;
+    },
+  },
+});
 
 export default DayNightToggle;
 </script>
+
 <style scoped lang="scss">
 button {
   display: flex;
   align-items: center;
+
   img {
     max-height: 18px;
   }

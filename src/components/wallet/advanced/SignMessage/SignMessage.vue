@@ -8,7 +8,7 @@
     </p>
     <div v-if="isHD">
       <label>{{ $t("advanced.sign.label1") }}</label>
-      <SearchAddress :wallet="wallet" v-model="sourceAddress"></SearchAddress>
+      <SearchAddress v-model="sourceAddress" :wallet="wallet"></SearchAddress>
     </div>
     <div>
       <label>{{ $t("advanced.sign.label2") }}</label>
@@ -17,12 +17,12 @@
     </div>
     <p class="err">{{ error }}</p>
     <v-btn
-      class="button_secondary"
       block
-      small
+      class="button_secondary"
       depressed
-      @click="sign"
       :disabled="!canSubmit"
+      small
+      @click="sign"
     >
       {{ $t("advanced.sign.submit") }}
     </v-btn>
@@ -34,64 +34,58 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import type { WalletType } from "@/js/wallets/types";
-import SearchAddress from "@/components/wallet/advanced/SignMessage/SearchAddress.vue";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
-@Component({
+import type { WalletType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
+import SearchAddress from "@/components/wallet/advanced/SignMessage/SearchAddress.vue";
+
+export const SignMessage = defineComponent({
   components: { SearchAddress },
-})
-export class SignMessage extends Vue {
-  sourceAddress = null;
-  message = "";
-  signed = "";
-  error = "";
+  data() {
+    return {
+      sourceAddress: undefined,
+      message: "",
+      signed: "",
+      error: "",
+    };
+  },
+  computed: {
+    wallet(): WalletType {
+      return this.$store.state.activeWallet;
+    },
+    isHD() {
+      return this.wallet.type !== "singleton";
+    },
+    canSubmit(): boolean {
+      if (!this.sourceAddress && this.isHD) return false;
+      if (!this.message) return false;
 
-  get wallet(): WalletType {
-    return this.$store.state.activeWallet;
-  }
-
-  async sign() {
-    this.error = "";
-    try {
-      // Convert the message to a hashed buffer
-      // let hashMsg = this.msgToHash(this.message);
-      if (this.wallet.type === "singleton") {
-        this.signed = await (this.wallet as SingletonWallet).signMessage(
-          this.message
-        );
-      } else {
-        this.signed = await this.wallet.signMessage(
-          this.message,
-          this.sourceAddress!
-        );
-      }
-    } catch (e: any) {
-      this.error = e;
-    }
-  }
-
-  clear() {
-    this.message = "";
-    this.signed = "";
-    this.error = "";
-  }
-
+      return true;
+    },
+  },
   deactivated() {
     this.clear();
-  }
-
-  get isHD() {
-    return this.wallet.type !== "singleton";
-  }
-
-  get canSubmit(): boolean {
-    if (!this.sourceAddress && this.isHD) return false;
-    if (!this.message) return false;
-
-    return true;
-  }
-}
+  },
+  methods: {
+    async sign() {
+      this.error = "";
+      try {
+        // Convert the message to a hashed buffer
+        // let hashMsg = this.msgToHash(this.message);
+        this.signed = await (this.wallet.type === "singleton"
+          ? (this.wallet as SingletonWallet).signMessage(this.message)
+          : this.wallet.signMessage(this.message, this.sourceAddress!));
+      } catch (error: any) {
+        this.error = error;
+      }
+    },
+    clear() {
+      this.message = "";
+      this.signed = "";
+      this.error = "";
+    },
+  },
+});
 export default SignMessage;
 </script>
 <style scoped lang="scss">

@@ -1,19 +1,19 @@
 <template>
   <modal
     ref="modal"
-    :title="$t('modal.keystore.title')"
+    :can-close="false"
     class="modal_main"
-    :can_close="false"
+    :title="$t('modal.keystore.title')"
   >
     <div class="update_keystore_modal_body">
       <p>{{ $t("modal.keystore.desc") }}</p>
       <ExportWallet
         v-if="!isSuccess"
-        @success="success"
-        :is-desc="false"
-        class="export_wallet"
         ref="export"
+        class="export_wallet"
+        :is-desc="false"
         :wallets="allWallets"
+        @success="success"
       ></ExportWallet>
       <v-btn v-else class="ava_button button_primary" @click="logout">
         {{ $t("modal.keystore.logout") }}
@@ -22,53 +22,46 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
-import CopyText from "@/components/misc/CopyText.vue";
-import ExportWallet from "@/components/wallet/manage/ExportWallet.vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
+import ExportWallet from "@/components/wallet/manage/ExportWallet.vue";
 
-@Component({
+export const MnemonicPhrase = defineComponent({
   components: {
     Modal,
-    CopyText,
     ExportWallet,
   },
-})
-export class MnemonicPhrase extends Vue {
-  isSuccess = false;
-
-  $refs!: {
-    export: ExportWallet;
-    modal: Modal;
-  };
-
-  @Prop({ default: "" }) phrase!: string;
-
-  open(): void {
-    const modal = this.$refs.modal as Modal;
-    modal.open();
-  }
-
+  props: {
+    phrase: { default: "", type: String },
+  },
+  data() {
+    return {
+      isSuccess: false,
+    };
+  },
+  computed: {
+    allWallets(): MnemonicWallet[] {
+      return this.$store.state.wallets;
+    },
+  },
   mounted() {
     this.open();
-  }
-
-  success() {
-    this.$refs.export.clear();
-    this.isSuccess = true;
-  }
-
-  logout() {
-    this.$store.dispatch("logout");
-  }
-
-  get allWallets(): MnemonicWallet[] {
-    return this.$store.state.wallets;
-  }
-}
+  },
+  methods: {
+    open(): void {
+      const modal = this.$refs.modal as typeof Modal;
+      modal.open();
+    },
+    success() {
+      (this.$refs.export as typeof ExportWallet).clear();
+      this.isSuccess = true;
+    },
+    logout() {
+      this.$store.dispatch("logout");
+    },
+  },
+});
 export default MnemonicPhrase;
 </script>
 <style scoped lang="scss">

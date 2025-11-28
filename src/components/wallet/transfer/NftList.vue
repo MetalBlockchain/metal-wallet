@@ -2,21 +2,21 @@
   <div v-if="!isEmpty">
     <AvmNftSelectModal
       ref="select_modal"
-      @select="addNft"
       :disabled-ids="usedNftIds"
+      @select="addNft"
     ></AvmNftSelectModal>
     <div class="added_list">
       <NftListItem
         v-for="utxo in addedNfts"
-        class="nft_icon"
-        @remove="remove"
         :key="utxo.getUTXOID()"
-        :sample="utxo"
+        class="nft_icon"
         :disabled="disabled"
+        :sample="utxo"
         @change="setGroupUtxos"
+        @remove="remove"
       ></NftListItem>
       <div class="nft_icon card nft_add">
-        <button @click="showPopup" class="add_but" v-if="!disabled">
+        <button v-if="!disabled" class="add_but" @click="showPopup">
           <fa icon="plus"></fa>
           <br />
           Add Collectible
@@ -25,143 +25,130 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import type { IWalletNftDict } from "../../../store/types";
-import type { NftFamilyDict } from "../../../store/modules/assets/types";
-import BalancePopup from "@/components/misc/BalancePopup/BalancePopup.vue";
 
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+<script lang="ts">
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import { getPayloadFromUTXO } from "@/helpers/helper";
-import NftListItem from "@/components/wallet/transfer/NftListItem.vue";
 import type {
   IGroupDict,
   IGroupQuantity,
 } from "@/components/wallet/studio/mint/types";
-import { bintools } from "@/AVA";
-import AvmNftSelectModal from "@/components/modals/AvmNftSelectModal.vue";
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
 
-@Component({
+import type { IWalletNftDict } from "@/stores/vuex/types";
+import { defineComponent, ref } from "vue";
+import AvmNftSelectModal from "@/components/modals/AvmNftSelectModal.vue";
+import NftListItem from "@/components/wallet/transfer/NftListItem.vue";
+import { getPayloadFromUTXO } from "@/helpers/helper";
+import { bintools } from "@/misc/AVA";
+
+export const NftList = defineComponent({
   components: {
     AvmNftSelectModal,
-    BalancePopup,
     NftListItem,
   },
-})
-export class NftList extends Vue {
-  addedNfts: UTXO[] = [];
-
-  groupUtxos: IGroupDict = {};
-
-  $refs!: {
-    popup: BalancePopup;
-    select_modal: AvmNftSelectModal;
-  };
-
-  @Prop({ default: false }) disabled!: boolean;
-
-  // @Watch('addedNfts')
-  // onlistchange(val: UTXO[]) {
-  //     this.$emit('change', val)
-  // }
-
-  setGroupUtxos(val: IGroupQuantity) {
-    this.groupUtxos[val.id] = val.utxos;
-    this.emit();
-  }
-
-  emit() {
-    const utxos = [];
-
-    for (const id in this.groupUtxos) {
-      const gUtxos = this.groupUtxos[id];
-      utxos.push(...gUtxos);
-    }
-
-    this.$emit("change", utxos);
-  }
-
-  // @Watch('groupUtxos')
-  // onGroupUtxosChange(val: IGroupDict) {
-  //     console.log(this.groupUtxos)
-  // }
-
-  get payloads() {
-    return this.addedNfts.map((utxo) => {
-      return getPayloadFromUTXO(utxo);
-    });
-  }
-
-  get isEmpty(): boolean {
-    return this.nftUTXOs.length === 0;
-  }
-
-  get nftUTXOs(): UTXO[] {
-    return this.$store.state.Assets.nftUTXOs;
-  }
-
-  get nftDict(): IWalletNftDict {
-    // return this.$store.getters.walletNftDict
-    return this.$store.getters["Assets/walletNftDict"];
-  }
-
-  get nftFamsDict(): NftFamilyDict {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  get usedNftIds() {
-    return this.addedNfts.map((utxo: UTXO) => {
-      return utxo.getUTXOID();
-    });
-  }
-
-  clear() {
-    this.addedNfts = [];
-    this.groupUtxos = {};
-    this.emit();
-  }
-
-  addNft(utxo: UTXO) {
-    this.addedNfts.push(utxo);
-  }
-
-  remove(utxo: UTXO) {
-    const famId = bintools.cb58Encode(utxo.getAssetID());
-    const groupId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
-
-    // Clear from selected utxos list
-    const dictId = `${famId}_${groupId}`;
-    delete this.groupUtxos[dictId];
-
-    const utxos = this.addedNfts;
-    for (let i = 0; i < utxos.length; i++) {
-      if (utxos[i].getUTXOID() === utxo.getUTXOID()) {
-        this.addedNfts.splice(i, 1);
-      }
-    }
-
-    this.emit();
-  }
-
-  showPopup() {
-    this.$refs.select_modal.open();
-    // this.$refs.popup.isActive = true
-  }
-
+  props: {
+    disabled: { default: false, type: Boolean },
+  },
+  emits: ["change"],
+  setup() {
+    const addedNfts = ref<UTXO[]>();
+    const groupUtxos = ref<IGroupDict>();
+    return {
+      addedNfts,
+      groupUtxos,
+    };
+  },
+  computed: {
+    payloads() {
+      return (
+        this.addedNfts?.map((utxo) => {
+          return getPayloadFromUTXO(utxo);
+        }) ?? []
+      );
+    },
+    isEmpty(): boolean {
+      return this.nftUTXOs.length === 0;
+    },
+    nftUTXOs(): UTXO[] {
+      return this.$store.state.Assets.nftUTXOs;
+    },
+    nftDict(): IWalletNftDict {
+      // return this.$store.getters.walletNftDict
+      return this.$store.getters["Assets/walletNftDict"];
+    },
+    nftFamsDict(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+    usedNftIds() {
+      return (
+        this.addedNfts?.map((utxo) => {
+          return utxo.getUTXOID();
+        }) ?? []
+      );
+    },
+  },
+  activated() {},
   deactivated() {
     this.clear();
-  }
+  },
+  methods: {
+    setGroupUtxos(val: IGroupQuantity) {
+      if (this.groupUtxos) {
+        this.groupUtxos[val.id] = val.utxos;
+        this.emit();
+      }
+    },
+    emit() {
+      const utxos = [];
 
-  activated() {}
-}
+      for (const id in this.groupUtxos) {
+        const gUtxos = this.groupUtxos[id];
+        if (gUtxos) {
+          utxos.push(...gUtxos);
+        }
+      }
+
+      this.$emit("change", utxos);
+    },
+    clear() {
+      this.addedNfts = [];
+      this.groupUtxos = {};
+      this.emit();
+    },
+    addNft(utxo: UTXO) {
+      this.addedNfts?.push(utxo);
+    },
+    remove(utxo: UTXO) {
+      const famId = bintools.cb58Encode(utxo.getAssetID());
+      const groupId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
+
+      // Clear from selected utxos list
+      const dictId = `${famId}_${groupId}`;
+      if (this.groupUtxos) {
+        delete this.groupUtxos[dictId];
+      }
+
+      const utxos = this.addedNfts ?? [];
+      for (const [i, utxo_] of utxos.entries()) {
+        if (utxo_.getUTXOID() === utxo.getUTXOID()) {
+          this.addedNfts?.splice(i, 1);
+        }
+      }
+
+      this.emit();
+    },
+    showPopup() {
+      (this.$refs.select_modal as typeof AvmNftSelectModal).open();
+    },
+  },
+});
 export default NftList;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 $nft_w: 90px;
 
@@ -208,7 +195,7 @@ $nft_w: 90px;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .added_list {
     display: grid;
     grid-gap: 12px;

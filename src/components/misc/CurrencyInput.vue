@@ -2,25 +2,25 @@
   <div class="curr_in" :disabled="disabled">
     <button v-if="canMax" @click="maxOut">MAX</button>
     <input
-      type="number"
-      :min="minVal"
-      :step="tick_size"
-      placeholder="0.00"
-      :value="value"
-      @input="handleInput"
       ref="in"
+      :min="minVal"
+      placeholder="0.00"
+      :step="tickSize"
+      type="number"
+      :value="modelValue"
+      @input="handleInput"
     />
     <p>{{ currency }}</p>
   </div>
 </template>
 <script>
-export default {
+export const CurrencyInput = defineComponent({
   props: {
     currency: {
       type: String,
       required: true,
     },
-    value: {
+    modelValue: {
       type: Number,
     },
     disabled: {
@@ -31,7 +31,7 @@ export default {
       type: Number,
       default: 2,
     },
-    tick_size: {
+    tickSize: {
       type: Number,
       default: null,
     },
@@ -40,27 +40,7 @@ export default {
       default: null,
     },
   },
-  model: {
-    prop: "value",
-    event: "change",
-  },
-  methods: {
-    handleInput() {
-      let val = parseFloat(this.$refs.in.value);
-
-      if (this.canMax) {
-        const max = this.maxVal;
-        if (val > max && max != 0) {
-          val = max;
-        }
-      }
-
-      this.$emit("change", val);
-    },
-    maxOut() {
-      this.$emit("change", this.maxVal);
-    },
-  },
+  emits: ["change"],
   computed: {
     // currency(){
     //     if(!this.balanceItem) return '';
@@ -77,7 +57,25 @@ export default {
       return 0;
     },
   },
-};
+  methods: {
+    handleInput() {
+      let val = Number.parseFloat(this.$refs.in.value);
+
+      if (this.canMax) {
+        const max = this.maxVal;
+        if (val > max && max != 0) {
+          val = max;
+        }
+      }
+
+      this.$emit("change", val);
+    },
+    maxOut() {
+      this.$emit("change", this.maxVal);
+    },
+  },
+});
+export default CurrencyInput;
 </script>
 <style scoped>
 .curr_in[disabled] {
@@ -110,7 +108,6 @@ input {
   text-align: right;
   outline: none;
   flex-grow: 1;
-  /*width: calc(100% - 20px);*/
 }
 p {
   flex-basis: 40px;

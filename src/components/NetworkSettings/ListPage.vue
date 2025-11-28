@@ -2,10 +2,10 @@
   <div>
     <div class="networks_list">
       <network-row
-        data-cy="network-item"
         v-for="net in networks"
         :key="net.id"
         class="network_row"
+        data-cy="network-item"
         :network="net"
         @edit="onEdit(net)"
       ></network-row>
@@ -13,26 +13,26 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import NetworkRow from "./NetworkRow.vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import { defineComponent } from "vue";
+import NetworkRow from "./NetworkRow.vue";
 
-@Component({
+export const ListPage = defineComponent({
   components: {
     NetworkRow,
   },
-})
-export class ListPage extends Vue {
-  get networks(): AvaNetwork[] {
-    return this.$store.getters["Network/allNetworks"];
-  }
-
-  onEdit(net: AvaNetwork) {
-    this.$emit("edit", net);
-  }
-}
+  emits: ["edit"],
+  computed: {
+    networks(): AvaNetwork[] {
+      return this.$store.getters["Network/allNetworks"];
+    },
+  },
+  methods: {
+    onEdit(net: AvaNetwork) {
+      this.$emit("edit", net);
+    },
+  },
+});
 export default ListPage;
 </script>
 <style scoped lang="scss">

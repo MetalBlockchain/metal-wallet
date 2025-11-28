@@ -6,10 +6,10 @@
       <div style="display: flex; align-items: center">
         <p>{{ $t("earn.delegate.list.prompt") }}:</p>
         <input
-          class="search"
-          type="text"
-          :placeholder="$t('earn.delegate.list.search').toString()"
           v-model="search"
+          class="search"
+          :placeholder="$t('earn.delegate.list.search').toString()"
+          type="text"
         />
       </div>
 
@@ -21,37 +21,38 @@
       </div>
     </div>
     <ValidatorsList
+      ref="val_list"
       class="val_list"
       :search="search"
       @select="onselect"
-      ref="val_list"
     ></ValidatorsList>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import { defineComponent } from "vue";
 import ValidatorsList from "@/components/misc/ValidatorList/ValidatorsList.vue";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
 
-@Component({
+export const NodeSelection = defineComponent({
   components: {
     ValidatorsList,
   },
-})
-export class NodeSelection extends Vue {
-  search = "";
-
-  openFilters() {
-    //@ts-ignore
-    this.$refs.val_list.openFilters();
-  }
-
-  onselect(val: ValidatorListItem) {
-    this.$emit("select", val);
-  }
-}
+  emits: ["select"],
+  data() {
+    return {
+      search: "",
+    };
+  },
+  methods: {
+    openFilters() {
+      //@ts-ignore
+      this.$refs.val_list.openFilters();
+    },
+    onselect(val: ValidatorListItem) {
+      this.$emit("select", val);
+    },
+  },
+});
 export default NodeSelection;
 </script>
 <style scoped lang="scss">

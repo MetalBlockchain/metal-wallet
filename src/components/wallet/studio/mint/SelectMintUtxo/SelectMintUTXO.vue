@@ -1,7 +1,7 @@
 <template>
   <div class="families">
     <FamilyRow
-      v-for="(utxos, assetId) in nftMintDict"
+      v-for="(_, assetId) in nftMintDict"
       :key="assetId"
       :family="nftFamsDict[assetId]"
       @select="select"
@@ -9,33 +9,35 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import type { IWalletNftMintDict } from "@/store/types";
-import type { NftFamilyDict } from "@/store/modules/assets/types";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import FamilyRow from "@/components/wallet/studio/mint/SelectMintUtxo/FamilyRow.vue";
-@Component({
+
+export const SelectMintUTXO = defineComponent({
   components: { FamilyRow },
-})
-export class SelectMintUTXO extends Vue {
-  get nftFamsDict(): NftFamilyDict {
-    return this.$store.state.Assets.nftFamsDict;
-  }
-
-  get nftMintDict(): IWalletNftMintDict {
-    // return this.$store.getters.walletNftMintDict
-    return this.$store.getters["Assets/nftMintDict"];
-  }
-
-  select(utxo: UTXO) {
-    this.$emit("change", utxo);
-  }
-}
+  emits: ["change"],
+  computed: {
+    nftFamsDict(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+    nftMintDict(): IWalletNftMintDict {
+      // return this.$store.getters.walletNftMintDict
+      return this.$store.getters["Assets/nftMintDict"];
+    },
+  },
+  methods: {
+    select(utxo: UTXO) {
+      this.$emit("change", utxo);
+    },
+  },
+});
 
 export default SelectMintUTXO;
 </script>
 <style scoped lang="scss">
-@use "../../../../../main";
+@use "@/styles/abstracts/mixins";
 
 .families {
   grid-template-columns: repeat(5, 1fr);
@@ -49,13 +51,13 @@ export default SelectMintUTXO;
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .families {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .families {
     grid-template-columns: repeat(2, 1fr);
   }

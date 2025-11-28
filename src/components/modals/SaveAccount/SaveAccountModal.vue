@@ -10,19 +10,19 @@
 
           <input
             v-model="accountName"
+            :disabled="existsInLocalStorage"
             :name="$t('keys.save_account.placeholder_1').toString()"
             placeholder="Account Name"
-            :disabled="existsInLocalStorage"
           />
           <input
-            type="password"
-            :placeholder="$t('keys.save_account.placeholder_2').toString()"
             v-model="password"
+            :placeholder="$t('keys.save_account.placeholder_2').toString()"
+            type="password"
           />
           <input
-            type="password"
-            :placeholder="$t('keys.save_account.placeholder_3').toString()"
             v-model="password_confirm"
+            :placeholder="$t('keys.save_account.placeholder_3').toString()"
+            type="password"
           />
           <p class="err">{{ err }}</p>
           <p class="err small" style="text-align: center">
@@ -36,8 +36,8 @@
           <v-btn
             class="button_primary"
             :disabled="!canSubmit"
-            type="submit"
             :loading="isLoading"
+            type="submit"
           >
             {{ $t("keys.save_account.submit") }}
           </v-btn>
@@ -47,102 +47,98 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import Modal from "../Modal.vue";
-import type { SaveAccountInput } from "@/store/types";
-import type { iUserAccountEncrypted } from "@/store/types";
+import type {
+  iUserAccountEncrypted,
+  SaveAccountInput,
+} from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
+import Modal from "../Modal.vue";
 
-@Component({
+export const SaveAccountModal = defineComponent({
   components: {
     Identicon,
     Modal,
   },
-})
-export class SaveAccountModal extends Vue {
-  password = "";
-  password_confirm = "";
-  isLoading = false;
-  err: any = "";
-  accountName = "";
-  existsInLocalStorage = false;
-  index = 0;
-  foundAccount: iUserAccountEncrypted | null = null;
-  $refs!: {
-    modal: Modal;
-  };
+  data() {
+    const foundAccount: iUserAccountEncrypted | null = null;
+    const err: any = "";
 
-  get walletType() {
-    return this.$store.state.activeWallet.type;
-  }
-
-  get canSubmit() {
-    if (this.error !== null) return false;
-    return true;
-  }
-
-  get error() {
-    if (!this.password) return this.$t("keys.password_validation");
-    if (!this.password_confirm) return this.$t("keys.password_validation2");
-    if (this.accountName.length < 1)
-      return this.$t("keys.account_name_required");
-    if (this.password.length < 9) return this.$t("keys.password_validation");
-    if (this.password !== this.password_confirm)
-      return this.$t("keys.password_validation2");
-
-    return null;
-  }
-
-  async submit(): Promise<void> {
-    this.isLoading = true;
-    const pass = this.password;
-    const accountName = this.accountName;
-
-    const input: SaveAccountInput = {
-      accountName: accountName,
-      password: pass,
+    return {
+      password: "",
+      password_confirm: "",
+      isLoading: false,
+      err,
+      accountName: "",
+      existsInLocalStorage: false,
+      index: 0,
+      foundAccount,
     };
-    await this.$store.dispatch("Accounts/saveAccount", input);
+  },
+  computed: {
+    walletType() {
+      return this.$store.state.activeWallet.type;
+    },
+    canSubmit() {
+      if (this.error !== null) return false;
+      return true;
+    },
+    error() {
+      if (!this.password) return this.$t("keys.password_validation");
+      if (!this.password_confirm) return this.$t("keys.password_validation2");
+      if (this.accountName.length === 0)
+        return this.$t("keys.account_name_required");
+      if (this.password.length < 9) return this.$t("keys.password_validation");
+      if (this.password !== this.password_confirm)
+        return this.$t("keys.password_validation2");
 
-    this.isLoading = false;
-    this.onsuccess();
-  }
+      return null;
+    },
+    baseAddresses(): string[] {
+      return this.$store.getters["Accounts/baseAddresses"];
+    },
+  },
+  methods: {
+    async submit(): Promise<void> {
+      this.isLoading = true;
+      const pass = this.password;
+      const accountName = this.accountName;
 
-  onsuccess() {
-    this.$store.dispatch("Notifications/add", {
-      title: "Account Saved",
-      message: "Your keys are now stored under a new local account.",
-      type: "info",
-    });
-    this.close();
-  }
+      const input: SaveAccountInput = {
+        accountName: accountName,
+        password: pass,
+      };
+      await this.$store.dispatch("Accounts/saveAccount", input);
 
-  clear() {
-    this.password = "";
-    this.password_confirm = "";
-    this.accountName = "";
-    this.err = "";
-  }
-  close() {
-    this.clear();
-    this.$refs.modal.close();
-  }
-
-  open() {
-    this.$refs.modal.open();
-  }
-
-  get baseAddresses(): string[] {
-    return this.$store.getters["Accounts/baseAddresses"];
-  }
-}
+      this.isLoading = false;
+      this.onsuccess();
+    },
+    onsuccess() {
+      this.$store.dispatch("Notifications/add", {
+        title: "Account Saved",
+        message: "Your keys are now stored under a new local account.",
+        type: "info",
+      });
+      this.close();
+    },
+    clear() {
+      this.password = "";
+      this.password_confirm = "";
+      this.accountName = "";
+      this.err = "";
+    },
+    close() {
+      this.clear();
+      (this.$refs.modal as typeof Modal).close();
+    },
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+  },
+});
 export default SaveAccountModal;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
-
 .remember_modal {
   width: 320px;
   max-width: 100%;

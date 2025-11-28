@@ -1,0 +1,146 @@
+import type { BN, Buffer } from "@metalblockchain/metaljs";
+
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type Big from "big.js";
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type AvaAsset from "@/js/AvaAsset";
+import type { AllKeyFileDecryptedTypes, AllKeyFileTypes } from "@/js/IKeystore";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { WalletNameType, WalletType } from "@/js/wallets/types";
+import type { UTXO as TxUTXO } from "@/stores/vuex/modules/history/types";
+
+export interface RootState {
+  isAuth: boolean;
+  activeWallet: null | WalletType;
+  wallets: WalletType[];
+  address: string | null;
+  volatileWallets: WalletType[]; // will be forgotten when tab is closed
+  warnUpdateKeyfile: boolean;
+  prices: priceDict; // USD value of 1 AVAX,
+  validatorMetaData: ValidatorMetaData;
+}
+
+export interface ValidatorMetaData {
+  validators: Array<{
+    name: string;
+    country: string;
+  }>;
+}
+
+export interface ILedgerAppConfig {
+  version: string;
+  commit: string;
+  name: "Avalanche";
+}
+
+export interface priceDict {
+  usd: number;
+}
+
+interface Modal {
+  open: () => void;
+  close: () => void;
+}
+
+export interface IWalletNftDict {
+  [assetId: string]: UTXO[];
+}
+
+export interface ITxNftDict {
+  [assetId: string]: TxUTXO[];
+}
+
+export interface IWalletBalanceDict {
+  [assetId: string]: {
+    available: BN;
+    locked: BN;
+    multisig: BN;
+  };
+}
+
+export interface IWalletBalanceItem {
+  id: string;
+  amount: BN;
+}
+
+export interface IWalletAssetsDict {
+  [assetId: string]: AvaAsset;
+}
+
+export interface IWalletNftMintDict {
+  [assetId: string]: UTXO[];
+}
+
+// interface ModalDict {
+//     [key: string]: Modal
+// }
+
+export interface AssetType {
+  name: string;
+  symbol: string;
+  balance: number;
+  denomination: number;
+}
+
+export interface IssueBatchTxInput {
+  toAddress: string;
+  memo?: Buffer;
+  orders: (ITransaction | UTXO)[];
+}
+
+export interface BatchTxOrder {
+  uuid: string;
+  asset: AssetType;
+  amount: Big;
+}
+
+export interface IssueTxInput {
+  asset: AvaAsset;
+  assetId: string;
+  amount: BN;
+  toAddress: string;
+  changeAddresses: string[];
+}
+
+export interface ImportKeyfileInput {
+  password: string;
+  data: AllKeyFileTypes;
+}
+
+export interface ExportWalletsInput {
+  password: string;
+  wallets: MnemonicWallet[];
+}
+
+export type SessionPersistFile = SessionPersistKey[];
+
+export interface SessionPersistKey {
+  key: string;
+}
+
+export interface AccessWalletMultipleInput {
+  type: Extract<"mnemonic" | "singleton", WalletNameType>;
+  key: string;
+}
+
+export interface SaveAccountInput {
+  password: string;
+  accountName: string;
+}
+
+export interface AccessAccountInput {
+  index: number;
+  pass: string;
+}
+
+export interface iUserAccountEncrypted {
+  name: string;
+  baseAddresses: string[];
+  wallet: AllKeyFileTypes;
+}
+
+export interface iUserAccountDecrypted {
+  name: string;
+  baseAddresses: string[];
+  wallet: AllKeyFileDecryptedTypes;
+}

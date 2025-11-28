@@ -9,11 +9,11 @@
       <HdDerivationListRow
         v-for="(addr, i) in addresses"
         :key="addr"
-        :index="i"
         :address="addr"
-        :balance="balanceDict[i]"
-        :path="path"
+        :balance="balanceDict?.at(i)"
         class="list_row"
+        :index="i"
+        :path="path"
       ></HdDerivationListRow>
     </div>
 
@@ -27,8 +27,8 @@
     <HdEmptyAddressRow
       v-for="(addr, i) in addressesFuture"
       :key="addr"
-      :index="addresses.length + i"
       :address="addr"
+      :index="addressesCount + i"
       :path="path"
     ></HdEmptyAddressRow>
     <div class="more_address">
@@ -37,38 +37,62 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
+import type { HdHelper } from "@/js/HdHelper";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import { defineComponent } from "vue";
 import HdDerivationListRow from "@/components/modals/HdDerivationList/HdDerivationListRow.vue";
 import HdEmptyAddressRow from "@/components/modals/HdDerivationList/HdEmptyAddressRow.vue";
-import type { HdHelper } from "@/js/HdHelper";
-@Component({
+
+export const HdChainTable = defineComponent({
   components: { HdEmptyAddressRow, HdDerivationListRow },
-})
-export class HdChainTable extends Vue {
-  @Prop() wallet!: MnemonicWallet;
-  @Prop() addresses!: string[];
-  @Prop() balanceDict!: DerivationListBalanceDict[];
-  @Prop() path!: number;
-  @Prop() helper!: HdHelper;
+  props: {
+    wallet: {
+      type: Object as PropType<MnemonicWallet>,
+    },
+    addresses: {
+      type: Array as PropType<string[]>,
+    },
+    balanceDict: {
+      type: Array as PropType<DerivationListBalanceDict[]>,
+    },
+    path: {
+      type: Number,
+    },
+    helper: {
+      type: Object as PropType<HdHelper>,
+    },
+  },
+  data() {
+    const addressesFuture: string[] = [];
 
-  addressesFuture: string[] = [];
-
-  showMore() {
-    this.addFutureAddress(10);
-  }
-
-  addFutureAddress(amt: number) {
-    const indexNow = this.addresses.length + this.addressesFuture.length;
-    const addrs = [];
-    for (let i = indexNow; i < indexNow + amt; i++) {
-      const addr = this.helper.getAddressForIndex(i);
-      addrs.push(addr);
-    }
-    this.addressesFuture.push(...addrs);
-  }
-}
+    return {
+      addressesFuture,
+    };
+  },
+  computed: {
+    addressesCount() {
+      return this.addresses?.length ?? 0;
+    },
+  },
+  methods: {
+    showMore() {
+      this.addFutureAddress(10);
+    },
+    addFutureAddress(amt: number) {
+      if (this.addresses && this.helper) {
+        const indexNow = this.addresses.length + this.addressesFuture.length;
+        const addrs = [];
+        for (let i = indexNow; i < indexNow + amt; i++) {
+          const addr = this.helper.getAddressForIndex(i);
+          addrs.push(addr);
+        }
+        this.addressesFuture.push(...addrs);
+      }
+    },
+  },
+});
 export default HdChainTable;
 </script>
 <style lang="scss">

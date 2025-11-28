@@ -1,7 +1,7 @@
 <template>
   <div class="tx_out">
     <div class="addresses">
-      <p v-for="addr in summary.addresses" :key="addr">
+      <p v-for="addr in summary?.addresses" :key="addr">
         {{ direction }} {{ "X-" + addr }}
       </p>
     </div>
@@ -14,59 +14,56 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type { BaseTxAssetSummary } from "@/helpers/history_helper";
 import type AvaAsset from "@/js/AvaAsset";
-import { bnToBig } from "@/helpers/helper";
 import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
 
-@Component
-export class BaseTxOutput extends Vue {
-  @Prop() assetID!: string;
-  @Prop() summary!: BaseTxAssetSummary;
-
-  get assetDetail(): AvaAsset {
-    return (
-      this.$store.state.Assets.assetsDict[this.assetID] ||
-      this.$store.state.Assets.nftFamsDict[this.assetID]
-    );
-  }
-
-  get payload() {
-    return this.summary.payload;
-  }
-
-  get isProfit() {
-    return this.summary.amount.gte(new BN(0));
-  }
-
-  get actionText() {
-    if (this.isProfit) {
-      return "Received";
-    } else {
-      return "Sent";
-    }
-  }
-
-  get direction() {
-    if (this.isProfit) {
-      return "from";
-    } else {
-      return "to";
-    }
-  }
-  get amtText() {
-    const big = bnToBig(
-      this.summary.amount,
-      this.assetDetail?.denomination || 0
-    );
-    return big.toLocaleString();
-  }
-}
+export const BaseTxOutput = defineComponent({
+  props: {
+    assetID: {
+      type: String,
+    },
+    summary: {
+      type: Object as PropType<BaseTxAssetSummary>,
+    },
+  },
+  computed: {
+    assetDetail(): AvaAsset {
+      return (
+        this.assetID &&
+        (this.$store.state.Assets.assetsDict[this.assetID] ||
+          this.$store.state.Assets.nftFamsDict[this.assetID])
+      );
+    },
+    payload() {
+      return this.summary?.payload;
+    },
+    isProfit() {
+      return this.summary?.amount.gte(new BN(0));
+    },
+    actionText() {
+      return this.isProfit ? "Received" : "Sent";
+    },
+    direction() {
+      return this.isProfit ? "from" : "to";
+    },
+    amtText() {
+      const big = bnToBig(
+        this.summary?.amount ?? new BN(0),
+        this.assetDetail?.denomination || 0,
+      );
+      return big.toLocaleString();
+    },
+  },
+});
 export default BaseTxOutput;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
+@use "@/styles/abstracts/mixins";
+
 .tx_out {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -107,7 +104,7 @@ label {
   color: var(--primary-color-light);
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .amount {
     font-size: 13px;
   }

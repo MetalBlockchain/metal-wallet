@@ -1,25 +1,25 @@
 import type { TransferableOutput } from "@metalblockchain/metaljs/dist/apis/avm";
-import { BaseTx as AVMBaseTx } from "@metalblockchain/metaljs/dist/apis/avm";
-import { BaseTx as PlatformBaseTx } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type { UnsignedTx as AVMUnsignedTx } from "@metalblockchain/metaljs/dist/apis/avm/tx";
 import type { EVMBaseTx } from "@metalblockchain/metaljs/dist/apis/evm";
+import type { UnsignedTx as PlatformUnsignedTx } from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
+import { BaseTx as AVMBaseTx } from "@metalblockchain/metaljs/dist/apis/avm";
+import { UnsignedTx as EVMUnsignedTx } from "@metalblockchain/metaljs/dist/apis/evm/tx";
+
+import { BaseTx as PlatformBaseTx } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import {
   AddDelegatorTx,
-  AddValidatorTx,
-  AddPermissionlessValidatorTx,
   AddPermissionlessDelegatorTx,
+  AddPermissionlessValidatorTx,
+  AddValidatorTx,
 } from "@metalblockchain/metaljs/dist/apis/platformvm/validationtx";
-import { bintools, ava as avalanche } from "@/AVA";
-
-import type { UnsignedTx as AVMUnsignedTx } from "@metalblockchain/metaljs/dist/apis/avm/tx";
-import type { UnsignedTx as PlatformUnsignedTx } from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
-import { UnsignedTx as EVMUnsignedTx } from "@metalblockchain/metaljs/dist/apis/evm/tx";
+import { ava as avalanche, bintools } from "@/misc/AVA";
 
 /**
  * Returns an array of unique addresses that are found on stake outputs of a tx.
  * @param tx
  */
 export function getStakeOutAddresses(
-  tx: AVMBaseTx | PlatformBaseTx | EVMBaseTx
+  tx: AVMBaseTx | PlatformBaseTx | EVMBaseTx,
 ): string[] {
   if (
     tx instanceof AddValidatorTx ||
@@ -27,17 +27,14 @@ export function getStakeOutAddresses(
     tx instanceof AddPermissionlessValidatorTx ||
     tx instanceof AddPermissionlessDelegatorTx
   ) {
-    const allAddrs = tx
-      .getStakeOuts()
-      .map((out) =>
-        out
-          .getOutput()
-          .getAddresses()
-          .map((addr) => {
-            return bintools.addressToString(avalanche.getHRP(), "P", addr);
-          })
-      )
-      .flat();
+    const allAddrs = tx.getStakeOuts().flatMap((out) =>
+      out
+        .getOutput()
+        .getAddresses()
+        .map((addr) => {
+          return bintools.addressToString(avalanche.getHRP(), "P", addr);
+        }),
+    );
     // Remove duplicates
     return [...new Set(allAddrs)];
   }
@@ -50,15 +47,14 @@ export function getOutputAddresses(tx: AVMBaseTx | PlatformBaseTx) {
   const outAddrs = tx
     .getOuts()
     //@ts-ignore
-    .map((out: TransferableOutput) =>
+    .flatMap((out: TransferableOutput) =>
       out
         .getOutput()
         .getAddresses()
         .map((addr) => {
           return bintools.addressToString(avalanche.getHRP(), chainID, addr);
-        })
-    )
-    .flat();
+        }),
+    );
   return [...new Set(outAddrs)] as string[];
 }
 
@@ -67,7 +63,7 @@ export function getOutputAddresses(tx: AVMBaseTx | PlatformBaseTx) {
  * @param unsignedTx
  */
 export function getTxOutputAddresses<
-  UnsignedTx extends AVMUnsignedTx | PlatformUnsignedTx | EVMUnsignedTx
+  UnsignedTx extends AVMUnsignedTx | PlatformUnsignedTx | EVMUnsignedTx,
 >(unsignedTx: UnsignedTx): string[] {
   if (unsignedTx instanceof EVMUnsignedTx) {
     return [];

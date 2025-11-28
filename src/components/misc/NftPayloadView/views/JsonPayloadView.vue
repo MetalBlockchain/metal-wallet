@@ -1,66 +1,73 @@
 <template>
   <div v-if="!isGeneric" class="json_payload_view">
-    <textarea cols="30" row="200" v-model="val" disabled></textarea>
+    <textarea v-model="val" cols="30" disabled row="200"></textarea>
   </div>
   <GenericPayloadView v-else :payload="payload"></GenericPayloadView>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import type { JSONPayload } from "@metalblockchain/metaljs/dist/utils";
 
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 import GenericPayloadView from "@/components/misc/NftPayloadView/views/GenericPayloadView.vue";
 
-@Component({
+export default defineComponent({
   components: {
     GenericPayloadView,
   },
-})
-export default class JsonPayloadView extends Vue {
-  @Prop() payload!: JSONPayload;
-  val = "";
+  props: {
+    payload: {
+      type: Object as PropType<JSONPayload>,
+    },
+  },
+  data() {
+    return {
+      val: "",
+    };
+  },
+  computed: {
+    jsonText() {
+      const data = this.text;
+      try {
+        const obj = JSON.parse(data);
+        return JSON.stringify(obj, undefined, 4);
+      } catch {
+        return data;
+      }
+    },
+    text(): string {
+      return this.payload?.getContent().toString() ?? "";
+    },
+    isGeneric() {
+      const data = this.text;
+      try {
+        const obj = JSON.parse(data);
 
-  updateText() {
-    this.val = this.jsonText;
-  }
-
-  get jsonText() {
-    const data = this.text;
-    try {
-      const obj = JSON.parse(data);
-      return JSON.stringify(obj, undefined, 4);
-    } catch (e) {
-      return data;
-    }
-  }
-  get text(): string {
-    return this.payload.getContent().toString();
-  }
-
-  get isGeneric() {
-    const data = this.text;
-    try {
-      const obj = JSON.parse(data);
-
-      if (obj.hasOwnProperty("avalanche")) {
-        return true;
-      } else {
+        return obj.hasOwnProperty("avalanche") ? true : false;
+      } catch {
         return false;
       }
-    } catch (e) {
-      return false;
-    }
-    return false;
-  }
-
-  @Watch("payload")
-  onPayloadChange() {
-    this.updateText();
-  }
-
+    },
+  },
+  watch: {
+    payload: [
+      {
+        handler: "onPayloadChange",
+      },
+    ],
+  },
   mounted() {
     this.updateText();
-  }
-}
+  },
+  methods: {
+    updateText() {
+      this.val = this.jsonText;
+    },
+    onPayloadChange() {
+      this.updateText();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .json_payload_view {

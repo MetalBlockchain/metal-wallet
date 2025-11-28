@@ -1,5 +1,5 @@
 <template>
-  <div class="network_loading" v-if="networkLoading">
+  <div v-if="networkLoading" class="network_loading">
     <div>
       <Spinner class="spinner"></Spinner>
       <p>{{ $t("network.blocker.desc") }}</p>
@@ -7,20 +7,20 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 
-@Component({
+export default defineComponent({
   components: {
     Spinner,
   },
-})
-export default class NetworkLoadingBlock extends Vue {
-  get networkLoading() {
-    // return true
-    return this.$store.state.Network.status === "connecting";
-  }
-}
+  computed: {
+    networkLoading() {
+      // return true
+      return this.$store.state.Network.status === "connecting";
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .network_loading {

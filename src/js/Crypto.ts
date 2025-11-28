@@ -10,6 +10,8 @@ import createHash from "create-hash";
  * Encryption is using AES-GCM with a random public nonce.
  */
 export default class CryptoHelpers {
+  public keygenIterations = 200_000; //3.0, 2.0 uses 100000
+
   protected ivSize = 12;
 
   protected saltSize = 16;
@@ -18,7 +20,7 @@ export default class CryptoHelpers {
 
   protected aesLength = 256;
 
-  public keygenIterations = 200000; //3.0, 2.0 uses 100000
+  constructor() {}
 
   /**
    * Internal-intended function for cleaning passwords.
@@ -42,7 +44,7 @@ export default class CryptoHelpers {
       new Uint8Array(pwkey),
       { name: "PBKDF2" },
       false,
-      ["deriveKey"]
+      ["deriveKey"],
     );
   }
 
@@ -63,7 +65,7 @@ export default class CryptoHelpers {
       keyMaterial,
       { name: "AES-GCM", length: this.aesLength },
       false,
-      ["encrypt", "decrypt"]
+      ["encrypt", "decrypt"],
     );
   }
 
@@ -74,13 +76,12 @@ export default class CryptoHelpers {
    *
    * @returns A {@link https://github.com/feross/buffer|Buffer} containing the SHA256 hash of the message
    */
+
   sha256(message: string | Buffer): Buffer {
-    let buff: Buffer;
-    if (typeof message === "string") {
-      buff = Buffer.from(message, "utf8");
-    } else {
-      buff = Buffer.from(message);
-    }
+    const buff =
+      typeof message === "string"
+        ? Buffer.from(message, "utf8")
+        : Buffer.from(message);
     return Buffer.from(createHash("sha256").update(buff).digest()); // ensures correct Buffer class is used
   }
 
@@ -103,7 +104,7 @@ export default class CryptoHelpers {
    */
   async pwhash(
     password: string,
-    salt: Buffer
+    salt: Buffer,
   ): Promise<{ salt: Buffer; hash: Buffer }> {
     let slt: Buffer;
     if (salt instanceof Buffer) {
@@ -117,7 +118,7 @@ export default class CryptoHelpers {
 
     const hash: Buffer = this._pwcleaner(
       password,
-      this._pwcleaner(password, slt)
+      this._pwcleaner(password, slt),
     );
     return { salt: slt, hash };
   }
@@ -134,26 +135,20 @@ export default class CryptoHelpers {
   async encrypt(
     password: string,
     plaintext: Buffer | string,
-    salt: Buffer | undefined = undefined
+    salt: Buffer | undefined = undefined,
   ): Promise<{ salt: Buffer; iv: Buffer; ciphertext: Buffer }> {
-    let slt: Buffer;
-    if (typeof salt !== "undefined" && salt instanceof Buffer) {
-      slt = salt;
-    } else {
-      slt = this.makeSalt();
-    }
+    const slt =
+      salt !== undefined && salt instanceof Buffer ? salt : this.makeSalt();
 
-    let pt: Buffer;
-    if (typeof plaintext !== "undefined" && plaintext instanceof Buffer) {
-      pt = plaintext;
-    } else {
-      pt = Buffer.from(plaintext, "utf8");
-    }
+    const pt =
+      plaintext !== undefined && plaintext instanceof Buffer
+        ? plaintext
+        : Buffer.from(plaintext, "utf8");
     const pwkey: Buffer = this._pwcleaner(password, slt);
     const keyMaterial: CryptoKey = await this._keyMaterial(pwkey);
     const pkey: CryptoKey = await this._deriveKey(keyMaterial, slt);
     const iv: Buffer = Buffer.from(
-      window.crypto.getRandomValues(new Uint8Array(this.ivSize))
+      window.crypto.getRandomValues(new Uint8Array(this.ivSize)),
     );
 
     const ciphertext: Buffer = Buffer.from(
@@ -165,8 +160,8 @@ export default class CryptoHelpers {
           tagLength: this.tagLength,
         },
         pkey,
-        pt
-      )
+        pt,
+      ),
     );
 
     return {
@@ -188,7 +183,7 @@ export default class CryptoHelpers {
     password: string,
     ciphertext: Buffer,
     salt: Buffer,
-    iv: Buffer
+    iv: Buffer,
   ): Promise<Buffer> {
     const pwkey: Buffer = this._pwcleaner(password, salt);
     const keyMaterial: CryptoKey = await this._keyMaterial(pwkey);
@@ -203,11 +198,9 @@ export default class CryptoHelpers {
           tagLength: 128, // The tagLength you used to encrypt (if any)
         },
         pkey, // from generateKey or importKey above
-        ciphertext // ArrayBuffer of the data
-      )
+        ciphertext, // ArrayBuffer of the data
+      ),
     );
     return pt;
   }
-
-  constructor() {}
 }

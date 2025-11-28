@@ -1,3 +1,5 @@
+import type { Buffer } from "buffer/";
+
 // Functions to manage import/export of keystore files
 import type {
   AllKeyFileDecryptedTypes,
@@ -24,22 +26,21 @@ import type {
   KeyFileV6,
   KeystoreFileKeyType,
 } from "./IKeystore";
-import { avm, bintools } from "@/AVA";
-import type { Buffer } from "buffer/";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import Crypto from "@/js/Crypto";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
-import type { AccessWalletMultipleInput } from "@/store/types";
-import { keyToKeypair } from "@/helpers/helper";
-import * as bip39 from "bip39";
+import type { AccessWalletMultipleInput } from "@/stores/vuex/types";
 import { Buffer as AjsBuffer } from "@metalblockchain/metaljs";
+import * as bip39 from "bip39";
+import { keyToKeypair } from "@/helpers/helper";
+import Crypto from "@/js/Crypto";
+import { avm, bintools } from "@/misc/AVA";
 
 const cryptoHelpers = new Crypto();
 
 const KEYSTORE_VERSION = "6.0";
 
-const ITERATIONS_V2 = 100000;
-const ITERATIONS_V3 = 200000; // and any version above
+const ITERATIONS_V2 = 100_000;
+const ITERATIONS_V3 = 200_000; // and any version above
 
 const SUPPORTED_VERSION = ["2.0", "3.0", "4.0", "5.0", "6.0"];
 
@@ -72,7 +73,9 @@ async function readV2(data: KeyFileV2, pass: string) {
   const keysDecrypt: KeyFileKeyDecryptedV2[] = [];
 
   for (let i = 0; i < keys.length; i++) {
-    const key_data: KeyFileKeyV2 = keys[i];
+    const key_data: KeyFileKeyV2 | undefined = keys[i];
+
+    if (!key_data) continue;
 
     const key: Buffer = bintools.cb58Decode(key_data.key);
     const nonce: Buffer = bintools.cb58Decode(key_data.iv);
@@ -81,7 +84,7 @@ async function readV2(data: KeyFileV2, pass: string) {
       pass,
       key,
       salt,
-      nonce
+      nonce,
     );
     const key_string = bintools.cb58Encode(AjsBuffer.from(key_decrypt));
 
@@ -113,8 +116,8 @@ async function readV3(data: KeyFileV3, pass: string) {
   const keys: KeyFileKeyV3[] = data.keys;
   const keysDecrypt: KeyFileKeyDecryptedV3[] = [];
 
-  for (let i = 0; i < keys.length; i++) {
-    const key_data: KeyFileKeyV3 = keys[i];
+  for (const key_data of keys) {
+    if (!key_data) continue;
 
     const key: Buffer = bintools.cb58Decode(key_data.key);
     const nonce: Buffer = bintools.cb58Decode(key_data.iv);
@@ -123,7 +126,7 @@ async function readV3(data: KeyFileV3, pass: string) {
       pass,
       key,
       salt,
-      nonce
+      nonce,
     );
     const key_string = bintools.cb58Encode(AjsBuffer.from(key_decrypt));
 
@@ -140,7 +143,7 @@ async function readV3(data: KeyFileV3, pass: string) {
 }
 async function readV4(
   data: KeyFileV4,
-  pass: string
+  pass: string,
 ): Promise<KeyFileDecryptedV5> {
   const version: string = data.version;
   cryptoHelpers.keygenIterations = ITERATIONS_V3;
@@ -158,8 +161,8 @@ async function readV4(
   const keys: KeyFileKeyV4[] = data.keys;
   const keysDecrypt: KeyFileKeyDecryptedV4[] = [];
 
-  for (let i = 0; i < keys.length; i++) {
-    const key_data: KeyFileKeyV4 = keys[i];
+  for (const key_data of keys) {
+    if (!key_data) continue;
 
     const key: Buffer = bintools.cb58Decode(key_data.key);
     const nonce: Buffer = bintools.cb58Decode(key_data.iv);
@@ -168,7 +171,7 @@ async function readV4(
       pass,
       key,
       salt,
-      nonce
+      nonce,
     );
     const key_string = bintools.cb58Encode(AjsBuffer.from(key_decrypt));
 
@@ -186,7 +189,7 @@ async function readV4(
 
 async function readV5(
   data: KeyFileV5,
-  pass: string
+  pass: string,
 ): Promise<KeyFileDecryptedV5> {
   const version: string = data.version;
   cryptoHelpers.keygenIterations = ITERATIONS_V3;
@@ -204,9 +207,8 @@ async function readV5(
   const keys: KeyFileKeyV5[] = data.keys;
   const keysDecrypt: KeyFileKeyDecryptedV5[] = [];
 
-  for (let i = 0; i < keys.length; i++) {
-    const key_data: KeyFileKeyV5 = keys[i];
-
+  for (const key_data of keys) {
+    if (!key_data) continue;
     const key: Buffer = bintools.cb58Decode(key_data.key);
     const nonce: Buffer = bintools.cb58Decode(key_data.iv);
 
@@ -214,7 +216,7 @@ async function readV5(
       pass,
       key,
       salt,
-      nonce
+      nonce,
     );
     const key_string = key_decrypt.toString();
 
@@ -232,7 +234,7 @@ async function readV5(
 
 async function readV6(
   data: KeyFileV6,
-  pass: string
+  pass: string,
 ): Promise<KeyFileDecryptedV6> {
   const version: string = data.version;
   const activeIndex = data.activeIndex;
@@ -243,8 +245,8 @@ async function readV6(
   const keys: KeyFileKeyV6[] = data.keys;
   const keysDecrypt: KeyFileKeyDecryptedV6[] = [];
 
-  for (let i = 0; i < keys.length; i++) {
-    const key_data: KeyFileKeyV6 = keys[i];
+  for (const key_data of keys) {
+    if (!key_data) continue;
 
     const key: Buffer = bintools.cb58Decode(key_data.key);
     const type: KeystoreFileKeyType = key_data.type;
@@ -253,7 +255,7 @@ async function readV6(
     let key_decrypt: Buffer;
     try {
       key_decrypt = await cryptoHelpers.decrypt(pass, key, salt, nonce);
-    } catch (e) {
+    } catch {
       throw "INVALID_PASS";
     }
 
@@ -261,7 +263,7 @@ async function readV6(
 
     keysDecrypt.push({
       key: key_string,
-      type: type,
+      type,
     });
   }
 
@@ -274,26 +276,32 @@ async function readV6(
 
 async function readKeyFile(
   data: AllKeyFileTypes,
-  pass: string
+  pass: string,
 ): Promise<AllKeyFileDecryptedTypes> {
   switch (data.version) {
-    case "6.0":
+    case "6.0": {
       return await readV6(data as KeyFileV6, pass);
-    case "5.0":
+    }
+    case "5.0": {
       return await readV5(data as KeyFileV5, pass);
-    case "4.0":
+    }
+    case "4.0": {
       return await readV4(data as KeyFileV4, pass);
-    case "3.0":
+    }
+    case "3.0": {
       return await readV3(data as KeyFileV3, pass);
-    case "2.0":
+    }
+    case "2.0": {
       return await readV2(data as KeyFileV2, pass);
-    default:
+    }
+    default: {
       throw "INVALID_VERSION";
+    }
   }
 }
 
 function extractKeysV2(
-  file: KeyFileDecryptedV2 | KeyFileDecryptedV3 | KeyFileDecryptedV4
+  file: KeyFileDecryptedV2 | KeyFileDecryptedV3 | KeyFileDecryptedV4,
 ): AccessWalletMultipleInput[] {
   const chainID = avm.getBlockchainAlias();
   const keys = (
@@ -332,21 +340,27 @@ function extractKeysV6(file: KeyFileDecryptedV6): AccessWalletMultipleInput[] {
 }
 
 function extractKeysFromDecryptedFile(
-  file: AllKeyFileDecryptedTypes
+  file: AllKeyFileDecryptedTypes,
 ): AccessWalletMultipleInput[] {
   switch (file.version) {
-    case "6.0":
+    case "6.0": {
       return extractKeysV6(file as KeyFileDecryptedV6);
-    case "5.0":
+    }
+    case "5.0": {
       return extractKeysV5(file as KeyFileDecryptedV5);
-    case "4.0":
+    }
+    case "4.0": {
       return extractKeysV2(file as KeyFileDecryptedV4);
-    case "3.0":
+    }
+    case "3.0": {
       return extractKeysV2(file as KeyFileDecryptedV3);
-    case "2.0":
+    }
+    case "2.0": {
       return extractKeysV2(file as KeyFileDecryptedV2);
-    default:
+    }
+    default: {
       throw "INVALID_VERSION";
+    }
   }
 }
 
@@ -354,7 +368,7 @@ function extractKeysFromDecryptedFile(
 async function makeKeyfile(
   wallets: (MnemonicWallet | SingletonWallet)[],
   pass: string,
-  activeIndex: number
+  activeIndex: number,
 ): Promise<KeyFileV6> {
   // 3.0 and above uses 200,000
   cryptoHelpers.keygenIterations = ITERATIONS_V3;
@@ -363,8 +377,9 @@ async function makeKeyfile(
 
   const keys: KeyFileKeyV6[] = [];
 
-  for (let i = 0; i < wallets.length; i++) {
-    const wallet = wallets[i];
+  for (const wallet of wallets) {
+    if (!wallet) continue;
+
     let key;
     let type: KeystoreFileKeyType;
     if (wallet.type === "singleton") {
@@ -379,7 +394,7 @@ async function makeKeyfile(
     const key_data: KeyFileKeyV6 = {
       key: bintools.cb58Encode(AjsBuffer.from(pk_crypt.ciphertext)),
       iv: bintools.cb58Encode(AjsBuffer.from(pk_crypt.iv)),
-      type: type,
+      type,
     };
     keys.push(key_data);
   }
@@ -388,14 +403,14 @@ async function makeKeyfile(
     version: KEYSTORE_VERSION,
     salt: bintools.cb58Encode(AjsBuffer.from(salt)),
     activeIndex,
-    keys: keys,
+    keys,
   };
   return file_data;
 }
 
 export {
-  readKeyFile,
-  makeKeyfile,
-  KEYSTORE_VERSION,
   extractKeysFromDecryptedFile,
+  KEYSTORE_VERSION,
+  makeKeyfile,
+  readKeyFile,
 };

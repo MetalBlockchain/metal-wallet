@@ -6,7 +6,7 @@
     </div>
     <template v-if="isRewarded">
       <!--If received validator reward and validator tx-->
-      <div class="data_row" v-if="isValidator && receivedValidatorReward">
+      <div v-if="isValidator && receivedValidatorReward" class="data_row">
         <p>
           <span class="rewarded"><fa icon="check-square"></fa></span>
           {{ $t("transactions.reward_amount") }}
@@ -14,7 +14,7 @@
         <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} METAL</p>
       </div>
       <!--If received validator reward and delegator tx-->
-      <div class="data_row" v-if="!isValidator && receivedValidatorReward">
+      <div v-if="!isValidator && receivedValidatorReward" class="data_row">
         <p>
           <span class="rewarded"><fa icon="check-square"></fa></span>
           {{ $t("transactions.fee_amount") }}
@@ -22,7 +22,7 @@
         <p class="amt">{{ formatRewardAmount(validatorRewardAmount) }} METAL</p>
       </div>
       <!--If received delegator reward and delegator tx-->
-      <div class="data_row" v-if="!isValidator && receivedDelegatorReward">
+      <div v-if="!isValidator && receivedDelegatorReward" class="data_row">
         <p>
           <span class="rewarded"><fa icon="check-square"></fa></span>
           {{ $t("transactions.reward_amount") }}
@@ -31,7 +31,7 @@
       </div>
     </template>
     <div v-else>
-      <div class="time_bar" v-if="isStarted">
+      <div v-if="isStarted" class="time_bar">
         <div
           class="bar_row"
           :style="{
@@ -62,180 +62,156 @@
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import { BN } from "@metalblockchain/metaljs";
-import { bnToBig } from "@/helpers/helper";
-import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import type {
+  PChainTransaction,
+  PChainUtxo,
+} from "@metalblockchain/glacier-sdk";
+import type { PropType } from "vue";
 import type { WalletType } from "@/js/wallets/types";
 import { RewardType } from "@metalblockchain/glacier-sdk";
-import type {
-  PChainUtxo,
-  PChainTransaction,
-} from "@metalblockchain/glacier-sdk";
+import { BN } from "@metalblockchain/metaljs";
+import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
 import { filterOwnedAddresses } from "./filterOwnedAddresses";
 
-@Component
-export class StakingTx extends Vue {
-  @Prop() transaction!: PChainTransaction;
-  isStarted = false;
+export const StakingTx = defineComponent({
+  props: {
+    transaction: {
+      type: Object as PropType<PChainTransaction>,
+    },
+  },
+  data() {
+    return {
+      isStarted: false,
+    };
+  },
+  computed: {
+    startTime() {
+      return this.transaction?.startTimestamp || 0;
+    },
+    endtime() {
+      return this.transaction?.endTimestamp || 0;
+    },
+    startDate() {
+      return new Date(this.startTime * 1000);
+    },
+    endDate() {
+      return new Date(this.endtime * 1000);
+    },
+    timeBarPerc() {
+      if (!this.isStarted) return 0;
+      const now = UnixNow();
+      // if (this.endtime) {
+      const dur = this.endtime - this.startTime;
+      return ((now.toNumber() - this.startTime) / dur) * 100;
+    },
+    isValidator() {
+      if (!this.transaction) return false;
+      return ["AddValidatorTx", "AddPermissionlessValidatorTx"].includes(
+        this.transaction.txType,
+      );
+    },
+    actionText() {
+      return this.isValidator ? "Add Validator" : "Add Delegator";
+    },
+    stakeAmt(): BN {
+      const tot = (this.transaction?.emittedUtxos ?? []).reduce((acc, out) => {
+        return out.staked ? acc.add(new BN(out.amount)) : acc;
+      }, new BN(0));
+      return tot;
+    },
+    wallet(): WalletType {
+      return this.$store.state.activeWallet;
+    },
+    pAddrsClean(): string[] {
+      const pAddrs = this.wallet.getAllAddressesP();
+      return pAddrs
+        .map((addr) => addr.split("-")[1])
+        .filter((v) => v !== undefined);
+    },
+    amtText() {
+      const big = bnToBig(this.stakeAmt, 9);
+      return big.toLocaleString();
+    },
+    validatorRewards(): PChainUtxo[] | undefined {
+      return (this.transaction?.emittedUtxos || []).filter((utxo) => {
+        return (
+          utxo.rewardType?.toLowerCase() === RewardType.VALIDATOR.toLowerCase()
+        );
+      });
+    },
+    delegatorRewards(): PChainUtxo[] | undefined {
+      return (this.transaction?.emittedUtxos || []).filter((utxo) => {
+        return (
+          utxo.rewardType?.toLowerCase() === RewardType.DELEGATOR.toLowerCase()
+        );
+      });
+    },
+    validatorRewardAmount() {
+      return (this.validatorRewards || []).reduce((acc, out) => {
+        return out.amount ? acc.add(new BN(out.amount)) : acc;
+      }, new BN(0));
+    },
+    delegatorRewardAmount() {
+      return (this.delegatorRewards || []).reduce((acc, out) => {
+        return out.amount ? acc.add(new BN(out.amount)) : acc;
+      }, new BN(0));
+    },
+    potentialReward() {
+      return this.transaction?.estimatedReward
+        ? new BN(this.transaction.estimatedReward)
+        : new BN(0);
+    },
+    receivedDelegatorReward() {
+      if (this.isValidator || !this.delegatorRewards) return false;
+
+      const rewardedAddresses: string[] = [];
+
+      for (const delegatorReward of this.delegatorRewards || []) {
+        rewardedAddresses.push(...delegatorReward.addresses);
+      }
+
+      const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses);
+      return addrs.length;
+    },
+    receivedValidatorReward() {
+      if (!this.isValidator || !this.validatorRewards) return false;
+
+      const rewardedAddresses: string[] = [];
+
+      for (const validatorReward of this.validatorRewards || []) {
+        rewardedAddresses.push(...validatorReward.addresses);
+      }
+
+      const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses);
+      return addrs.length;
+    },
+    isRewarded() {
+      return this.transaction?.rewardTx !== undefined;
+    },
+  },
   mounted() {
     this.updateStartStatus();
-  }
+  },
+  methods: {
+    updateStartStatus() {
+      const now = UnixNow();
+      this.isStarted = now.toNumber() > this.startTime;
 
-  updateStartStatus() {
-    const now = UnixNow();
-    this.isStarted = now.toNumber() > this.startTime;
-
-    if (!this.isStarted) {
-      setTimeout(() => {
-        this.updateStartStatus();
-      }, 5000);
-    }
-  }
-
-  get startTime() {
-    return this.transaction.startTimestamp || 0;
-  }
-
-  get endtime() {
-    return this.transaction.endTimestamp || 0;
-  }
-
-  get startDate() {
-    return new Date(this.startTime * 1000);
-  }
-
-  get endDate() {
-    return new Date(this.endtime * 1000);
-  }
-
-  get timeBarPerc() {
-    if (!this.isStarted) return 0;
-    const now = UnixNow();
-    // if (this.endtime) {
-    const dur = this.endtime - this.startTime;
-    return ((now.toNumber() - this.startTime) / dur) * 100;
-    // }
-  }
-
-  get isValidator() {
-    return ["AddValidatorTx", "AddPermissionlessValidatorTx"].includes(
-      this.transaction.txType
-    );
-  }
-
-  get actionText() {
-    if (this.isValidator) {
-      return "Add Validator";
-    } else {
-      return "Add Delegator";
-    }
-  }
-
-  get stakeAmt(): BN {
-    const tot = (this.transaction.emittedUtxos ?? []).reduce((acc, out) => {
-      return out.staked ? acc.add(new BN(out.amount)) : acc;
-    }, new BN(0));
-    return tot;
-  }
-
-  get wallet(): WalletType {
-    return this.$store.state.activeWallet;
-  }
-
-  get pAddrsClean(): string[] {
-    const pAddrs = this.wallet.getAllAddressesP();
-    return pAddrs.map((addr) => addr.split("-")[1]);
-  }
-
-  formatRewardAmount(amount: BN) {
-    return bnToBig(amount, 9);
-  }
-
-  get amtText() {
-    const big = bnToBig(this.stakeAmt, 9);
-    return big.toLocaleString();
-  }
-
-  /**
-   * The validator reward UTXO of this tx
-   */
-  get validatorRewards(): PChainUtxo[] | undefined {
-    return (this.transaction.emittedUtxos || []).filter((utxo) => {
-      return (
-        utxo.rewardType?.toLowerCase() === RewardType.VALIDATOR.toLowerCase()
-      );
-    });
-  }
-
-  /**
-   * The delegator reward UTXO of this tx
-   */
-  get delegatorRewards(): PChainUtxo[] | undefined {
-    return (this.transaction.emittedUtxos || []).filter((utxo) => {
-      return (
-        utxo.rewardType?.toLowerCase() === RewardType.DELEGATOR.toLowerCase()
-      );
-    });
-  }
-
-  get validatorRewardAmount() {
-    return (this.validatorRewards || []).reduce((acc, out) => {
-      return out.amount ? acc.add(new BN(out.amount)) : acc;
-    }, new BN(0));
-  }
-
-  get delegatorRewardAmount() {
-    return (this.delegatorRewards || []).reduce((acc, out) => {
-      return out.amount ? acc.add(new BN(out.amount)) : acc;
-    }, new BN(0));
-  }
-
-  get potentialReward() {
-    return this.transaction.estimatedReward
-      ? new BN(this.transaction.estimatedReward)
-      : new BN(0);
-  }
-
-  /**
-   * Returns true if this wallet received delegator reward
-   */
-  get receivedDelegatorReward() {
-    if (this.isValidator || !this.delegatorRewards) return false;
-
-    const rewardedAddresses: string[] = [];
-
-    for (const delegatorReward of this.delegatorRewards || []) {
-      rewardedAddresses.push(...delegatorReward.addresses);
-    }
-
-    const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses);
-    return addrs.length;
-  }
-
-  /**
-   * Returns true if this wallet received validator reward
-   */
-  get receivedValidatorReward() {
-    if (!this.isValidator || !this.validatorRewards) return false;
-
-    const rewardedAddresses: string[] = [];
-
-    for (const validatorReward of this.validatorRewards || []) {
-      rewardedAddresses.push(...validatorReward.addresses);
-    }
-
-    const addrs = filterOwnedAddresses(this.pAddrsClean, rewardedAddresses);
-    return addrs.length;
-  }
-
-  get isRewarded() {
-    return this.transaction.rewardTx !== undefined;
-  }
-
-  // TODO: Add missing stake info for staking transactions, start/end date, potential reward, reward date, reward USD price
-}
+      if (!this.isStarted) {
+        setTimeout(() => {
+          this.updateStartStatus();
+        }, 5000);
+      }
+    },
+    formatRewardAmount(amount: BN) {
+      return bnToBig(amount, 9);
+    },
+  },
+});
 export default StakingTx;
 </script>
 <style scoped lang="scss">

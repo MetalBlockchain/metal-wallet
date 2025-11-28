@@ -1,12 +1,12 @@
 <template>
-  <modal ref="modal" title="Select Token" class="modal_main">
+  <modal ref="modal" class="modal_main" title="Select Token">
     <div class="avm_token_select">
       <div class="list">
         <div
           v-for="asset in assets"
           :key="asset.id"
-          :zero="asset.amount.isZero()"
           :disabled="isDisabled(asset)"
+          :zero="asset.amount.isZero()"
           @click="select(asset)"
         >
           <div class="col_name">
@@ -22,57 +22,54 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
+import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
 import { bnToBig } from "@/helpers/helper";
 
-@Component({
+export const PrivateKey = defineComponent({
   components: {
     Modal,
   },
-})
-export class PrivateKey extends Vue {
-  @Prop() assets!: AvaAsset[];
-  @Prop({ default: () => [] }) disabledIds!: string[]; // asset id | if nft the utxo id
+  props: {
+    assets: {
+      type: Array as PropType<AvaAsset[]>,
+    },
+    disabledIds: { default: () => [], type: Array as PropType<string[]> },
+  },
+  emits: ["select"],
+  data() {
+    return {
+      bal: (asset: AvaAsset) => {
+        return bnToBig(asset.amount, asset.denomination).toLocaleString();
+      },
+    };
+  },
+  methods: {
+    open(): void {
+      (this.$refs.modal as typeof Modal).open();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+    select(asset: AvaAsset) {
+      if (asset.amount.isZero()) return;
+      if (this.isDisabled(asset)) return;
 
-  $refs!: {
-    modal: Modal;
-  };
-
-  bal = (asset: AvaAsset) => {
-    return bnToBig(asset.amount, asset.denomination).toLocaleString();
-  };
-
-  open(): void {
-    const modal = this.$refs.modal;
-    modal.open();
-  }
-
-  close() {
-    const modal = this.$refs.modal;
-    modal.close();
-  }
-
-  select(asset: AvaAsset) {
-    if (asset.amount.isZero()) return;
-    if (this.isDisabled(asset)) return;
-
-    this.close();
-    this.$emit("select", asset);
-  }
-
-  isDisabled(asset: AvaAsset): boolean {
-    if (this.disabledIds.includes(asset.id)) return true;
-    return false;
-  }
-}
+      this.close();
+      this.$emit("select", asset);
+    },
+    isDisabled(asset: AvaAsset): boolean {
+      if (this.disabledIds.includes(asset.id)) return true;
+      return false;
+    },
+  },
+});
 export default PrivateKey;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .avm_token_select {
   width: 520px;
@@ -115,7 +112,7 @@ export default PrivateKey;
   align-self: center;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .avm_token_select {
     width: 100%;
   }

@@ -1,71 +1,87 @@
 <template>
-  <BaseNftCard :mini="mini" :raw-card="rawCard" :utxo-id="utxo.getUTXOID()">
-    <template v-slot:card>
-      <UrlPayloadView :payload="payload"></UrlPayloadView>
-      <!--            <img :src="url" v-if="img_types.includes(fileType)" />-->
-
-      <!--            <div v-else-if="fileType === 'pdf'" class="pdf">-->
-      <!--                <p>{{ url }}</p>-->
-      <!--                <p class="type">PDF</p>-->
-      <!--            </div>-->
-      <!--            <div v-else class="unknown">-->
-      <!--                <p>{{ url }}</p>-->
-      <!--                <p class="type">Unknown</p>-->
-      <!--            </div>-->
+  <BaseNftCard :mini="mini" :raw-card="rawCard" :utxo-id="utxo?.getUTXOID()">
+    <template #card>
+      <UrlPayloadView :payload="payloadAsURL"></UrlPayloadView>
     </template>
 
-    <template v-slot:deck>
+    <template #deck>
       <div v-if="fileType === 'pdf'" class="pdf">
-        <a :href="url" target="_blank" class="">Open Document</a>
+        <a class="" :href="url" target="_blank">Open Document</a>
       </div>
       <div v-else-if="fileType == ''" class="unknown">
-        <a :href="url" target="_blank" class="">Open URL</a>
+        <a class="" :href="url" target="_blank">Open URL</a>
       </div>
     </template>
 
-    <template v-slot:mini>
-      <img :src="url" v-if="img_types.includes(fileType)" class="img_mini" />
+    <template #mini>
+      <img v-if="img_types.includes(fileType)" class="img_mini" :src="url" />
       <p v-else><fa icon="link"></fa></p>
     </template>
   </BaseNftCard>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import BaseNftCard from "@/components/NftCards/BaseNftCard.vue";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type {
+  PayloadBase,
+  URLPayload,
+} from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 import UrlPayloadView from "@/components/misc/NftPayloadView/views/UrlPayloadView.vue";
-@Component({
+import BaseNftCard from "@/components/NftCards/BaseNftCard.vue";
+
+export const URL_NFT = defineComponent({
   components: {
     BaseNftCard,
     UrlPayloadView,
   },
-})
-export class URL_NFT extends Vue {
-  img_types = ["jpeg", "jpg", "gif", "png", "apng", "svg", "bmp", "ico"];
-  valid_types = this.img_types.concat(["pdf"]);
-  @Prop() payload!: PayloadBase;
-  @Prop({ default: false }) mini!: boolean;
-  @Prop({ default: false }) rawCard!: boolean;
-  @Prop() utxo!: UTXO;
+  props: {
+    payload: {
+      type: Object as PropType<PayloadBase>,
+    },
+    mini: { default: false, type: Boolean },
+    rawCard: { default: false, type: Boolean },
+    utxo: {
+      type: Object as PropType<UTXO>,
+    },
+  },
+  data() {
+    const img_types = [
+      "jpeg",
+      "jpg",
+      "gif",
+      "png",
+      "apng",
+      "svg",
+      "bmp",
+      "ico",
+    ];
+    return {
+      img_types,
+      valid_types: img_types.concat(["pdf"]),
+    };
+  },
+  computed: {
+    url(): string {
+      return this.payload?.getContent().toString("utf8") ?? "";
+    },
+    payloadAsURL(): URLPayload {
+      return this.payload as URLPayload;
+    },
+    fileType(): string {
+      const url = this.url;
 
-  get url(): string {
-    return this.payload.getContent().toString("utf-8");
-  }
-  get fileType(): string {
-    const url = this.url;
+      const split = url.split(".");
 
-    const split = url.split(".");
+      // Couldn't find extension
+      if (split.length === 1) return "";
 
-    // Couldn't find extension
-    if (split.length === 1) return "";
-
-    const extension: string = split[split.length - 1];
-    if (!this.valid_types.includes(extension)) return "";
-    return extension;
-  }
-}
+      const extension = split.at(-1);
+      if (!extension || !this.valid_types.includes(extension)) return "";
+      return extension;
+    },
+  },
+});
 export default URL_NFT;
 </script>
 <style scoped lang="scss">

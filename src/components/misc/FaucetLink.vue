@@ -3,29 +3,29 @@
     <p class="drop"><fa icon="tint"></fa></p>
     <p>{{ $t("transfer.faucet") }}</p>
     <a
+      class="but_primary"
       :href="faucetLink + `?address=${selectedAddress}`"
       target="_blank"
-      class="but_primary"
     >
       Go to faucet
     </a>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export class FaucetLink extends Vue {
-  get faucetLink() {
-    const link = import.meta.env.VITE_APP_FAUCET_LINK;
-    if (link) return link;
-    return null;
-  }
-  get selectedAddress() {
-    return this.$store.state.address;
-  }
-}
+export const FaucetLink = defineComponent({
+  computed: {
+    faucetLink() {
+      const link = import.meta.env.VITE_APP_FAUCET_LINK;
+      if (link) return link;
+      return null;
+    },
+    selectedAddress() {
+      return this.$store.state.address;
+    },
+  },
+});
 
 export default FaucetLink;
 </script>

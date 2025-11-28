@@ -1,20 +1,20 @@
 <template>
   <modal
     ref="modal"
-    :title="$t('modal.tokenlist.title')"
     class="modal_main"
-    @beforeClose="beforeClose"
+    :title="$t('modal.tokenlist.title')"
+    @before-close="beforeClose"
   >
     <div class="tokenlist_modal">
       <label>Add a list</label>
       <div class="add_list">
-        <input type="text" placeholder="https://" v-model="urlIn" />
+        <input v-model="urlIn" placeholder="https://" type="text" />
         <v-btn
-          small
           class="button_secondary"
           depressed
-          @click="addTokenList"
           :disabled="!canAdd"
+          small
+          @click="addTokenList"
         >
           Add
         </v-btn>
@@ -41,74 +41,66 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
+import type { TokenList } from "@/stores/vuex/modules/assets/types";
+import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
-import type { TokenList } from "@/store/modules/assets/types";
 
-@Component({
+export const TokenListModal = defineComponent({
   components: {
     Modal,
   },
-})
-export class TokenListModal extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
-
-  urlIn = "";
-  err = "";
-
-  get canAdd() {
-    if (this.urlIn.length < 4) {
-      return false;
-    }
-    return true;
-  }
-
-  get lists(): TokenList[] {
-    return this.$store.state.Assets.tokenLists;
-  }
-
-  beforeClose() {
-    this.urlIn = "";
-    this.err = "";
-  }
-
-  async addTokenList() {
-    this.err = "";
-    this.$store
-      .dispatch("Assets/addTokenListUrl", {
-        url: this.urlIn,
-        readonly: false,
-      })
-      .then((res) => {
-        this.onSuccess();
-      })
-      .catch((e) => {
-        this.onError(e);
-      });
-  }
-
-  onSuccess() {
-    this.urlIn = "";
-    this.$store.dispatch("Assets/updateERC20Balances");
-  }
-
-  async removeList(list: TokenList) {
-    this.$store.dispatch("Assets/removeTokenList", list);
-  }
-
-  onError(err: any) {
-    this.err = err;
-  }
-
-  open(): void {
-    const modal = this.$refs.modal;
-    modal.open();
-  }
-}
+  data() {
+    return {
+      urlIn: "",
+      err: "",
+    };
+  },
+  computed: {
+    canAdd() {
+      if (this.urlIn.length < 4) {
+        return false;
+      }
+      return true;
+    },
+    lists(): TokenList[] {
+      return this.$store.state.Assets.tokenLists;
+    },
+  },
+  methods: {
+    beforeClose() {
+      this.urlIn = "";
+      this.err = "";
+    },
+    async addTokenList() {
+      this.err = "";
+      this.$store
+        .dispatch("Assets/addTokenListUrl", {
+          url: this.urlIn,
+          readonly: false,
+        })
+        .then(() => {
+          this.onSuccess();
+        })
+        .catch((error) => {
+          this.onError(error);
+        });
+    },
+    onSuccess() {
+      this.urlIn = "";
+      this.$store.dispatch("Assets/updateERC20Balances");
+    },
+    async removeList(list: TokenList) {
+      this.$store.dispatch("Assets/removeTokenList", list);
+    },
+    onError(err: any) {
+      this.err = err;
+    },
+    open(): void {
+      const modal = this.$refs.modal;
+      (modal as typeof Modal).open();
+    },
+  },
+});
 export default TokenListModal;
 </script>
 <style scoped lang="scss">

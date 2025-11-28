@@ -8,25 +8,25 @@
             <hr />
           </div>
         </header>
-        <div class="button_container" v-if="canEncryptWallet">
+        <div v-if="canEncryptWallet" class="button_container">
           <button
             v-if="!account"
-            @click="openSaveAccount"
             class="save_account ava_button_secondary"
+            @click="openSaveAccount"
           >
             <fa icon="exclamation-triangle"></fa>
             {{ $t("keys.button1") }}
           </button>
           <button
             v-if="hasVolatile && account"
-            @click="openAccountSettings"
             class="save_account ava_button_secondary"
+            @click="openAccountSettings"
           >
             <fa icon="exclamation-triangle"></fa>
             {{ $t("keys.button1") }}
           </button>
           <button class="but_primary ava_button_secondary" @click="exportKeys">
-            <img src="@/assets/upload.svg" class="key_logo" />
+            <img class="key_logo" src="@/assets/upload.svg" />
             {{ $t("keys.button3") }}
           </button>
           <SaveAccountModal ref="account_modal"></SaveAccountModal>
@@ -39,79 +39,59 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-import MyKeys from "@/components/wallet/manage/MyKeys.vue";
-import ImportKeys from "@/components/modals/ImportKeys.vue";
-import ExportKeys from "@/components/modals/ExportKeys.vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
-
 import type { WalletNameType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
 import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
+import ExportKeys from "@/components/modals/ExportKeys.vue";
 
-@Component({
-  name: "manage",
+import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
+import MyKeys from "@/components/wallet/manage/MyKeys.vue";
+
+export const ManageKeys = defineComponent({
+  name: "Manage",
   components: {
     AccountSettingsModal,
     MyKeys,
-    ImportKeys,
     ExportKeys,
     SaveAccountModal,
   },
-})
-export class ManageKeys extends Vue {
-  $refs!: {
-    import: ImportKeys;
-    export: ExportKeys;
-    account_modal: SaveAccountModal;
-    account_settings: AccountSettingsModal;
-  };
-
-  get account() {
-    return this.$store.getters["Accounts/account"];
-  }
-
-  importKeys() {
-    this.$refs.import.open();
-  }
-
-  exportKeys() {
-    this.$refs.export.open();
-  }
-
-  openSaveAccount() {
-    this.$refs.account_modal.open();
-  }
-
-  openAccountSettings() {
-    this.$refs.account_settings.open();
-  }
-
-  get canEncryptWallet() {
-    return ["mnemonic", "singleton"].includes(this.walletType);
-  }
-
-  get walletType(): WalletNameType {
-    return this.$store.state.activeWallet.type;
-  }
-
-  get hasVolatile() {
-    return this.$store.state.volatileWallets.length > 0;
-  }
-
-  get allWallets(): MnemonicWallet[] {
-    return this.$store.state.wallets;
-  }
-
-  get warnUpdateKeyfile() {
-    return this.$store.state.warnUpdateKeyfile;
-  }
-}
+  computed: {
+    account() {
+      return this.$store.getters["Accounts/account"];
+    },
+    canEncryptWallet() {
+      return ["mnemonic", "singleton"].includes(this.walletType);
+    },
+    walletType(): WalletNameType {
+      return this.$store.state.activeWallet.type;
+    },
+    hasVolatile() {
+      return this.$store.state.volatileWallets.length > 0;
+    },
+    allWallets(): MnemonicWallet[] {
+      return this.$store.state.wallets;
+    },
+    warnUpdateKeyfile() {
+      return this.$store.state.warnUpdateKeyfile;
+    },
+  },
+  methods: {
+    exportKeys() {
+      (this.$refs.export as typeof ExportKeys).open();
+    },
+    openSaveAccount() {
+      (this.$refs.account_modal as typeof SaveAccountModal).open();
+    },
+    openAccountSettings() {
+      (this.$refs.account_settings as typeof AccountSettingsModal).open();
+    },
+  },
+});
 export default ManageKeys;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .button_container {
   display: flex;
@@ -171,7 +151,7 @@ h1 {
   color: var(--warning);
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   header {
     display: block;
   }

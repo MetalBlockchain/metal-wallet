@@ -2,26 +2,26 @@
   <div class="new_family">
     <div>
       <p>{{ $t("studio.family.desc") }}</p>
-      <form @submit.prevent="submit" v-if="!isSuccess">
+      <form v-if="!isSuccess" @submit.prevent="submit">
         <div style="display: flex">
           <div style="flex-grow: 1">
             <label>{{ $t("studio.family.label1") }}</label>
             <input
-              type="text"
-              placeholder="Name"
               v-model="name"
-              style="width: 100%"
               maxlength="128"
+              placeholder="Name"
+              style="width: 100%"
+              type="text"
             />
           </div>
           <div class="symbol">
             <label>{{ $t("studio.family.label2") }}</label>
             <input
-              type="text"
-              placeholder="xxxx"
               v-model="symbol"
               max="4"
               maxlength="4"
+              placeholder="xxxx"
+              type="text"
             />
           </div>
         </div>
@@ -29,11 +29,11 @@
         <div>
           <label>{{ $t("studio.family.label3") }}</label>
           <input
-            type="number"
-            placeholder="Name of the Collection"
-            min="1"
-            max="1024"
             v-model="groupNum"
+            max="1024"
+            min="1"
+            placeholder="Name of the Collection"
+            type="number"
           />
         </div>
         <div>
@@ -43,15 +43,15 @@
         </div>
         <p v-if="error" class="err">{{ error }}</p>
         <v-btn
-          :loading="isLoading"
-          type="submit"
           class="button_secondary"
+          :loading="isLoading"
           small
+          type="submit"
         >
           {{ $t("studio.family.submit") }}
         </v-btn>
       </form>
-      <div class="success_cont" v-if="isSuccess">
+      <div v-if="isSuccess" class="success_cont">
         <p style="color: var(--success); margin: 12px 0 !important">
           <fa icon="check-circle"></fa>
           {{ $t("studio.family.success.desc") }}
@@ -72,7 +72,7 @@
           <label>{{ $t("studio.family.success.label4") }}</label>
           <p>{{ groupNum }}</p>
         </div>
-        <v-btn class="button_secondary" small @click="cancel" depressed>
+        <v-btn class="button_secondary" depressed small @click="cancel">
           {{ $t("studio.family.back") }}
         </v-btn>
       </div>
@@ -80,104 +80,111 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Watch } from "vue-property-decorator";
-import { pChain } from "@/AVA";
-import { bnToBig } from "@/helpers/helper";
 import type Big from "big.js";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
+import { pChain } from "@/misc/AVA";
 
-@Component
-export class NewCollectibleFamily extends Vue {
-  name = "";
-  symbol = "";
-  groupNum = 1;
-  isLoading = false;
-  isSuccess = false;
-  error = "";
-  txId = "";
+export const NewCollectibleFamily = defineComponent({
+  emits: ["cancel"],
+  data() {
+    return {
+      name: "",
+      symbol: "",
+      groupNum: 1,
+      isLoading: false,
+      isSuccess: false,
+      error: "",
+      txId: "",
+    };
+  },
+  computed: {
+    txFee(): Big {
+      return bnToBig(pChain.getCreationTxFee(), 9);
+    },
+    mintUtxos() {
+      // return this.$store.getters.walletNftMintUTXOs
+      return this.$store.state.Assets.nftMintUTXOs;
+    },
+  },
+  watch: {
+    symbol: [
+      {
+        handler: "onSymbolChange",
+      },
+    ],
+  },
+  methods: {
+    validate(): boolean {
+      if (this.symbol.length === 0) {
+        this.error = "You must provide a symbol.";
+        return false;
+      } else if (this.symbol.length > 4) {
+        this.error = "Symbol must be 4 characters max.";
+        return false;
+      } else if (this.groupNum < 1) {
+        this.error = "Number of groups must be at least 1.";
+        return false;
+      }
+      return true;
+    },
+    async submit() {
+      if (!this.validate()) {
+        return;
+      }
+      const wallet = this.$store.state.activeWallet;
+      if (!wallet) return;
 
-  @Watch("symbol")
-  onSymbolChange(val: string) {
-    let newVal = val.toUpperCase();
-    // Remove numbers
-    newVal = newVal.replace(/[0-9]/g, "");
-    this.symbol = newVal;
-  }
+      this.error = "";
+      this.isLoading = true;
 
-  get txFee(): Big {
-    return bnToBig(pChain.getCreationTxFee(), 9);
-  }
+      const nameTrimmed = this.name.trim();
+      const symbolTrimmed = this.symbol.trim();
 
-  validate(): boolean {
-    if (this.symbol.length === 0) {
-      this.error = "You must provide a symbol.";
-      return false;
-    } else if (this.symbol.length > 4) {
-      this.error = "Symbol must be 4 characters max.";
-      return false;
-    } else if (this.groupNum < 1) {
-      this.error = "Number of groups must be at least 1.";
-      return false;
-    }
-    return true;
-  }
-  async submit() {
-    if (!this.validate()) {
-      return;
-    }
-    const wallet = this.$store.state.activeWallet;
-    if (!wallet) return;
+      try {
+        const txId = await wallet.createNftFamily(
+          nameTrimmed,
+          symbolTrimmed,
+          this.groupNum,
+        );
+        console.log(txId);
+        this.onSuccess(txId);
+      } catch (error) {
+        this.onError(error);
+      }
+    },
+    cancel() {
+      this.$emit("cancel");
+    },
+    onError(e: any) {
+      this.error = e;
+      console.error(e);
+      this.isLoading = false;
+    },
+    onSuccess(txId: string) {
+      this.isLoading = false;
+      this.isSuccess = true;
+      this.txId = txId;
 
-    this.error = "";
-    this.isLoading = true;
+      this.$store.dispatch("Notifications/add", {
+        type: "success",
+        title: "Success",
+        message: "Collectible family created.",
+      });
 
-    const nameTrimmed = this.name.trim();
-    const symbolTrimmed = this.symbol.trim();
-
-    try {
-      const txId = await wallet.createNftFamily(
-        nameTrimmed,
-        symbolTrimmed,
-        this.groupNum
-      );
-      console.log(txId);
-      this.onSuccess(txId);
-    } catch (e) {
-      this.onError(e);
-    }
-  }
-
-  cancel() {
-    this.$emit("cancel");
-  }
-
-  onError(e: any) {
-    this.error = e;
-    console.error(e);
-    this.isLoading = false;
-  }
-
-  onSuccess(txId: string) {
-    this.isLoading = false;
-    this.isSuccess = true;
-    this.txId = txId;
-
-    this.$store.dispatch("Notifications/add", {
-      type: "success",
-      title: "Success",
-      message: "Collectible family created.",
-    });
-
-    setTimeout(() => {
-      this.$store.dispatch("Assets/updateUTXOs");
-      this.$store.dispatch("History/updateTransactionHistory");
-    }, 3000);
-  }
-
-  get mintUtxos() {
-    // return this.$store.getters.walletNftMintUTXOs
-    return this.$store.state.Assets.nftMintUTXOs;
-  }
-}
+      setTimeout(() => {
+        this.$store.dispatch("Assets/updateUTXOs");
+        this.$store.dispatch("History/updateTransactionHistory");
+      }, 3000);
+    },
+    onSymbolChange(val: string) {
+      let newVal = val.toUpperCase();
+      // Remove numbers
+      newVal = newVal.replace(/[0-9]/g, "");
+      this.symbol = newVal;
+    },
+  },
+});
 export default NewCollectibleFamily;
 </script>
 <style scoped lang="scss">

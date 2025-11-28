@@ -1,11 +1,11 @@
 import type {
-  TransactionType,
   GetTransactionsParams,
+  TransactionType,
 } from "@/js/Glacier/models";
 import { splitToParts } from "@/js/Glacier/utils";
 import { filterDuplicateGlacierTxs } from "./filterDuplicateGlacierTxs";
-import { sortGlacierTxs } from "./sortGlacierTxs";
 import Glacier from "./Glacier";
+import { sortGlacierTxs } from "./sortGlacierTxs";
 
 /**
  *
@@ -14,43 +14,42 @@ import Glacier from "./Glacier";
  */
 export async function getTransactionsForAddresses(
   config: GetTransactionsParams,
-  limit?: number
+  limit?: number,
 ) {
   const addressLimit = 64; // Max number of addresses glacier accepts
   const addrParts = splitToParts<string>(config.addresses, addressLimit);
 
   async function fetchAll(
     config: GetTransactionsParams,
-    currentCount = 0
+    currentCount = 0,
   ): Promise<TransactionType[]> {
     const res =
       await Glacier.primaryNetworkTransactions.listLatestPrimaryNetworkTransactions(
         {
           ...config,
           addresses: config.addresses.join(","),
-        }
+        },
       );
     const txs = res.transactions ?? [];
     // const res = await GlacierService.getTransactions(config)
     currentCount += txs.length;
-    if (res.nextPageToken) {
-      if (!limit || (limit && currentCount < limit)) {
-        const next = await fetchAll(
-          {
-            ...config,
-            pageToken: res.nextPageToken,
-          },
-          currentCount
-        );
-        return [...txs, ...next];
-      }
+    if (res.nextPageToken && (!limit || (limit && currentCount < limit))) {
+      const next = await fetchAll(
+        {
+          ...config,
+          pageToken: res.nextPageToken,
+        },
+        currentCount,
+      );
+      return [...txs, ...next];
     }
     return txs;
   }
 
   let txs: TransactionType[] = [];
-  for (let i = 0; i < addrParts.length; i++) {
-    const addrs = addrParts[i];
+  for (const addrs of addrParts) {
+    if (!addrs) continue;
+
     const result = await fetchAll({
       ...config,
       addresses: addrs,

@@ -3,7 +3,7 @@
     <ExportGlacierHistoryModal
       ref="glacier_csv_modal"
     ></ExportGlacierHistoryModal>
-    <div class="explorer_warning" v-if="!hasExplorer">
+    <div v-if="!hasExplorer" class="explorer_warning">
       <div class="warning_body">
         <h1>{{ $t("activity.no_explorer.title") }}</h1>
         <p>{{ $t("activity.no_explorer.desc") }}</p>
@@ -14,17 +14,17 @@
         <div class="filter_cont">
           <label>
             Export CSV File (BETA)
-            <span style="font-size: 0.8em; opacity: 0.8" v-if="isCsvDisabled">
+            <span v-if="isCsvDisabled" style="font-size: 0.8em; opacity: 0.8">
               Not Supported For This Network
             </span>
           </label>
           <div class="csv_buttons">
             <v-btn
-              x-small
-              depressed
               class="button_secondary"
+              depressed
+              :disabled="!!isCsvDisabled"
+              x-small
               @click="openGlacierCsvModal"
-              :disabled="isCsvDisabled"
             >
               Export History
             </v-btn>
@@ -33,9 +33,9 @@
         <div class="filter_cont">
           <label>{{ $t("activity.label1") }}</label>
           <RadioButtons
-            :labels="modes"
-            :keys="modeKey"
             v-model="mode"
+            :keys="modeKey"
+            :labels="modes"
           ></RadioButtons>
         </div>
       </div>
@@ -43,10 +43,10 @@
         <div class="pagination">
           <p class="date_display">{{ monthNowName }} {{ yearNow }}</p>
           <div>
-            <button @click="prevPage" :disabled="!isPrevPage">
+            <button :disabled="!isPrevPage" @click="prevPage">
               <fa icon="angle-left"></fa>
             </button>
-            <button @click="nextPage" :disabled="!isNextPage">
+            <button :disabled="!isNextPage" @click="nextPage">
               <fa icon="angle-right"></fa>
             </button>
           </div>
@@ -59,18 +59,19 @@
         </div>
       </div>
     </div>
-    <div class="tx_table" ref="list">
-      <div class="tx_list" v-show="showList">
-        <virtual-list
+    <div ref="list" class="tx_table">
+      <div v-show="showList" class="tx_list">
+        <DynamicScroller
           v-show="txs.length > 0"
-          :style="{ height: `${listH}px`, overflowY: 'auto' }"
-          :data-key="'txHash'"
-          :data-sources="txsProcessed"
-          :data-component="RowComponent"
-          :keeps="20"
           ref="vlist"
-          :estimate-size="txsProcessed.length"
-        ></virtual-list>
+          v-slot="{ item, index }"
+          :items="txsProcessed"
+          :key-field="'txHash'"
+          :min-item-size="24"
+          :style="{ height: `${listH}px`, overflowY: 'auto' }"
+        >
+          <TxRow :index="index" :source="item"></TxRow>
+        </DynamicScroller>
         <div v-if="txs.length === 0" class="empty">
           <p>{{ $t("activity.empty") }}</p>
         </div>
@@ -83,10 +84,10 @@
         <template v-else>
           <p>Error Loading Activity History</p>
           <v-btn
-            @click="updateHistory"
             class="button_secondary"
-            small
             depressed
+            small
+            @click="updateHistory"
           >
             Try Again
           </v-btn>
@@ -96,21 +97,18 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
+import type { AvaNetwork } from "@/js/AvaNetwork";
 import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 
-import TxRow from "@/components/wallet/activity/TxRow.vue";
+import { defineComponent } from "vue";
+import { DynamicScroller } from "vue-virtual-scroller";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
 import Spinner from "@/components/misc/Spinner.vue";
-
-import VirtualList from "vue-virtual-scroll-list";
-import type { AvaNetwork } from "@/js/AvaNetwork";
-import ExportCsvModal from "@/components/modals/ExportCsvModal.vue";
-import ExportAvaxCsvModal from "@/components/modals/ExportAvaxCsvModal.vue";
 import ExportGlacierHistoryModal from "@/components/modals/ExportGlacierHistoryModal.vue";
-import { isMainnetNetworkID } from "@/store/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/store/modules/network/isTestnetNetworkID";
+import TxRow from "@/components/wallet/activity/TxRow.vue";
+import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
+import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
 
 type ModeKeyType = "all" | "transfer" | "swap" | "stake";
 
@@ -119,110 +117,227 @@ const PAGE_LIMIT = 100;
 const YEAR_MIN = 2020;
 const MONTH_MIN = 8;
 
-@Component({
-  name: "activity",
+const supportedTypes = new Set<TransactionTypeName>([
+  "BaseTx",
+  "ImportTx",
+  "ExportTx",
+  "OperationTx",
+  "AddValidatorTx",
+  "AddDelegatorTx",
+  "AddPermissionlessDelegatorTx",
+  "AddPermissionlessValidatorTx",
+  "CreateAssetTx",
+]);
+
+const transferTypes = new Set<TransactionTypeName>([
+  "BaseTx",
+  "CreateAssetTx",
+  "OperationTx",
+]);
+const exportTypes = new Set<TransactionTypeName>(["ExportTx", "ImportTx"]);
+
+const stakeTypes = new Set<TransactionTypeName>([
+  "AddValidatorTx",
+  "AddDelegatorTx",
+  "AddPermissionlessValidatorTx",
+  "AddPermissionlessDelegatorTx",
+]);
+
+export const Activity = defineComponent({
+  name: "Activity",
   components: {
-    ExportAvaxCsvModal,
-    ExportCsvModal,
     ExportGlacierHistoryModal,
     Spinner,
-    TxRow,
     RadioButtons,
-    VirtualList,
+    DynamicScroller,
   },
-})
-export class Activity extends Vue {
-  mode: ModeKeyType = "all";
-  modes = [
-    this.$t("activity.mode1"),
-    this.$t("activity.mode2"),
-    this.$t("activity.mode3"),
-    this.$t("activity.mode4"),
-  ];
-  modeKey: ModeKeyType[] = ["all", "transfer", "swap", "stake"];
-  isLoading = false;
-  pageNow = 0;
-  RowComponent = TxRow;
+  data(): {
+    mode: ModeKeyType;
+    modes: string[];
+    modeKey: ModeKeyType[];
+    isLoading: boolean;
+    pageNow: number;
+    RowComponent: typeof TxRow;
+    monthNow: number;
+    yearNow: number;
+    listH: number;
+  } {
+    const modeKey: ModeKeyType[] = ["all", "transfer", "swap", "stake"];
+    const mode: ModeKeyType = "all";
+    return {
+      mode,
+      modes: [
+        this.$t("activity.mode1"),
+        this.$t("activity.mode2"),
+        this.$t("activity.mode3"),
+        this.$t("activity.mode4"),
+      ],
+      modeKey,
+      isLoading: false,
+      pageNow: 0,
+      RowComponent: TxRow,
+      monthNow: 0,
+      yearNow: 0,
+      listH: 100,
+    };
+  },
+  computed: {
+    isCsvDisabled() {
+      return !this.hasExplorer || this.isFuji;
+    },
+    showList(): boolean {
+      if (this.isUpdatingAll || this.isLoading || this.isError) return false;
+      return true;
+    },
+    isUpdatingAll(): boolean {
+      return this.$store.state.History.isUpdatingAll;
+    },
+    isNextPage() {
+      const now = new Date();
+      if (this.yearNow < now.getFullYear()) return true;
+      if (this.monthNow < now.getMonth()) return true;
+      return false;
+    },
+    isPrevPage() {
+      // if (this.yearNow  now.getFullYear()) return true
+      if (this.monthNow === MONTH_MIN && this.yearNow === YEAR_MIN)
+        return false;
+      return true;
+    },
+    monthNowName() {
+      return this.$t(`activity.months.${this.monthNow}`);
+    },
+    activeNetwork(): AvaNetwork | null {
+      return this.$store.state.Network.selectedNetwork;
+    },
+    isMainnet() {
+      return (
+        this.activeNetwork && isMainnetNetworkID(this.activeNetwork.networkId)
+      );
+    },
+    isFuji() {
+      return (
+        this.activeNetwork && isTestnetNetworkID(this.activeNetwork.networkId)
+      );
+    },
+    hasExplorer() {
+      if (!this.activeNetwork) return false;
+      return this.isMainnet || this.isFuji;
+    },
+    isError() {
+      return this.$store.state.History.isError;
+    },
+    monthGroups(): any {
+      const res: any = {};
+      const txs = this.txs;
 
-  monthNow = 0;
-  yearNow = 0;
+      for (const tx of txs) {
+        const date = new Date(this.getTxTimestamp(tx));
+        // let mom = moment(tx.timestamp)
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const key = `${month}/${year}`;
+        if (res[key]) {
+          res[key].push(tx);
+        } else {
+          res[key] = [tx];
+        }
+      }
+      return res;
+    },
+    allTxs(): TransactionType[] {
+      return this.$store.state.History.allTransactions.filter(
+        (tx: TransactionType) => {
+          return supportedTypes.has(tx.txType);
+        },
+      );
+    },
+    txs(): TransactionType[] {
+      let txs;
+      switch (this.mode) {
+        case "transfer": {
+          txs = this.txsTransfer;
+          break;
+        }
+        case "swap": {
+          txs = this.txsSwap;
+          break;
+        }
+        case "stake": {
+          txs = this.txsStake;
+          break;
+        }
+        default: {
+          txs = this.allTxs;
+          break;
+        }
+      }
 
-  listH = 100;
+      const filtered = txs.filter((tx) => {
+        const date = new Date(this.getTxTimestamp(tx));
 
-  $refs!: {
-    csv_modal: ExportCsvModal;
-    avax_csv_modal: ExportAvaxCsvModal;
-    glacier_csv_modal: ExportGlacierHistoryModal;
-    vlist: typeof VirtualList;
-    list: HTMLElement;
-  };
+        if (
+          date.getMonth() === this.monthNow &&
+          date.getFullYear() === this.yearNow
+        ) {
+          return true;
+        }
+        return false;
+      });
+      return filtered;
+    },
+    txsProcessed() {
+      const txs = this.txs;
 
-  openCsvModal() {
-    this.$refs.csv_modal.open();
-  }
+      const res = txs.map((tx, index) => {
+        let showMonth = false;
+        let showDay = false;
 
-  openAvaxCsvModal() {
-    this.$refs.avax_csv_modal.open();
-  }
+        if (index === 0) {
+          showMonth = true;
+          showDay = true;
+        } else {
+          const txBefore = txs[index - 1];
+          if (txBefore) {
+            const date = new Date(this.getTxTimestamp(tx));
+            const dateBefore = new Date(this.getTxTimestamp(txBefore));
 
-  openGlacierCsvModal() {
-    this.$refs.glacier_csv_modal.open();
-  }
+            if (dateBefore.getMonth() !== date.getMonth()) {
+              showMonth = true;
+              showDay = true;
+            } else if (dateBefore.getDay() !== date.getDay()) {
+              showDay = true;
+            }
+          }
+        }
 
-  get isCsvDisabled() {
-    return !this.hasExplorer || this.isFuji;
-  }
-
-  get showList(): boolean {
-    if (this.isUpdatingAll || this.isLoading || this.isError) return false;
-    return true;
-  }
-
-  get isUpdatingAll(): boolean {
-    return this.$store.state.History.isUpdatingAll;
-  }
-
-  get isNextPage() {
-    const now = new Date();
-    if (this.yearNow < now.getFullYear()) return true;
-    if (this.monthNow < now.getMonth()) return true;
-    return false;
-  }
-
-  get isPrevPage() {
-    // if (this.yearNow  now.getFullYear()) return true
-    if (this.monthNow === MONTH_MIN && this.yearNow === YEAR_MIN) return false;
-    return true;
-  }
-
-  get monthNowName() {
-    return this.$t(`activity.months.${this.monthNow}`);
-  }
-
-  get activeNetwork(): AvaNetwork | null {
-    return this.$store.state.Network.selectedNetwork;
-  }
-
-  get isMainnet() {
-    return (
-      this.activeNetwork && isMainnetNetworkID(this.activeNetwork.networkId)
-    );
-  }
-
-  get isFuji() {
-    return (
-      this.activeNetwork && isTestnetNetworkID(this.activeNetwork.networkId)
-    );
-  }
-
-  /**
-   * Returns true if conencted to mainnet or fuji
-   */
-  get hasExplorer() {
-    if (!this.activeNetwork) return false;
-    return this.isMainnet || this.isFuji;
-  }
-
+        return {
+          ...tx,
+          isMonthChange: showMonth,
+          isDayChange: showDay,
+        };
+      });
+      return res;
+    },
+    pageAmount(): number {
+      return Math.floor(this.txs.length / PAGE_LIMIT);
+    },
+    txsTransfer(): TransactionType[] {
+      return this.allTxs.filter((tx) => {
+        return transferTypes.has(tx.txType);
+      });
+    },
+    txsSwap(): TransactionType[] {
+      return this.allTxs.filter((tx) => {
+        return exportTypes.has(tx.txType);
+      });
+    },
+    txsStake(): TransactionType[] {
+      return this.allTxs.filter((tx) => {
+        return stakeTypes.has(tx.txType);
+      });
+    },
+  },
   mounted() {
     this.updateHistory();
 
@@ -231,197 +346,52 @@ export class Activity extends Vue {
     this.monthNow = now.getMonth();
     this.scrollToTop();
     this.setScrollHeight();
-  }
-
-  get isError() {
-    return this.$store.state.History.isError;
-  }
-
-  async updateHistory() {
-    this.$store.dispatch("History/updateAllTransactionHistory");
-  }
-
-  get monthGroups(): any {
-    const res: any = {};
-    const txs = this.txs;
-
-    for (let i = 0; i < txs.length; i++) {
-      const tx = txs[i];
-      const date = new Date(this.getTxTimestamp(tx));
-      // let mom = moment(tx.timestamp)
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      const key = `${month}/${year}`;
-      if (res[key]) {
-        res[key].push(tx);
+  },
+  methods: {
+    openGlacierCsvModal() {
+      (this.$refs.glacier_csv_modal as typeof ExportGlacierHistoryModal).open();
+    },
+    async updateHistory() {
+      this.$store.dispatch("History/updateAllTransactionHistory");
+    },
+    getTxTimestamp(tx: TransactionType) {
+      return isTransactionX(tx) || isTransactionC(tx)
+        ? tx.timestamp * 1000
+        : tx.blockTimestamp * 1000;
+    },
+    prevPage() {
+      if (this.monthNow === 0) {
+        this.yearNow = this.yearNow - 1;
+        this.monthNow = 11;
       } else {
-        res[key] = [tx];
+        this.monthNow = this.monthNow - 1;
       }
-    }
-    return res;
-  }
-
-  get allTxs(): TransactionType[] {
-    const supportedTypes: TransactionTypeName[] = [
-      "BaseTx",
-      "ImportTx",
-      "ExportTx",
-      "OperationTx",
-      "AddValidatorTx",
-      "AddDelegatorTx",
-      "AddPermissionlessDelegatorTx",
-      "AddPermissionlessValidatorTx",
-      "CreateAssetTx",
-    ];
-    return this.$store.state.History.allTransactions.filter(
-      (tx: TransactionType) => {
-        return supportedTypes.includes(tx.txType);
-      }
-    );
-  }
-
-  getTxTimestamp(tx: TransactionType) {
-    if (isTransactionX(tx) || isTransactionC(tx)) {
-      return tx.timestamp * 1000;
-    } else {
-      return tx.blockTimestamp * 1000;
-    }
-  }
-
-  get txs(): TransactionType[] {
-    let txs;
-    switch (this.mode) {
-      case "transfer":
-        txs = this.txsTransfer;
-        break;
-      case "swap":
-        txs = this.txsSwap;
-        break;
-      case "stake":
-        txs = this.txsStake;
-        break;
-      default:
-        txs = this.allTxs;
-        break;
-    }
-
-    const filtered = txs.filter((tx) => {
-      const date = new Date(this.getTxTimestamp(tx));
-
-      if (
-        date.getMonth() === this.monthNow &&
-        date.getFullYear() === this.yearNow
-      ) {
-        return true;
-      }
-      return false;
-    });
-    return filtered;
-  }
-
-  get txsProcessed() {
-    const txs = this.txs;
-
-    const res = txs.map((tx, index) => {
-      let showMonth = false;
-      let showDay = false;
-
-      if (index === 0) {
-        showMonth = true;
-        showDay = true;
+      this.scrollToTop();
+      this.setScrollHeight();
+    },
+    nextPage() {
+      if (this.monthNow === 11) {
+        this.yearNow = this.yearNow + 1;
+        this.monthNow = 0;
       } else {
-        const txBefore = txs[index - 1];
-
-        const date = new Date(this.getTxTimestamp(tx));
-        const dateBefore = new Date(this.getTxTimestamp(txBefore));
-
-        if (dateBefore.getMonth() !== date.getMonth()) {
-          showMonth = true;
-          showDay = true;
-        } else if (dateBefore.getDay() !== date.getDay()) {
-          showDay = true;
-        }
+        this.monthNow = this.monthNow + 1;
       }
-
-      return {
-        ...tx,
-        isMonthChange: showMonth,
-        isDayChange: showDay,
-      };
-    });
-    return res;
-  }
-
-  get pageAmount(): number {
-    return Math.floor(this.txs.length / PAGE_LIMIT);
-  }
-
-  prevPage() {
-    if (this.monthNow === 0) {
-      this.yearNow = this.yearNow - 1;
-      this.monthNow = 11;
-    } else {
-      this.monthNow = this.monthNow - 1;
-    }
-    this.scrollToTop();
-    this.setScrollHeight();
-  }
-
-  nextPage() {
-    if (this.monthNow === 11) {
-      this.yearNow = this.yearNow + 1;
-      this.monthNow = 0;
-    } else {
-      this.monthNow = this.monthNow + 1;
-    }
-    this.scrollToTop();
-    this.setScrollHeight();
-  }
-
-  get txsTransfer(): TransactionType[] {
-    const transferTypes: TransactionTypeName[] = [
-      "BaseTx",
-      "CreateAssetTx",
-      "OperationTx",
-    ];
-
-    return this.allTxs.filter((tx) => {
-      return transferTypes.includes(tx.txType);
-    });
-  }
-
-  get txsSwap(): TransactionType[] {
-    const exportTypes: TransactionTypeName[] = ["ExportTx", "ImportTx"];
-    return this.allTxs.filter((tx) => {
-      return exportTypes.includes(tx.txType);
-    });
-  }
-
-  get txsStake(): TransactionType[] {
-    const stakeTypes: TransactionTypeName[] = [
-      "AddValidatorTx",
-      "AddDelegatorTx",
-      "AddPermissionlessValidatorTx",
-      "AddPermissionlessDelegatorTx",
-    ];
-    return this.allTxs.filter((tx) => {
-      return stakeTypes.includes(tx.txType);
-    });
-  }
-
-  scrollToTop() {
-    this.$refs.vlist.scrollToIndex(0);
-  }
-  // The virtual scroll needs to be given a height in pixels
-  setScrollHeight() {
-    const h = this.$refs.list.clientHeight;
-    this.listH = h;
-  }
-}
+      this.scrollToTop();
+      this.setScrollHeight();
+    },
+    scrollToTop() {
+      (this.$refs.vlist as typeof DynamicScroller).scrollToItem(0);
+    },
+    setScrollHeight() {
+      const h = (this.$refs.list as HTMLElement).clientHeight;
+      this.listH = h;
+    },
+  },
+});
 export default Activity;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .activity_page {
   position: relative;
@@ -578,12 +548,6 @@ export default Activity;
   font-size: 24px;
 }
 
-.filter_col {
-  //display: flex;
-  //flex-direction: row;
-  //align-items: center;
-}
-
 .filter_cont {
   label {
     font-size: 12px;
@@ -614,7 +578,7 @@ export default Activity;
     margin-right: 1em;
   }
 }
-@include main.medium-device {
+@include mixins.medium-device {
   .pagination {
     p {
       font-size: 18px;
@@ -622,7 +586,7 @@ export default Activity;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .settings {
     display: grid;
     grid-template-columns: none;

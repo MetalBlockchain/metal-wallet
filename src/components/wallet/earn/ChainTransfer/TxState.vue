@@ -31,23 +31,32 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import Spinner from "@/components/misc/Spinner.vue";
+import type { PropType } from "vue";
 
 import type { TxState } from "@/components/wallet/earn/ChainTransfer/types";
+import { defineComponent } from "vue";
+import Spinner from "@/components/misc/Spinner.vue";
 
-@Component({
+export const TxStateCard = defineComponent({
   components: {
     Spinner,
   },
-})
-export class TxStateCard extends Vue {
-  @Prop() state!: TxState;
-  @Prop() status!: string;
-  @Prop() reason!: string;
-  @Prop() txId!: string;
-  @Prop({ default: true }) isExport?: boolean;
-}
+  props: {
+    state: {
+      type: Number as PropType<TxState>,
+    },
+    status: {
+      type: String,
+    },
+    reason: {
+      type: String,
+    },
+    txId: {
+      type: String,
+    },
+    isExport: { default: true, type: Boolean },
+  },
+});
 export default TxStateCard;
 </script>
 <style scoped lang="scss">

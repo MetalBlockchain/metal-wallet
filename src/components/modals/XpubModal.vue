@@ -1,5 +1,5 @@
 <template>
-  <modal ref="modal" title="Extended Public Key (Beta)" class="modal_main">
+  <modal ref="modal" class="modal_main" title="Extended Public Key (Beta)">
     <div class="singleton_modal_body">
       <p>
         This extended public key is used to derive all your X and P chain
@@ -20,24 +20,23 @@
   </modal>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
+import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 
-@Component({
+export default defineComponent({
   components: {
     Modal,
   },
-})
-export default class XpubModal extends Vue {
-  @Prop({ default: "" }) xpub!: string;
-
-  open(): void {
-    const modal = this.$refs.modal as Modal;
-    modal.open();
-  }
-}
+  props: {
+    xpub: { default: "", type: String },
+  },
+  methods: {
+    open(): void {
+      const modal = this.$refs.modal as typeof Modal;
+      modal.open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .singleton_modal_body {

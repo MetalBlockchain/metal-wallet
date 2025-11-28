@@ -1,11 +1,11 @@
 <template>
   <transition name="fade">
-    <div class="modal_main" v-if="isActive">
-      <div class="modal_bg" @click="bgclick" :icy="icy"></div>
+    <div v-if="isActive" class="modal_main">
+      <div class="modal_bg" :icy="icy" @click="bgclick"></div>
       <div class="modal_body">
         <div class="modal_topbar">
           <h4 class="modal_title">{{ title }}</h4>
-          <button class="modalClose" @click="close" v-if="can_close">
+          <button v-if="canClose" class="modalClose" @click="close">
             <fa icon="times"></fa>
           </button>
         </div>
@@ -15,39 +15,40 @@
   </transition>
 </template>
 <script lang="ts">
-import "reflect-metadata";
+import { defineComponent } from "vue";
 
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-@Component
-class Modal extends Vue {
-  @Prop({ default: "Modal Title" }) title!: string;
-  @Prop({ default: true }) can_close!: boolean;
-  @Prop({ default: false }) icy!: boolean;
-
-  isActive = false;
-
-  public open() {
-    this.isActive = true;
-  }
-
-  bgclick() {
-    if (this.can_close) {
-      this.close();
-    }
-  }
-
-  public close() {
-    this.$emit("beforeClose");
-    this.isActive = false;
-  }
-}
+export const Modal = defineComponent({
+  props: {
+    title: { default: "Modal Title", type: String },
+    canClose: { default: true, type: Boolean },
+    icy: { default: false, type: Boolean },
+  },
+  emits: ["before-close"],
+  data() {
+    return {
+      isActive: false,
+    };
+  },
+  methods: {
+    open() {
+      this.isActive = true;
+    },
+    bgclick() {
+      if (this.canClose) {
+        this.close();
+      }
+    },
+    close() {
+      this.$emit("before-close");
+      this.isActive = false;
+    },
+  },
+});
 export default Modal;
-export { Modal };
 </script>
 
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 
 .modal_topbar {
   background-color: var(--bg);
@@ -81,8 +82,8 @@ export { Modal };
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
   overflow: scroll;
   display: flex;
 }
@@ -115,7 +116,7 @@ export { Modal };
   overflow: hidden;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .modal_body {
     position: absolute;
     bottom: 0;

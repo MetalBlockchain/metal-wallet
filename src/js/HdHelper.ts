@@ -1,23 +1,25 @@
+import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
+
+import type HDKey from "hdkey";
+import type { ChainAlias } from "./wallets/types";
+import type { AvaNetwork } from "@/js/AvaNetwork";
+import { Buffer } from "@metalblockchain/metaljs";
+
 import {
   KeyChain as AVMKeyChain,
   KeyPair as AVMKeyPair,
   UTXOSet as AVMUTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
-import { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import {
+  UTXOSet as PlatformUTXOSet,
+  KeyChain as PlatformVMKeyChain,
+} from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
-import { ava, avm, bintools, pChain } from "@/AVA";
-import type HDKey from "hdkey";
 
-import { Buffer } from "@metalblockchain/metaljs";
-import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import { KeyChain as PlatformVMKeyChain } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import store from "@/store";
-
-import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { ChainAlias } from "./wallets/types";
 import { avmGetAllUTXOs, platformGetAllUTXOs } from "@/helpers/utxo_helper";
 import { listChainsForAddresses } from "@/js/Glacier/listChainsForAddresses";
+import { ava, avm, bintools, pChain } from "@/misc/AVA";
+import store from "@/stores/vuex";
 
 const INDEX_RANGE = 20; // a gap of at least 20 indexes is needed to claim an index unused
 
@@ -47,7 +49,7 @@ class HdHelper {
     changePath: string,
     masterKey: HDKey,
     chainId: ChainAlias = "X",
-    isPublic = false
+    isPublic = false,
   ) {
     this.changePath = changePath;
     this.isFetchUtxo = false;
@@ -121,11 +123,9 @@ class HdHelper {
     const network: AvaNetwork = (store.state as any).Network.selectedNetwork;
     const explorerUrl = network.explorerUrl;
 
-    if (explorerUrl) {
-      this.hdIndex = await this.findAvailableIndexExplorer();
-    } else {
-      this.hdIndex = await this.findAvailableIndexNode();
-    }
+    this.hdIndex = await (explorerUrl
+      ? this.findAvailableIndexExplorer()
+      : this.findAvailableIndexNode());
 
     if (!this.isPublic) {
       this.updateKeychain();
@@ -145,11 +145,9 @@ class HdHelper {
     const addrs: string[] = this.getAllDerivedAddresses();
     let result: AVMUTXOSet | PlatformUTXOSet;
 
-    if (this.chainId === "X") {
-      result = await avmGetAllUTXOs(addrs);
-    } else {
-      result = await platformGetAllUTXOs(addrs);
-    }
+    result = await (this.chainId === "X"
+      ? avmGetAllUTXOs(addrs)
+      : platformGetAllUTXOs(addrs));
     this.utxoSet = result; // we can use local copy of utxos as cache for some functions
 
     // If the hd index is full, increment
@@ -180,11 +178,10 @@ class HdHelper {
     const hrp = getPreferredHRP(ava.getNetworkID());
     let keychain: AVMKeyChain | PlatformVMKeyChain;
 
-    if (this.chainId === "X") {
-      keychain = new AVMKeyChain(hrp, this.chainId);
-    } else {
-      keychain = new PlatformVMKeyChain(hrp, this.chainId);
-    }
+    keychain =
+      this.chainId === "X"
+        ? new AVMKeyChain(hrp, this.chainId)
+        : new PlatformVMKeyChain(hrp, this.chainId);
 
     for (let i = 0; i <= this.hdIndex; i++) {
       let key: AVMKeyPair | PlatformVMKeyPair;
@@ -241,8 +238,8 @@ class HdHelper {
 
     const addrs = this.getAllDerivedAddresses(startIndex + upTo, startIndex);
     const addrChainsGlacier = await listChainsForAddresses(addrs);
-    const seenAddrs = addrChainsGlacier.map(
-      (addrData: any) => addrData.address
+    const seenAddrs = new Set(
+      addrChainsGlacier.map((addrData: any) => addrData.address),
     );
 
     for (let i = 0; i < addrs.length - INDEX_RANGE; i++) {
@@ -252,15 +249,17 @@ class HdHelper {
         const scanIndex = i + n;
         const scanAddr = addrs[scanIndex];
 
+        if (!scanAddr) continue;
+
         const rawAddr = scanAddr.split("-")[1];
 
-        const isSeen = seenAddrs.includes(rawAddr);
-        if (!isSeen) {
-          // If doesn't exist on any chain
-          gapSize++;
-        } else {
+        const isSeen = seenAddrs.has(rawAddr);
+        if (isSeen) {
           i = i + n;
           break;
+        } else {
+          // If doesn't exist on any chain
+          gapSize++;
         }
       }
 
@@ -271,7 +270,7 @@ class HdHelper {
     }
 
     return await this.findAvailableIndexExplorer(
-      startIndex + (upTo - INDEX_RANGE)
+      startIndex + (upTo - INDEX_RANGE),
     );
   }
 
@@ -288,11 +287,10 @@ class HdHelper {
 
     let utxoSet;
 
-    if (this.chainId === "X") {
-      utxoSet = (await avm.getUTXOs(addrs)).utxos;
-    } else {
-      utxoSet = (await pChain.getUTXOs(addrs)).utxos;
-    }
+    utxoSet =
+      this.chainId === "X"
+        ? (await avm.getUTXOs(addrs)).utxos
+        : (await pChain.getUTXOs(addrs)).utxos;
 
     // Scan UTXOs of these indexes and try to find a gap of INDEX_RANGE
     for (let i = 0; i < addrs.length - INDEX_RANGE; i++) {
@@ -300,7 +298,10 @@ class HdHelper {
       // console.log(`Scan index: ${this.chainId} ${this.changePath}/${i+start}`);
       for (let n = 0; n < INDEX_RANGE; n++) {
         const scanIndex: number = i + n;
-        const addr: string = addrs[scanIndex];
+        const addr = addrs[scanIndex];
+
+        if (!addr) continue;
+
         const addrBuf = bintools.parseAddress(addr, this.chainId);
         const addrUTXOs: string[] = utxoSet.getUTXOIDs([addrBuf]);
         if (addrUTXOs.length === 0) {
@@ -353,16 +354,15 @@ class HdHelper {
   // TODO: Public wallet should never be using this
   getKeyForIndex(
     index: number,
-    isPrivate = true
+    isPrivate = true,
   ): AVMKeyPair | PlatformVMKeyPair {
     // If key is cached return that
     let cacheExternal: AVMKeyPair | PlatformVMKeyPair;
 
-    if (this.chainId === "X") {
-      cacheExternal = this.keyCache[index] as AVMKeyPair;
-    } else {
-      cacheExternal = this.keyCache[index] as PlatformVMKeyPair;
-    }
+    cacheExternal =
+      this.chainId === "X"
+        ? (this.keyCache[index] as AVMKeyPair)
+        : (this.keyCache[index] as PlatformVMKeyPair);
 
     if (cacheExternal) return cacheExternal;
 
@@ -378,13 +378,13 @@ class HdHelper {
     }
 
     let pkHex: string;
-    if (!this.isPublic) {
-      pkHex = key.privateKey ? key.privateKey.toString("hex") : "";
-    } else {
+    if (this.isPublic) {
       pkHex = key.publicKey ? key.publicKey.toString("hex") : "";
+    } else {
+      pkHex = key.privateKey ? key.privateKey.toString("hex") : "";
     }
 
-    const pkBuf: Buffer = new Buffer(pkHex, "hex");
+    const pkBuf: Buffer = Buffer.from(pkHex, "hex");
     const keypair = this.keyChain.importKey(pkBuf);
 
     // save to cache
@@ -429,7 +429,7 @@ class HdHelper {
     const addrs = this.getAllDerivedAddresses();
     const index = addrs.indexOf(addr);
 
-    if (index < 0) return null;
+    if (index === -1) return null;
     return index;
   }
 }

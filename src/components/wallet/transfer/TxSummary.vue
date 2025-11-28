@@ -17,19 +17,19 @@
             {{ cleanNum(order.amount, order.asset.denomination) }}
           </p>
         </div>
-        <p v-if="cleanOrders.length === 0">No tokens added.</p>
+        <p v-if="cleanOrders?.length === 0">No tokens added.</p>
       </div>
       <template v-if="!isCollectibleEmpty">
         <h4>Collectibles</h4>
         <div class="nfts">
           <div
-            class="nft_group"
             v-for="(utxo, i) in nftOrders"
             :key="utxo.getUTXOID()"
+            class="nft_group"
           >
             <NftPayloadView
-              :payload="nftPayloads[i]"
-              small="true"
+              :payload="nftPayloads?.at(i)"
+              :small="true"
             ></NftPayloadView>
           </div>
         </div>
@@ -37,55 +37,60 @@
     </template>
   </div>
 </template>
-<script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { ITransaction } from "./types";
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import { BN } from "@metalblockchain/metaljs";
-import { bnToBig, getPayloadFromUTXO } from "@/helpers/helper";
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 
-@Component({
+<script lang="ts">
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
+import type { ITransaction } from "./types";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import { bnToBig, getPayloadFromUTXO } from "@/helpers/helper";
+
+export const TxSummary = defineComponent({
   components: {
     NftPayloadView,
   },
-})
-export class TxSummary extends Vue {
-  @Prop() orders!: ITransaction[];
-  @Prop() nftOrders!: UTXO[];
-
-  cleanNum(val: BN, denom: number) {
-    return bnToBig(val, denom).toLocaleString(denom);
-  }
-
-  get nftPayloads() {
-    return this.nftOrders.map((utxo) => {
-      return getPayloadFromUTXO(utxo);
-    });
-  }
-
-  get isFungibleEmpty() {
-    for (let i = 0; i < this.orders.length; i++) {
-      const order = this.orders[i];
-      if (order.amount.gt(new BN(0))) {
-        return false;
+  props: {
+    orders: {
+      type: Array as PropType<ITransaction[]>,
+    },
+    nftOrders: {
+      type: Array as PropType<UTXO[]>,
+    },
+  },
+  computed: {
+    nftPayloads() {
+      return this.nftOrders?.map((utxo) => {
+        return getPayloadFromUTXO(utxo);
+      });
+    },
+    isFungibleEmpty() {
+      if (!this.orders) return false;
+      for (let i = 0; i < this.orders.length; i++) {
+        const order = this.orders[i];
+        if (order?.amount.gt(new BN(0))) {
+          return false;
+        }
       }
-    }
-    return true;
-  }
-
-  get cleanOrders() {
-    const ZERO = new BN(0);
-    return this.orders.filter((order) => {
-      return order.amount.gt(ZERO);
-    });
-  }
-
-  get isCollectibleEmpty() {
-    return this.nftOrders.length === 0;
-  }
-}
+      return true;
+    },
+    cleanOrders() {
+      const ZERO = new BN(0);
+      return this.orders?.filter((order) => {
+        return order.amount.gt(ZERO);
+      });
+    },
+    isCollectibleEmpty() {
+      return this.nftOrders?.length === 0;
+    },
+  },
+  methods: {
+    cleanNum(val: BN, denom: number) {
+      return bnToBig(val, denom).toLocaleString(denom);
+    },
+  },
+});
 export default TxSummary;
 </script>
 <style scoped lang="scss">

@@ -1,22 +1,36 @@
 <template>
-  <div class="sel_locale">
-    <country-flag :country="flag" size="small" class="flag"></country-flag>
-    <select v-model="locale">
-      <option v-for="item in items" :key="item.code" :value="item.code">
-        {{ item.nativeName }}
-      </option>
-    </select>
+  <div>
+    <v-menu>
+      <template #activator="{ props }">
+        <div class="sel_locale" v-bind="props">
+          <span class="flag fi" :class="flag"></span>
+          <span class="lang-label">
+            {{ currentLang?.nativeName }}
+          </span>
+        </div>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="(item, index) in items"
+          :key="index"
+          :active="item.code === currentLang?.code"
+          :value="index"
+        >
+          <v-list-item-title @click="onSelectedChange(item.code)">
+            {{ item.nativeName }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Watch } from "vue-property-decorator";
-
-import langMap from "@/locales/lang_map";
-
-import CountryFlag from "vue-country-flag";
-
 import type { LanguageItem } from "@/components/misc/LanguageSelect/types";
+
+import { defineComponent } from "vue";
+
+import { useI18n } from "vue-i18n";
+import ISO_LANGS_MAP from "@/constants/iso-lang-map";
 
 interface FLAG_DICT {
   [key: string]: string;
@@ -39,75 +53,60 @@ const FLAGS_OVERRIDE: FLAG_DICT = {
   ja: "jp",
 };
 
-@Component({
-  components: {
-    CountryFlag,
+export const LanguageSelect = defineComponent({
+  data() {
+    return {
+      locale: "en",
+    };
   },
-})
-export class LanguageSelect extends Vue {
-  locale = "en";
-
+  computed: {
+    i18n() {
+      const i18n = useI18n();
+      return i18n;
+    },
+    flag() {
+      const selCode = this.locale;
+      return `fi-${FLAGS_OVERRIDE[selCode] ?? selCode}`;
+    },
+    items(): LanguageItem[] {
+      const res = [];
+      const messages = this.i18n.messages.value;
+      for (const langCode in messages) {
+        const data = ISO_LANGS_MAP[langCode];
+        if (data) {
+          res.push({
+            code: langCode,
+            name: data.name,
+            nativeName: data.nativeName,
+          });
+        }
+      }
+      return res;
+    },
+    currentLang(): LanguageItem | undefined {
+      return this.items.find((_) => _.code === this.locale);
+    },
+  },
   mounted() {
-    this.locale = this.$root.$i18n.locale;
-  }
-
-  @Watch("locale")
-  onSelectedChange(val: string) {
-    this.$root.$i18n.locale = val;
-    localStorage.setItem("lang", val);
-  }
-
-  get flag() {
-    const selCode = this.locale;
-
-    if (FLAGS_OVERRIDE[selCode]) {
-      return FLAGS_OVERRIDE[selCode];
-    } else {
-      return selCode;
-    }
-  }
-
-  get items(): LanguageItem[] {
-    const res = [];
-
-    const messages = this.$root.$i18n.messages;
-    for (const langCode in messages) {
-      const data = (langMap as Record<string, any>)[langCode];
-
-      res.push({
-        code: langCode,
-        name: data.name,
-        nativeName: data.nativeName,
-      });
-    }
-    return res;
-  }
-}
+    this.locale = this.i18n.locale.value;
+  },
+  methods: {
+    onSelectedChange(val: string) {
+      this.locale = val;
+      this.i18n.locale.value = val;
+      localStorage.setItem("lang", val);
+    },
+  },
+});
 export default LanguageSelect;
 </script>
+
 <style scoped lang="scss">
-.sel_locale {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 4px 12px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-
-  &:hover {
-    opacity: 0.5;
-  }
-}
-
 .flag {
   flex-shrink: 0;
-}
-.sel_locale p.selected {
-  margin: 0;
-  padding-left: 8px;
-  color: var(--primary-color);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .sel_outlined {
@@ -115,8 +114,15 @@ export default LanguageSelect;
   color: #1d82bb !important;
 }
 
-.selected {
-  //font-size: 13px;
+.lang-label {
+  flex-grow: 1;
+  margin-left: 10px;
+  color: var(--primary-color);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--primary-color);
+  }
 }
 
 select {
@@ -125,10 +131,17 @@ select {
   margin-left: 10px;
   color: var(--primary-color);
   cursor: pointer;
-  //font-size: 13px;
 
   &:hover {
     color: var(--primary-color);
+  }
+
+  option {
+    color: red;
+
+    &:hover {
+      color: blue;
+    }
   }
 }
 
@@ -136,11 +149,13 @@ select {
   .sel_locale {
     width: min-content;
   }
+
   p.selected {
     display: none;
   }
 }
 </style>
+
 <style lang="scss">
 .sel_locale {
   .vs__dropdown-toggle {

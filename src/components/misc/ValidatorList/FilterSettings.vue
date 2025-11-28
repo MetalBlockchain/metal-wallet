@@ -7,12 +7,12 @@
           <label>{{ $t("earn.delegate.filter.label1") }}</label>
           <div class="input_row hover_border">
             <input
-              type="number"
+              v-model="availableSpace"
+              inputmode="numeric"
               min="0"
               step="1"
-              inputmode="numeric"
+              type="number"
               @input="onInputChange"
-              v-model="availableSpace"
             />
             <p>METAL</p>
           </div>
@@ -21,12 +21,12 @@
           <label>{{ $t("earn.delegate.filter.label2") }}</label>
           <div class="input_row slider_row">
             <input
-              type="range"
-              min="14"
-              max="365"
-              step="1"
-              @input="onInputChange"
               v-model="minDuration"
+              max="365"
+              min="14"
+              step="1"
+              type="range"
+              @input="onInputChange"
             />
             <p style="display: inline-block">{{ durationText }}</p>
           </div>
@@ -35,13 +35,13 @@
           <label>{{ $t("earn.delegate.filter.label3") }}</label>
           <div class="input_row hover_border">
             <input
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              inputmode="numeric"
-              @input="onInputChange"
               v-model="maxFee"
+              inputmode="numeric"
+              max="100"
+              min="0"
+              step="1"
+              type="number"
+              @input="onInputChange"
             />
             <p>%</p>
           </div>
@@ -50,13 +50,13 @@
           <label>{{ $t("earn.delegate.filter.label4") }}</label>
           <div class="input_row hover_border">
             <input
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              inputmode="numeric"
-              @input="onInputChange"
               v-model="minUptime"
+              inputmode="numeric"
+              max="100"
+              min="0"
+              step="1"
+              type="number"
+              @input="onInputChange"
             />
             <p>%</p>
           </div>
@@ -72,23 +72,23 @@
           class="button_secondary"
           depressed
           :disabled="!canApply"
-          @click="apply"
           small
+          @click="apply"
         >
           {{ $t("earn.delegate.filter.apply") }}
         </v-btn>
         <v-btn
-          text
           v-if="activeFilter"
-          @click="clear"
-          class="button_primary"
-          style="margin: 8px 0px"
-          small
           block
+          class="button_primary"
+          small
+          style="margin: 8px 0px"
+          text
+          @click="clear"
         >
           {{ $t("earn.delegate.filter.clear") }}
         </v-btn>
-        <button @click="close" class="button_form_cancel">
+        <button class="button_form_cancel" @click="close">
           {{ $t("earn.delegate.filter.cancel") }}
         </button>
       </div>
@@ -96,100 +96,121 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-import moment from "moment";
+import type { PropType } from "vue";
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import moment from "moment";
+import { defineComponent } from "vue";
 import { filterValidatorList } from "@/components/wallet/earn/Delegate/helper";
 
-const MINUTE_MS = 60000;
+const MINUTE_MS = 60_000;
 const HOUR_MS = MINUTE_MS * 60;
 const DAY_MS = HOUR_MS * 24;
 
-@Component
-export class FilterSettings extends Vue {
-  minDuration = 14;
-  maxFee = 10;
-  minUptime = 90;
-  availableSpace = 25;
-  activeFilter: null | ValidatorListFilter = null;
-  count = 0;
-  timeout: ReturnType<typeof setTimeout> | null = null;
+export const FilterSettings = defineComponent({
+  props: {
+    validators: {
+      type: Array as PropType<ValidatorListItem[]>,
+    },
+  },
+  emits: ["close", "change"],
+  data(): {
+    minDuration: number;
+    maxFee: number;
+    minUptime: number;
+    availableSpace: number;
+    activeFilter: null | ValidatorListFilter;
+    count: number;
+    timeout: ReturnType<typeof setTimeout> | null;
+  } {
+    const timeout: ReturnType<typeof setTimeout> | null = null;
+    const activeFilter: null | ValidatorListFilter = null;
 
-  @Prop() validators!: ValidatorListItem[];
-  @Watch("validators")
-  onValidatorsChange() {
-    this.updateCount();
-  }
-
-  checkValues() {
-    // max fee
-    if (this.maxFee > 100) this.maxFee = 100;
-    if (this.maxFee < 0) this.maxFee = 0;
-
-    // uptime
-    if (this.minUptime > 100) this.minUptime = 100;
-    if (this.minUptime < 0) this.minUptime = 0;
-  }
-
-  onInputChange() {
-    this.checkValues();
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-    }
-
-    const timeout = setTimeout(() => {
-      this.updateCount();
-    }, 700);
-    this.timeout = timeout;
-  }
-
-  // Applies filters and calculates the validator count
-  updateCount() {
-    const validators = this.validators;
-    const filter = this.createFilter();
-    const res = filterValidatorList(validators, filter);
-    this.count = res.length;
-  }
-
-  close() {
-    this.$emit("close");
-  }
-
-  createFilter(): ValidatorListFilter {
     return {
-      minDuration: this.minDuration,
-      maxFee: this.maxFee,
-      minUptime: this.minUptime,
-      availableSpace: this.availableSpace,
+      minDuration: 14,
+      maxFee: 10,
+      minUptime: 90,
+      availableSpace: 25,
+      activeFilter,
+      count: 0,
+      timeout,
     };
-  }
+  },
+  computed: {
+    durationText() {
+      const duration = moment.duration(
+        this.minDuration * DAY_MS,
+        "milliseconds",
+      );
 
-  clear() {
-    this.activeFilter = null;
-    this.$emit("change", null);
-    this.close();
-  }
+      return `${duration.months()} months ${duration.days()} days`;
+    },
+    canApply() {
+      if (this.count === 0) return false;
+      return true;
+    },
+  },
+  watch: {
+    validators: [
+      {
+        handler: "onValidatorsChange",
+      },
+    ],
+  },
+  methods: {
+    checkValues() {
+      // max fee
+      if (this.maxFee > 100) this.maxFee = 100;
+      if (this.maxFee < 0) this.maxFee = 0;
 
-  apply() {
-    const filter: ValidatorListFilter = this.createFilter();
-    this.activeFilter = filter;
-    this.$emit("change", filter);
-    this.close();
-  }
+      // uptime
+      if (this.minUptime > 100) this.minUptime = 100;
+      if (this.minUptime < 0) this.minUptime = 0;
+    },
+    onInputChange() {
+      this.checkValues();
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
 
-  get durationText() {
-    const duration = moment.duration(this.minDuration * DAY_MS, "milliseconds");
-
-    return `${duration.months()} months ${duration.days()} days`;
-  }
-
-  get canApply() {
-    if (this.count === 0) return false;
-    return true;
-  }
-}
+      const timeout = setTimeout(() => {
+        this.updateCount();
+      }, 700);
+      this.timeout = timeout;
+    },
+    updateCount() {
+      const validators = this.validators;
+      const filter = this.createFilter();
+      const res = filterValidatorList(validators ?? [], filter);
+      this.count = res.length;
+    },
+    close() {
+      this.$emit("close");
+    },
+    createFilter(): ValidatorListFilter {
+      return {
+        minDuration: this.minDuration,
+        maxFee: this.maxFee,
+        minUptime: this.minUptime,
+        availableSpace: this.availableSpace,
+      };
+    },
+    clear() {
+      this.activeFilter = null;
+      this.$emit("change", null);
+      this.close();
+    },
+    apply() {
+      const filter: ValidatorListFilter = this.createFilter();
+      this.activeFilter = filter;
+      this.$emit("change", filter);
+      this.close();
+    },
+    onValidatorsChange() {
+      this.updateCount();
+    },
+  },
+});
 export default FilterSettings;
 </script>
 <style scoped lang="scss">

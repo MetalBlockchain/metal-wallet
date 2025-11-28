@@ -1,7 +1,8 @@
-import CryptoJS from "crypto-js/core";
-import AES from "crypto-js/aes";
-import randomstring from "randomstring";
 import * as bip39 from "bip39";
+import AES from "crypto-js/aes";
+
+import CryptoJS from "crypto-js/core";
+import randomstring from "randomstring";
 
 // The purpose of this class is for obfuscation only rather than secure encryption
 export default class MnemonicPhrase {
@@ -17,7 +18,7 @@ export default class MnemonicPhrase {
 
   public getValue() {
     const decrypted = AES.decrypt(this.encrypted, this.pass).toString(
-      CryptoJS.enc.Utf8
+      CryptoJS.enc.Utf8,
     );
     if (!bip39.validateMnemonic(decrypted))
       throw new Error("Decrypted mnemonic is not valid.");

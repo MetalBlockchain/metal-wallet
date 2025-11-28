@@ -5,12 +5,12 @@
         <h1>{{ $t("earn.title") }}</h1>
         <hr />
       </div>
-      <h1 class="subtitle" v-if="pageNow">
+      <h1 v-if="pageNow" class="subtitle">
         / {{ subtitle }}
         <span @click="cancel"><fa icon="times"></fa></span>
       </h1>
     </div>
-    <transition name="fade" mode="out-in">
+    <transition mode="out-in" name="fade">
       <div v-if="!pageNow">
         <p class="earn_desc">{{ $t("earn.desc") }}</p>
         <div class="options">
@@ -27,10 +27,10 @@
             <v-btn
               class="button_secondary"
               data-cy="validate"
-              @click="addValidator"
               depressed
-              small
               :disabled="!canValidate"
+              small
+              @click="addValidator"
             >
               {{ $t("earn.validate_card.submit") }}
             </v-btn>
@@ -48,10 +48,10 @@
             <v-btn
               class="button_secondary"
               data-cy="delegate"
-              @click="addDelegator"
               depressed
-              small
               :disabled="!canDelegate"
+              small
+              @click="addDelegator"
             >
               {{ $t("earn.delegate_card.submit") }}
             </v-btn>
@@ -66,9 +66,9 @@
             <v-btn
               class="button_secondary"
               data-cy="rewards"
-              @click="viewRewards"
               depressed
               small
+              @click="viewRewards"
             >
               {{ $t("earn.rewards_card.submit") }}
             </v-btn>
@@ -83,105 +83,99 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
-
-import AddValidator from "@/components/wallet/earn/Validate/AddValidator.vue";
-import AddDelegator from "@/components/wallet/earn/Delegate/AddDelegator.vue";
 import type { BN } from "@metalblockchain/metaljs/dist";
-import UserRewards from "@/components/wallet/earn/UserRewards.vue";
-import { bnToBig } from "@/helpers/helper";
 import type Big from "big.js";
+import { defineComponent, markRaw } from "vue";
+import AddDelegator from "@/components/wallet/earn/Delegate/AddDelegator.vue";
+import UserRewards from "@/components/wallet/earn/UserRewards.vue";
+import AddValidator from "@/components/wallet/earn/Validate/AddValidator.vue";
+import { bnToBig } from "@/helpers/helper";
 
-@Component({
-  name: "earn",
+export const Earn = defineComponent({
+  name: "Earn",
   components: {
     UserRewards,
     AddValidator,
     AddDelegator,
   },
-})
-export class Earn extends Vue {
-  pageNow: any = null;
-  subtitle = "";
-  intervalID: any = null;
+  data() {
+    const intervalID: any = null;
+    const pageNow: any = null;
 
-  addValidator() {
-    this.pageNow = AddValidator;
-    this.subtitle = this.$t("earn.subtitle1") as string;
-  }
-  addDelegator() {
-    this.pageNow = AddDelegator;
-    this.subtitle = this.$t("earn.subtitle2") as string;
-  }
-  transfer() {
-    this.$router.replace("/wallet/cross_chain");
-  }
-
-  viewRewards() {
-    this.pageNow = UserRewards;
-    this.subtitle = this.$t("earn.subtitle4") as string;
-  }
-  cancel() {
-    this.pageNow = null;
-    this.subtitle = "";
-  }
-
+    return {
+      pageNow,
+      subtitle: "",
+      intervalID,
+    };
+  },
+  computed: {
+    platformUnlocked(): BN {
+      return this.$store.getters["Assets/walletPlatformBalance"].available;
+    },
+    platformLockedStakeable(): BN {
+      return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
+    },
+    totBal(): BN {
+      return this.platformUnlocked.add(this.platformLockedStakeable);
+    },
+    pNoBalance() {
+      return this.platformUnlocked.add(this.platformLockedStakeable).isZero();
+    },
+    canDelegate(): boolean {
+      const bn = this.$store.state.Platform.minStakeDelegation;
+      if (this.totBal.lt(bn)) {
+        return false;
+      }
+      return true;
+    },
+    canValidate(): boolean {
+      const bn = this.$store.state.Platform.minStake;
+      if (this.totBal.lt(bn)) {
+        return false;
+      }
+      return true;
+    },
+    minStakeAmt(): Big {
+      const bn = this.$store.state.Platform.minStake;
+      return bnToBig(bn, 9);
+    },
+    minDelegationAmt(): Big {
+      const bn = this.$store.state.Platform.minStakeDelegation;
+      return bnToBig(bn, 9);
+    },
+  },
   deactivated() {
     this.cancel();
-  }
-
-  destroyed() {
+  },
+  unmounted() {
     clearInterval(this.intervalID);
-  }
-
-  get platformUnlocked(): BN {
-    return this.$store.getters["Assets/walletPlatformBalance"].available;
-  }
-
-  get platformLockedStakeable(): BN {
-    // return this.$store.getters.walletPlatformBalanceLockedStakeable
-    return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
-  }
-
-  get totBal(): BN {
-    return this.platformUnlocked.add(this.platformLockedStakeable);
-  }
-
-  get pNoBalance() {
-    return this.platformUnlocked.add(this.platformLockedStakeable).isZero();
-  }
-
-  get canDelegate(): boolean {
-    const bn = this.$store.state.Platform.minStakeDelegation;
-    if (this.totBal.lt(bn)) {
-      return false;
-    }
-    return true;
-  }
-
-  get canValidate(): boolean {
-    const bn = this.$store.state.Platform.minStake;
-    if (this.totBal.lt(bn)) {
-      return false;
-    }
-    return true;
-  }
-
-  get minStakeAmt(): Big {
-    const bn = this.$store.state.Platform.minStake;
-    return bnToBig(bn, 9);
-  }
-
-  get minDelegationAmt(): Big {
-    const bn = this.$store.state.Platform.minStakeDelegation;
-    return bnToBig(bn, 9);
-  }
-}
+  },
+  methods: {
+    addValidator() {
+      this.pageNow = markRaw(AddValidator);
+      this.subtitle = this.$t("earn.subtitle1") as string;
+    },
+    addDelegator() {
+      this.pageNow = markRaw(AddDelegator);
+      this.subtitle = this.$t("earn.subtitle2") as string;
+    },
+    transfer() {
+      this.$router.replace("/wallet/cross_chain");
+    },
+    viewRewards() {
+      this.pageNow = markRaw(UserRewards);
+      this.subtitle = this.$t("earn.subtitle4") as string;
+    },
+    cancel() {
+      this.pageNow = null;
+      this.subtitle = "";
+    },
+  },
+});
 export default Earn;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
 .earn_page {
   display: grid;
   grid-template-rows: max-content 1fr;
@@ -296,13 +290,13 @@ span {
   margin-top: 14px;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .options {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .options {
     grid-template-columns: none;
     grid-row-gap: 15px;

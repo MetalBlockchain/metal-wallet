@@ -1,41 +1,39 @@
 // A simple wrapper thar combines avalanche.js, bip39 and HDWallet
 
+import type { Transaction } from "@ethereumjs/tx";
 import type {
   KeyPair as AVMKeyPair,
-  UnsignedTx as AVMUnsignedTx,
   Tx as AVMTx,
+  UnsignedTx as AVMUnsignedTx,
   UTXO as AVMUTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 
-import { privateToAddress } from "ethereumjs-util";
-import type { UnsignedTx as PlatformUnsignedTx } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type {
-  KeyChain as PlatformVMKeyChain,
+  Tx as EvmTx,
+  UnsignedTx as EVMUnsignedTx,
+} from "@metalblockchain/metaljs/dist/apis/evm";
+import type {
   Tx as PlatformTx,
+  UnsignedTx as PlatformUnsignedTx,
+  KeyChain as PlatformVMKeyChain,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 
-import type {
-  UnsignedTx as EVMUnsignedTx,
-  Tx as EvmTx,
-} from "@metalblockchain/metaljs/dist/apis/evm";
-import { KeyChain as EVMKeyChain } from "@metalblockchain/metaljs/dist/apis/evm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
-
-import * as bip39 from "bip39";
-import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
-import { ava, bintools } from "@/AVA";
-import type { IAvaHdWallet } from "@/js/wallets/types";
-import HDKey from "hdkey";
 import type { ITransaction } from "@/components/wallet/transfer/types";
-import { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
-import type { WalletNameType } from "@/js/wallets/types";
-import { KeyChain } from "@metalblockchain/metaljs/dist/apis/evm";
 import type Erc20Token from "@/js/Erc20Token";
+import type { IAvaHdWallet, WalletNameType } from "@/js/wallets/types";
+
+import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
+import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
+import { KeyChain as EVMKeyChain } from "@metalblockchain/metaljs/dist/apis/evm";
+import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
+import * as bip39 from "bip39";
+import { privateToAddress } from "ethereumjs-util";
+import HDKey from "hdkey";
 import { WalletHelper } from "@/helpers/wallet_helper";
-import type { Transaction } from "@ethereumjs/tx";
+import { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
 import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import { ava, bintools } from "@/misc/AVA";
 
 // HD WALLET
 // Accounts are not used and the account index is fixed to 0
@@ -55,7 +53,7 @@ export default class MnemonicWallet
 {
   seed: string;
   hdKey: HDKey;
-  private mnemonic: MnemonicPhrase;
+
   isLoading: boolean;
   type: WalletNameType;
   ethKey: string;
@@ -63,15 +61,7 @@ export default class MnemonicWallet
   ethKeyChain: EVMKeyChain;
   ethAddress: string;
 
-  // TODO : Move to hd core class
-  onnetworkchange() {
-    super.onnetworkchange();
-
-    // Update EVM values
-    this.ethKeyChain = new EVMKeyChain(ava.getHRP(), "C");
-    const cKeypair = this.ethKeyChain.importKey(this.ethKeyBech);
-    this.ethBalance = new BN(0);
-  }
+  private mnemonic: MnemonicPhrase;
 
   // The master key from avalanche.js
   constructor(mnemonic: string) {
@@ -91,7 +81,7 @@ export default class MnemonicWallet
       `PrivateKey-` + bintools.cb58Encode(BufferAvalanche.from(ethPrivateKey));
     this.ethKeyBech = cPrivKey;
 
-    const cKeyChain = new KeyChain(ava.getHRP(), "C");
+    const cKeyChain = new EVMKeyChain(ava.getHRP(), "C");
     this.ethKeyChain = cKeyChain;
 
     this.type = "mnemonic";
@@ -99,6 +89,16 @@ export default class MnemonicWallet
     this.hdKey = masterHdKey;
     this.mnemonic = new MnemonicPhrase(mnemonic);
     this.isLoading = false;
+  }
+
+  // TODO : Move to hd core class
+  onnetworkchange() {
+    super.onnetworkchange();
+
+    // Update EVM values
+    this.ethKeyChain = new EVMKeyChain(ava.getHRP(), "C");
+    const cKeypair = this.ethKeyChain.importKey(this.ethKeyBech);
+    this.ethBalance = new BN(0);
   }
 
   getEvmAddress(): string {
@@ -112,7 +112,7 @@ export default class MnemonicWallet
   async estimateGas(
     to: string,
     amount: BN,
-    token: Erc20Token
+    token: Erc20Token,
   ): Promise<number> {
     return await WalletHelper.estimateGas(this, to, amount, token);
   }
@@ -122,7 +122,7 @@ export default class MnemonicWallet
     amount: BN,
     gasPrice: BN,
     gasLimit: number,
-    token: Erc20Token
+    token: Erc20Token,
   ): Promise<string> {
     return await WalletHelper.sendErc20(
       this,
@@ -130,7 +130,7 @@ export default class MnemonicWallet
       amount,
       gasPrice,
       gasLimit,
-      token
+      token,
     );
   }
 
@@ -173,7 +173,7 @@ export default class MnemonicWallet
   async issueBatchTx(
     orders: (ITransaction | AVMUTXO)[],
     addr: string,
-    memo: BufferAvalanche | undefined
+    memo: BufferAvalanche | undefined,
   ): Promise<string> {
     return await WalletHelper.issueBatchTx(this, orders, addr, memo);
   }
@@ -186,11 +186,13 @@ export default class MnemonicWallet
     const allKeys = internal.concat(external);
     const keychain: AVMKeyChain = new AVMKeyChain(
       getPreferredHRP(ava.getNetworkID()),
-      this.chainId
+      this.chainId,
     );
 
-    for (let i = 0; i < allKeys.length; i++) {
-      keychain.addKey(allKeys[i]);
+    for (const key of allKeys) {
+      if (key) {
+        keychain.addKey(key);
+      }
     }
     return keychain;
   }

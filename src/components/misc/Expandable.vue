@@ -1,16 +1,16 @@
 <template>
-  <div class="expandable" :active="isActive">
-    <div @click="toggle" class="toggle">
-      <slot name="triggerOn" v-if="!isActive"></slot>
-      <slot name="triggerOff" v-else></slot>
+  <div :active="isActive" class="expandable">
+    <div class="toggle" @click="toggle">
+      <slot v-if="!isActive" name="triggerOn"></slot>
+      <slot v-else name="triggerOff"></slot>
     </div>
     <div class="content">
       <slot name="content"></slot>
     </div>
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+export const Expandable = defineComponent({
   data() {
     return {
       isActive: false,
@@ -21,7 +21,8 @@ export default {
       this.isActive = !this.isActive;
     },
   },
-};
+});
+export default Expandable;
 </script>
 <style scoped lang="scss">
 .content {

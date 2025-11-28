@@ -1,16 +1,16 @@
 <template>
   <v-app>
     <v-main>
-      <template>
-        <UrlBanner></UrlBanner>
-        <navbar v-show="isNavbar"></navbar>
-        <div class="main_cols" :wallet_view="!isNavbar">
-          <UpgradeToAccountModal></UpgradeToAccountModal>
-          <transition name="fade" mode="out-in">
-            <router-view id="router_view" />
+      <UrlBanner @hide="hideBanner"></UrlBanner>
+      <Navbar v-show="isNavbar"></Navbar>
+      <div ref="main-cols" class="main_cols" :data-wallet-view="!isNavbar">
+        <UpgradeToAccountModal></UpgradeToAccountModal>
+        <router-view id="router_view" v-slot="{ Component }">
+          <transition mode="out-in" name="fade">
+            <component :is="Component" />
           </transition>
-        </div>
-      </template>
+        </router-view>
+      </div>
     </v-main>
     <LedgerBlock ref="ledger_block"></LedgerBlock>
     <LedgerUpgrade></LedgerUpgrade>
@@ -21,202 +21,97 @@
     <TestNetBanner></TestNetBanner>
   </v-app>
 </template>
-<script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
 
-import UrlBanner from "@/components/misc/UrlBanner.vue";
-import Navbar from "@/components/Navbar.vue";
-import UpgradeToAccountModal from "@/components/modals/SaveAccount/UpgradeToAccountModal.vue";
-
+<script lang="ts" setup>
+import { useHead } from "@unhead/vue";
+import { onMounted, useTemplateRef } from "vue";
+import { useI18n } from "vue-i18n";
+import { useStore } from "vuex";
 import AnalyticsCmp from "@/components/Analytics/Analytics.vue";
-import Notifications from "@/components/Notifications.vue";
+import NetworkLoadingBlock from "@/components/misc/NetworkLoadingBlock.vue";
+import UrlBanner from "@/components/misc/UrlBanner.vue";
+
 import LedgerBlock from "@/components/modals/LedgerBlock.vue";
 import LedgerUpgrade from "@/components/modals/LedgerUpgrade.vue";
 import LedgerWalletLoading from "@/components/modals/LedgerWalletLoading.vue";
+import UpgradeToAccountModal from "@/components/modals/SaveAccount/UpgradeToAccountModal.vue";
+import Navbar from "@/components/Navbar.vue";
+import Notifications from "@/components/Notifications.vue";
+
 import TestNetBanner from "@/components/TestNetBanner.vue";
-import NetworkLoadingBlock from "@/components/misc/NetworkLoadingBlock.vue";
+import { themeKey } from "@/constants/injection_tokens";
 
-@Component({
-  components: {
-    UrlBanner,
-    Navbar,
-    UpgradeToAccountModal,
+const mainCols = useTemplateRef("main-cols");
 
-    AnalyticsCmp,
-    Notifications,
-    LedgerBlock,
-    LedgerUpgrade,
-    LedgerWalletLoading,
-    TestNetBanner,
-    NetworkLoadingBlock,
-  },
-  metaInfo: () => {
-    return {
-      meta: [
-        {
-          vmid: "description",
-          name: "description",
-          content:
-            "Metal wallet is a simple, highly secure, non-custodial crypto wallet for storing METAL.",
-        },
-        {
-          vmid: "og:description",
-          name: "description",
-          content:
-            "Metal wallet is a simple, highly secure, non-custodial crypto wallet for storing METAL.",
-        },
-        {
-          vmid: "og:title",
-          name: "og:title",
-          content: "Fastest Performing and Secure DeFi Wallet | Metal Wallet",
-        },
-      ],
-      title: "Fastest Performing and Secure DeFi Wallet",
-      titleTemplate: "%s | Metal Wallet",
-    };
-  },
-})
-export class App extends Vue {
-  get isNavbar() {
-    if (this.$route.path.includes("/wallet")) {
-      return false;
-    }
-    return true;
+const i18n = useI18n();
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
+
+// Init language preference
+const locale = localStorage.getItem("lang");
+if (locale) {
+  i18n.locale.value = locale;
+}
+
+provide(themeKey, ref("light"));
+
+const isNavbar = computed(() => {
+  if (route.path.includes("/wallet")) {
+    return false;
   }
+  return true;
+});
 
-  async created() {
-    // Init language preference
-    const locale = localStorage.getItem("lang");
-    if (locale) {
-      this.$root.$i18n.locale = locale;
-    }
+useHead({
+  title: () => "Fastest Performing and Secure DeFi Wallet",
+  meta: [
+    {
+      property: "og:description",
+      content:
+        "Metal wallet is a simple, highly secure, non-custodial crypto wallet for storing METAL.",
+    },
+    {
+      property: "description",
+      content:
+        "Metal wallet is a simple, highly secure, non-custodial crypto wallet for storing METAL.",
+    },
+    {
+      property: "og:title",
+      content: "Fastest Performing and Secure DeFi Wallet | Metal Wallet",
+    },
+  ],
+});
 
-    await this.$store.dispatch("Network/init");
-    this.$store.commit("Accounts/loadAccounts");
-    this.$store.dispatch("Assets/initErc20List");
-    this.$store.dispatch("Assets/ERC721/init");
-    this.$store.dispatch("updateAvaxPrice");
-    this.$store.dispatch("loadValidatorMetaData");
+async function onCreated() {
+  await store.dispatch("Network/init");
+  store.commit("Accounts/loadAccounts");
+  store.dispatch("Assets/initErc20List");
+  store.dispatch("Assets/ERC721/init");
+  store.dispatch("updateAvaxPrice");
+  store.dispatch("loadValidatorMetaData");
 
-    if (this.$store.state.Accounts.accounts.length > 0) {
-      // Do not route for legal pages
-      if (this.$route.name !== "legal") {
-        this.$router.push("/access");
-      }
-    }
+  if (
+    store.state.Accounts.accounts.length > 0 && // Do not route for legal pages
+    route.name !== "legal"
+  ) {
+    router.push("/access");
   }
 }
-export default App;
+
+function hideBanner() {
+  mainCols.value?.style.setProperty("--main-cols-offset", "0");
+}
+
+onCreated();
+
+onMounted(() => {
+  // Reveal app version
+  console.log(`App Version: ${__APP_VERSION__}`);
+  // Hide loader once vue is initialized
+  const loader = document.querySelector<HTMLElement>("#app_loading");
+  if (loader) {
+    loader.style.display = "none";
+  }
+});
 </script>
-
-<style scoped lang="scss">
-@use "./main";
-
-.main_cols {
-  &[wallet_view] {
-    height: 100vh;
-
-    #router_view {
-      overflow: auto;
-      padding: 0;
-      padding-bottom: 0px;
-    }
-  }
-
-  #router_view {
-    min-height: calc(100vh - 80px);
-    position: relative;
-    padding: main.$container_padding_m;
-  }
-}
-
-#router_view {
-  min-height: calc(100vh - 80px);
-  position: relative;
-  padding: main.$container_padding_m;
-  overflow: auto;
-}
-
-/*.panel {*/
-/*    background-color: #fff;*/
-/*    overflow: auto;*/
-/*    height: 100%;*/
-/*}*/
-</style>
-
-<style lang="scss">
-@use "./main";
-
-html {
-  height: 100%;
-}
-
-body {
-  height: 100%;
-}
-
-p {
-  margin: 0px !important;
-}
-
-#app {
-  min-height: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: left;
-  color: var(--primary-color);
-  background-color: var(--bg) !important;
-  font-family: "Inter", sans-serif;
-  transition-duration: 0.2s;
-}
-
-#nav {
-  height: 80px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-  background-color: transparent;
-  padding: main.$container_padding_m;
-}
-
-@include main.mobile-device {
-  #router_view {
-    padding: 9px !important;
-  }
-
-  #nav {
-    padding: main.$container_padding_mobile;
-    display: flex !important;
-  }
-
-  /*.main_cols {*/
-  /*    grid-template-columns: 1fr !important;*/
-  /*    &[wallet_view] {*/
-  /*        height: auto !important;*/
-  /*    }*/
-  /*}*/
-  .panel {
-    display: none !important;
-  }
-}
-
-@include main.medium-device {
-  .main_cols {
-    &[wallet_view] {
-      grid-template-columns: 180px 1fr 240px !important;
-    }
-  }
-}
-
-@media only screen and (max-width: main.$width_s) {
-  #router_view {
-    padding: main.$container_padding_s;
-  }
-  #nav {
-    padding: main.$container_padding_s;
-  }
-}
-</style>

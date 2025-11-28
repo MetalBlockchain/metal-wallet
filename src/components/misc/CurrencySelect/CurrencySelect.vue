@@ -1,23 +1,28 @@
 <template>
   <div class="currency_select">
-    <button @click="setType('AVAX')" :active="currency === 'AVAX'">
+    <button :data-active="modelValue === 'AVAX'" @click="setType('AVAX')">
       METAL
     </button>
-    <button @click="setType('USD')" :active="currency === 'USD'">USD</button>
+    <button :data-active="modelValue === 'USD'" @click="setType('USD')">
+      USD
+    </button>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Model } from "vue-property-decorator";
 import type { CurrencyType } from "@/components/misc/CurrencySelect/types";
+import { defineComponent } from "vue";
 
-@Component
-export class CurrencySelect extends Vue {
-  @Model("change", { type: String }) readonly currency!: CurrencyType;
-  setType(val: CurrencyType) {
-    this.$emit("change", val);
-  }
-}
+export const CurrencySelect = defineComponent({
+  props: {
+    modelValue: { type: String },
+  },
+  emits: ["update:modelValue"],
+  methods: {
+    setType(val: CurrencyType) {
+      this.$emit("update:modelValue", val);
+    },
+  },
+});
 export default CurrencySelect;
 </script>
 <style scoped lang="scss">
@@ -42,7 +47,7 @@ button {
     color: var(--bg);
   }
 
-  &[active] {
+  &[data-active="true"] {
     background-color: var(--primary-color);
     color: var(--bg);
   }

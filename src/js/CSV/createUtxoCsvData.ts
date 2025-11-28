@@ -1,6 +1,6 @@
 import type { UtxoType } from "@/js/Glacier/models";
-import { isUtxo } from "@/js/Glacier/models";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
+import { isUtxo } from "@/js/Glacier/models";
 
 /**
  * Return data needed for a CSV row given a UTXO object from Glacier
@@ -9,7 +9,7 @@ import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
  */
 export function createUtxoCsvData(
   utxo: UtxoType,
-  ownedAddresses: string[]
+  ownedAddresses: string[],
 ): {
   amount: string;
   assetID: string;

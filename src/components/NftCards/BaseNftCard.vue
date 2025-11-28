@@ -10,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div class="deck" v-if="!rawCard">
+    <div v-if="!rawCard" class="deck">
       <slot name="deck"></slot>
     </div>
   </div>
@@ -19,36 +19,41 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Prop, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class BaseNftCard extends Vue {
-  @Prop({ default: false }) mini!: boolean;
-  @Prop({ default: false }) rawCard!: boolean;
-  @Prop() utxoId!: string;
-  flipped = false;
-
-  flipCard() {
-    this.flipped = !this.flipped;
-  }
-  mousenter() {
-    if (this.rawCard) return;
-    this.flipped = true;
-  }
-
-  mouseleave() {
-    this.flipped = false;
-  }
-
-  transfer(ev: MouseEvent) {
-    ev.stopPropagation();
-    this.$router.push({
-      path: "/wallet/transfer",
-      query: { nft: this.utxoId },
-    });
-  }
-}
+export default defineComponent({
+  props: {
+    mini: { default: false, type: Boolean },
+    rawCard: { default: false, type: Boolean },
+    utxoId: {
+      type: String,
+    },
+  },
+  data() {
+    return {
+      flipped: false,
+    };
+  },
+  methods: {
+    flipCard() {
+      this.flipped = !this.flipped;
+    },
+    mousenter() {
+      if (this.rawCard) return;
+      this.flipped = true;
+    },
+    mouseleave() {
+      this.flipped = false;
+    },
+    transfer(ev: MouseEvent) {
+      ev.stopPropagation();
+      this.$router.push({
+        path: "/wallet/transfer",
+        query: { nft: this.utxoId },
+      });
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .card_container {

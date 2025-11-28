@@ -1,112 +1,124 @@
 <template>
   <div>
-    <button @click="remove" class="removeBut" v-if="!disabled">
+    <button v-if="!disabled" class="removeBut" @click="remove">
       <fa icon="times"></fa>
     </button>
     <div class="amt_in hover_border">
       <input
-        type="number"
-        min="1"
-        inputmode="numeric"
-        :max="allUtxos.length"
         v-model="quantity"
         :disabled="disabled"
+        inputmode="numeric"
+        :max="allUtxos.length"
+        min="1"
+        type="number"
       />
     </div>
-    <NftPayloadView :payload="payload" small="true"></NftPayloadView>
+    <NftPayloadView :payload="payload" :small="true"></NftPayloadView>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
+import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
+import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";
-import { bintools } from "@/AVA";
-import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
+import { bintools } from "@/misc/AVA";
 
-@Component({
+export const NftListItem = defineComponent({
   components: {
     NftPayloadView,
   },
-})
-export class NftListItem extends Vue {
-  @Prop() sample!: UTXO;
-  @Prop({ default: false }) disabled!: boolean;
-
-  quantity = 1;
-
-  @Watch("quantity")
-  onQuantitChange(val: number) {
-    if (val < 1) {
-      this.quantity = 1;
-      return;
-    }
-  }
-
-  @Watch("quantity")
-  onQuantityChange(val: number) {
-    const max = this.allUtxos.length;
-
-    if (val > max) {
-      this.quantity = max;
-    }
-
-    this.emit();
-  }
-
-  emit() {
-    const msg: IGroupQuantity = {
-      id: `${this.assetId}_${this.groupId}`,
-      utxos: this.selectedUtxos,
+  props: {
+    sample: {
+      type: Object as PropType<UTXO>,
+    },
+    disabled: { default: false, type: Boolean },
+  },
+  emits: ["change", "remove"],
+  data() {
+    return {
+      quantity: 1,
     };
-    this.$emit("change", msg);
-  }
+  },
+  computed: {
+    assetId() {
+      const famId = this.sample?.getAssetID();
+      if (!famId) return "";
+      return bintools.cb58Encode(famId);
+    },
+    selectedUtxos() {
+      return this.allUtxos.slice(0, this.quantity);
+    },
+    payload() {
+      if (!this.sample) return undefined;
+      return getPayloadFromUTXO(this.sample);
+    },
+    groupId() {
+      return (this.sample?.getOutput() as NFTTransferOutput).getGroupID();
+    },
+    allUtxos() {
+      const famId = this.sample?.getAssetID();
+      if (!famId) return [];
+      // let utxos: UTXO[] = this.$store.getters.walletNftDict[bintools.cb58Encode(famId)]
+      const utxos: UTXO[] =
+        this.$store.getters["Assets/walletNftDict"][bintools.cb58Encode(famId)];
 
-  get assetId() {
-    const famId = this.sample.getAssetID();
-    return bintools.cb58Encode(famId);
-  }
+      const filtered = utxos.filter((utxo) => {
+        const gId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
 
-  get selectedUtxos() {
-    return this.allUtxos.slice(0, this.quantity);
-  }
-
-  get payload() {
-    return getPayloadFromUTXO(this.sample);
-  }
-
-  get groupId() {
-    return (this.sample.getOutput() as NFTTransferOutput).getGroupID();
-  }
-
-  get allUtxos() {
-    const famId = this.sample.getAssetID();
-    // let utxos: UTXO[] = this.$store.getters.walletNftDict[bintools.cb58Encode(famId)]
-    const utxos: UTXO[] =
-      this.$store.getters["Assets/walletNftDict"][bintools.cb58Encode(famId)];
-
-    const filtered = utxos.filter((utxo) => {
-      const gId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
-
-      if (gId === this.groupId) {
-        return true;
-      }
-      return false;
-    });
-    return filtered;
-  }
-
-  remove() {
-    this.$emit("remove", this.sample);
-  }
-
+        if (gId === this.groupId) {
+          return true;
+        }
+        return false;
+      });
+      return filtered;
+    },
+  },
+  watch: {
+    quantity: [
+      {
+        handler: "onQuantitChange",
+      },
+      {
+        handler: "onQuantityChange",
+      },
+    ],
+  },
   mounted() {
     this.emit();
-  }
-}
+  },
+  methods: {
+    emit() {
+      const msg: IGroupQuantity = {
+        id: `${this.assetId}_${this.groupId}`,
+        utxos: this.selectedUtxos,
+      };
+      this.$emit("change", msg);
+    },
+    remove() {
+      this.$emit("remove", this.sample);
+    },
+    onQuantitChange(val: number) {
+      if (val < 1) {
+        this.quantity = 1;
+        return;
+      }
+    },
+    onQuantityChange(val: number) {
+      const max = this.allUtxos.length;
+
+      if (val > max) {
+        this.quantity = max;
+      }
+
+      this.emit();
+    },
+  },
+});
 export default NftListItem;
 </script>
 <style scoped lang="scss">

@@ -4,27 +4,27 @@
       <v-expansion-panel class="expansion_panel">
         <v-expansion-panel-header>
           <v-checkbox
-            class="checkbox"
-            :label="explain"
             v-model="isRemember"
-            :hint="hint"
-            :persistent-hint="true"
-            :hide-details="false"
+            class="checkbox"
             :color="color"
             dense
+            :hide-details="false"
+            :hint="hint"
+            :label="explain"
+            :persistent-hint="true"
           ></v-checkbox>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <div class="passwords" :active="isRemember">
+          <div :active="isRemember" class="passwords">
             <input
-              type="password"
-              :placeholder="$t('keys.export_placeholder1')"
               v-model="password"
+              :placeholder="$t('keys.export_placeholder1')"
+              type="password"
             />
             <input
-              type="password"
-              :placeholder="$t('keys.export_placeholder2')"
               v-model="password_confirm"
+              :placeholder="$t('keys.export_placeholder2')"
+              type="password"
             />
             <p class="err">{{ err }}</p>
           </div>
@@ -40,8 +40,19 @@
     <!--        </div>-->
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+export const RememberKey = defineComponent({
+  props: {
+    modelValue: String,
+    color: {
+      type: String,
+      default: "#6BC688",
+    },
+    explain: {
+      type: String,
+    },
+  },
+  emits: ["update:modelValue", "is-valid", "checked"],
   data() {
     return {
       password: "",
@@ -50,59 +61,13 @@ export default {
       isRemember: false,
     };
   },
-  props: {
-    value: String,
-    color: {
-      type: String,
-      default: "#6BC688",
-    },
-    explain: {
-      type: String,
-      default: function () {
-        return this.$t("keys.remember_key_check");
-      },
-    },
-  },
-  model: {
-    prop: "value",
-    event: "change",
-  },
-  methods: {
-    // change() {
-    //     this.$emit("change", this.isRemember);
-    // },
-    clear() {
-      this.password = "";
-      this.password_confirm = "";
-      this.isRemember = false;
-    },
-    expansion_change(val) {
-      if (val === 0) {
-        this.$emit("checked", true);
-        this.isRemember = true;
-      } else {
-        this.$emit("checked", false);
-        this.isRemember = false;
-      }
-    },
-  },
-  watch: {
-    err(val) {
-      // There are no errors
-      if (!val) {
-        if (this.password && this.isRemember) {
-          this.$emit("change", this.password);
-        } else {
-          this.$emit("change", null);
-        }
-        this.$emit("is-valid", true);
-      } else {
-        this.$emit("change", null);
-        this.$emit("is-valid", false);
-      }
-    },
-  },
   computed: {
+    explainValue() {
+      if (!this.explain) {
+        return this.$t("keys.remember_key_check");
+      }
+      return this.explain;
+    },
     err() {
       if (!this.isRemember) return null;
 
@@ -124,15 +89,52 @@ export default {
       return false;
     },
   },
-};
+  watch: {
+    err(val) {
+      // There are no errors
+      if (val) {
+        this.$emit("update:modelValue", null);
+        this.$emit("is-valid", false);
+      } else {
+        if (this.password && this.isRemember) {
+          this.$emit("update:modelValue", this.password);
+        } else {
+          this.$emit("update:modelValue", null);
+        }
+        this.$emit("is-valid", true);
+      }
+    },
+  },
+  mounted() {},
+  methods: {
+    // change() {
+    //     this.$emit("change", this.isRemember);
+    // },
+    clear() {
+      this.password = "";
+      this.password_confirm = "";
+      this.isRemember = false;
+    },
+    expansion_change(val: any) {
+      if (val === 0) {
+        this.$emit("checked", true);
+        this.isRemember = true;
+      } else {
+        this.$emit("checked", false);
+        this.isRemember = false;
+      }
+    },
+  },
+});
+export default RememberKey;
 </script>
 
 <style lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
 
 .remember {
   .v-label {
-    font-size: main.$s-size !important;
+    font-size: vars.$s-size !important;
     color: var(--primary-color);
   }
 
@@ -150,7 +152,6 @@ export default {
 }
 </style>
 <style lang="scss" scoped>
-@use "../../main";
 .passwords {
   display: flex;
   flex-direction: column;

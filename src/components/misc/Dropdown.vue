@@ -13,32 +13,24 @@
     <p class="arrow"><fa icon="caret-down"></fa></p>
   </div>
 </template>
-<script>
-export default {
+<script lang="ts">
+export const Dropdown = defineComponent({
   props: {
     items: {
-      type: Array,
+      type: Array as PropType<any[]>,
       required: true,
     },
     initial: {
       type: String,
     },
   },
-  methods: {
-    oninput(ev) {
-      const val = ev.target.value;
-      // console.log(ev.target.value);
-
-      const data = this.item_map[val];
-      this.$emit("change", data);
-    },
-  },
+  emits: ["change"],
   computed: {
     selected() {
       return 0;
     },
     item_map() {
-      const res = {};
+      const res: Record<string, any> = {};
       for (let i = 0; i < this.items.length; i++) {
         const item = this.items[i];
         res[item.key] = item.data;
@@ -50,12 +42,20 @@ export default {
     if (this.initial) {
       for (let i = 0; i < this.items.length; i++) {
         if (this.items[i].key === this.initial) {
-          this.$refs.select.value = this.items[i].key;
+          (this.$refs.select as HTMLSelectElement).value = this.items[i].key;
         }
       }
     }
   },
-};
+  methods: {
+    oninput(ev: any) {
+      const val = ev.target.value;
+      const data = this.item_map[val];
+      this.$emit("change", data);
+    },
+  },
+});
+export default Dropdown;
 </script>
 <style scoped>
 .custom-select {

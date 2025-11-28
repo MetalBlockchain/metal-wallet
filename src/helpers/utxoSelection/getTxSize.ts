@@ -1,7 +1,7 @@
 import type { UnsignedTx as UnsignedTxX } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { UnsignedTx as UnsignedTxP } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { getCredentialBytes } from "@/helpers/utxoSelection/getCredentialBytes";
-import { bintools } from "@/AVA";
+import { bintools } from "@/misc/AVA";
 
 export function getTxSize(tx: UnsignedTxX | UnsignedTxP) {
   // Calculate number of credentials

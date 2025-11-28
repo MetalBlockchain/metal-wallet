@@ -1,10 +1,10 @@
 <template>
   <div class="node_card">
-    <p class="node_id">{{ node.nodeID }}</p>
+    <p class="node_id">{{ node?.nodeID }}</p>
     <!--        <div class="meta_row"></div>-->
     <div>
       <label>Fee</label>
-      <p>{{ node.fee.toFixed(2) }}%</p>
+      <p>{{ node?.fee.toFixed(2) }}%</p>
     </div>
     <div>
       <label>Uptime</label>
@@ -16,7 +16,7 @@
     </div>
     <div>
       <label>Delegators</label>
-      <p>{{ node.numDelegators }}</p>
+      <p>{{ node?.numDelegators }}</p>
     </div>
     <!--        <div class="stake_row">-->
     <!--            -->
@@ -32,62 +32,64 @@
     <!--        <div class="dates"></div>-->
     <div class="date_row">
       <label>Stake Start Date</label>
-      <p>{{ node.startTime.toLocaleDateString() }}</p>
-      <p>{{ node.startTime.toLocaleTimeString() }}</p>
+      <p>{{ node?.startTime.toLocaleDateString() }}</p>
+      <p>{{ node?.startTime.toLocaleTimeString() }}</p>
     </div>
     <div class="date_row">
       <label>Stake End Date</label>
       <p>
-        {{ node.endTime.toLocaleDateString() }}
+        {{ node?.endTime.toLocaleDateString() }}
       </p>
-      <p>{{ node.endTime.toLocaleTimeString() }}</p>
+      <p>{{ node?.endTime.toLocaleTimeString() }}</p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
-import { bnToBig } from "@/helpers/helper";
+import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import Big from "big.js";
+import BN from "bn.js";
+import { defineComponent } from "vue";
+import { bnToBig } from "@/helpers/helper";
 
-@Component
-export class NodeCard extends Vue {
-  @Prop() node!: ValidatorListItem;
+export const NodeCard = defineComponent({
+  props: {
+    node: {
+      type: Object as PropType<ValidatorListItem>,
+    },
+  },
+  computed: {
+    uptimeText(): string {
+      return ((this.node?.uptime ?? 0) * 100).toFixed(2) + "%";
+    },
+    nodeStakeBig() {
+      return bnToBig(this.node?.validatorStake ?? new BN(0), 9);
+    },
+    delegatedStakeBig() {
+      return bnToBig(this.node?.delegatedStake ?? new BN(0), 9);
+    },
+    remainingStakeBig() {
+      return bnToBig(this.node?.remainingStake ?? new BN(0), 9);
+    },
+    totalStakeBig() {
+      if (!this.node) return new Big(0);
+      return bnToBig(this.node.validatorStake.add(this.node.delegatedStake), 9);
+    },
+    avascanURL() {
+      if (!this.node) return "";
+      const activeNet: AvaNetwork = this.$store.state.Network.selectedNetwork;
 
-  get uptimeText(): string {
-    return (this.node.uptime * 100).toFixed(2) + "%";
-  }
-
-  get nodeStakeBig() {
-    return bnToBig(this.node.validatorStake, 9);
-  }
-
-  get delegatedStakeBig() {
-    return bnToBig(this.node.delegatedStake, 9);
-  }
-
-  get remainingStakeBig() {
-    return bnToBig(this.node.remainingStake, 9);
-  }
-
-  get totalStakeBig() {
-    return bnToBig(this.node.validatorStake.add(this.node.delegatedStake), 9);
-  }
-
-  get avascanURL() {
-    const activeNet: AvaNetwork = this.$store.state.Network.selectedNetwork;
-
-    if (activeNet.networkId === 1) {
-      return `https://avascan.info/staking/validator/${this.node.nodeID}`;
-    } else {
-      return `https://testnet.avascan.info/staking/validator/${this.node.nodeID}`;
-    }
-  }
-
-  get vscoutURL() {
-    return `https://vscout.io/validator/${this.node.nodeID}`;
-  }
-}
+      return activeNet.networkId === 1
+        ? `https://avascan.info/staking/validator/${this.node.nodeID}`
+        : `https://testnet.avascan.info/staking/validator/${this.node.nodeID}`;
+    },
+    vscoutURL() {
+      if (!this.node) return "";
+      return `https://vscout.io/validator/${this.node.nodeID}`;
+    },
+  },
+});
 export default NodeCard;
 </script>
 <style scoped lang="scss">

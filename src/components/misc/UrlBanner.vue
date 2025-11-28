@@ -1,10 +1,12 @@
 <template>
-  <v-banner sticky class="url_banner" color="#992005" ref="banner">
-    <template v-slot:default>
-      <fa icon="exclamation-triangle"></fa>
-      Make sure the URL is
-      <b>wallet.metalblockchain.org</b>
-      <button @click="dismiss" class="dismiss_but" data-cy="dismiss_banner">
+  <v-banner v-if="showBanner" ref="banner" class="url_banner" sticky>
+    <template #default>
+      <div>
+        <fa icon="exclamation-triangle"></fa>
+        Make sure the URL is
+        <b>wallet.metalblockchain.org</b>
+      </div>
+      <button class="dismiss_but" data-cy="dismiss_banner" @click="dismiss">
         <fa icon="times"></fa>
       </button>
     </template>
@@ -12,36 +14,41 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export class UrlBanner extends Vue {
-  $refs!: {
-    banner: any;
-  };
-
+export const UrlBanner = defineComponent({
+  emits: ["hide"],
+  setup() {
+    const showBanner = ref(true);
+    return {
+      showBanner,
+    };
+  },
   mounted() {
     if (this.$route.name === "legal") {
       this.dismiss();
     }
-  }
-  dismiss() {
-    this.$refs.banner?.toggle();
-  }
-}
+  },
+  methods: {
+    dismiss() {
+      this.showBanner = false;
+      this.$emit("hide");
+    },
+  },
+});
 export default UrlBanner;
 </script>
 <style scoped lang="scss">
 .url_banner {
   &#{&} {
-    background-color: #1d82bb;
+    background-color: #992005;
     color: #fff;
     z-index: 3 !important;
   }
 
   .dismiss_but {
     margin-right: 8px;
-    float: right;
+    margin-left: auto;
   }
 }
 </style>

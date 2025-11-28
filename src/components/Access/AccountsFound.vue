@@ -1,45 +1,53 @@
 <template>
-  <div v-if="accounts.length">
+  <div v-if="accounts.length > 0">
     <div
-      class="flex_container menu_option"
       v-for="(acct, i) in accounts"
       :key="i"
+      class="flex_container menu_option"
       @click="selectAccount(i)"
     >
-      <Identicon :value="acct.baseAddresses.join('')" diameter="40"></Identicon>
+      <Identicon
+        :diameter="40"
+        :value="acct.baseAddresses.join('')"
+      ></Identicon>
       <p>{{ acct.name }}</p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-import type { iUserAccountEncrypted } from "@/store/types";
+import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 
-@Component({
+export const AccountsFound = defineComponent({
   components: {
     Identicon,
   },
-})
-export class AccountsFound extends Vue {
-  accounts: iUserAccountEncrypted[] = [];
+  data() {
+    const accounts: iUserAccountEncrypted[] = [];
 
+    return {
+      accounts,
+    };
+  },
   created() {
     this.refreshAccounts();
-  }
-  refreshAccounts() {
-    const accountsRaw = localStorage.getItem("accounts") || "{}";
-    this.accounts = JSON.parse(accountsRaw) || [];
-  }
-
-  selectAccount(index: number) {
-    this.$router.push(`/access/account/${index}`);
-  }
-}
+  },
+  methods: {
+    refreshAccounts() {
+      const accountsRaw = localStorage.getItem("accounts") || "{}";
+      this.accounts = JSON.parse(accountsRaw) || [];
+    },
+    selectAccount(index: number) {
+      this.$router.push(`/access/account/${index}`);
+    },
+  },
+});
 export default AccountsFound;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
+@use "@/styles/abstracts/vars";
 @use "./menu";
 
 .account {
@@ -60,7 +68,7 @@ export default AccountsFound;
 
 .access_card {
   background-color: var(--bg-light) !important;
-  padding: main.$container-padding;
+  padding: vars.$container-padding;
 }
 h3 {
   margin-top: 1rem;
@@ -82,7 +90,7 @@ h3 {
 //    font-weight: 700 !important;
 //    text-transform: uppercase;
 //    padding: 8px 18px;
-//    font-size: main.$s-size;
+//    font-size: vars.$s-size;
 //    display: flex;
 //    align-items: center;
 //    justify-content: center;
@@ -92,9 +100,9 @@ h3 {
 //    }
 //}
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .card {
-    padding: main.$container-padding-mobile;
+    padding: vars.$container-padding-mobile;
   }
 
   .options {

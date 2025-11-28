@@ -3,15 +3,15 @@
     <div>
       <label>{{ $t("cross_chain.form.source") }}</label>
       <select
-        @input="onChangeSource"
-        class="hover_border"
         v-model="sourceChain"
+        class="hover_border"
+        @input="onChangeSource"
       >
         <option
           v-for="option in sourceOptions"
-          :value="option"
           :key="option"
           :disabled="isConfirm"
+          :value="option"
         >
           {{ chainNames[option] }}
         </option>
@@ -19,19 +19,19 @@
     </div>
     <div>
       <label>{{ $t("cross_chain.form.destination") }}</label>
-      <p class="ledger_warn" v-if="!isEVMSupported">
+      <p v-if="!isEVMSupported" class="ledger_warn">
         C Chain is currently not supported on Ledger devices.
       </p>
       <select
-        @input="onChangeDestination"
-        class="hover_border"
         v-model="targetChain"
+        class="hover_border"
+        @input="onChangeDestination"
       >
         <option
           v-for="option in destinationOptions"
-          :value="option"
           :key="option"
           :disabled="isConfirm"
+          :value="option"
         >
           {{ chainNames[option] }}
         </option>
@@ -42,27 +42,29 @@
       <label>{{ $t("earn.transfer.amount") }}</label>
 
       <AvaxInput
-        :max="maxAmt"
         v-model="amt"
-        @change="onAmtChange"
         :balance="balance"
+        :max="maxAmt"
+        @update:model-value="onAmtChange"
       ></AvaxInput>
     </div>
-    <div class="confirmation_val" v-else>
+    <div v-else class="confirmation_val">
       <label>{{ $t("earn.transfer.amount") }}</label>
       <p>{{ formAmtText }} METAL</p>
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
-import AvaxInput from "@/components/misc/AvaxInput.vue";
-import { BN } from "@metalblockchain/metaljs";
 import type Big from "big.js";
-import { bnToBig } from "@/helpers/helper";
+import type { PropType } from "vue";
+import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
 import type { ChainIdType } from "@/constants";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
+import { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
+import AvaxInput from "@/components/misc/AvaxInput.vue";
+import { bnToBig } from "@/helpers/helper";
 
 const chainTypes: ChainIdType[] = ["X", "P", "C"];
 const chainNames = {
@@ -71,94 +73,112 @@ const chainNames = {
   P: "P Chain",
 };
 
-@Component({
+export const Form = defineComponent({
   components: {
     AvaxInput,
   },
-})
-export class Form extends Vue {
-  sourceChain: ChainIdType = "X";
-  targetChain: ChainIdType = "P";
-  amt: BN = new BN(0);
+  props: {
+    balance: {
+      type: Object as PropType<Big>,
+    },
+    maxAmt: {
+      type: Object as PropType<BN>,
+    },
+    isConfirm: {
+      type: Boolean,
+    },
+  },
+  emits: ["change"],
+  data(): {
+    amt: BN;
+    targetChain: ChainIdType;
+    sourceChain: ChainIdType;
+  } {
+    const amt: BN = new BN(0);
+    const targetChain: ChainIdType = "P";
+    const sourceChain: ChainIdType = "X";
 
-  @Prop() balance!: Big;
-  @Prop() maxAmt!: BN;
-  @Prop() isConfirm!: boolean;
-
-  clear() {
-    this.amt = new BN(0);
-    this.onChange();
-  }
-
-  get chainNames() {
-    return chainNames;
-  }
-
-  get formAmtText() {
-    return bnToBig(this.amt, 9).toLocaleString();
-  }
-
-  get sourceOptions(): ChainIdType[] {
-    if (!this.isEVMSupported) {
-      return ["X", "P"];
-    }
-
-    const all = [...chainTypes];
-    return all;
-  }
-
-  get destinationOptions(): ChainIdType[] {
     return {
-      X: ["P", "C"],
-      P: ["X", "C"],
-      C: ["X", "P"],
-    }[this.sourceChain] as ChainIdType[];
-  }
-
-  @Watch("destinationOptions")
-  onDestinationsChange() {
-    this.targetChain = this.destinationOptions[0];
-    this.onChange();
-  }
-
-  get wallet() {
-    const wallet: MnemonicWallet = this.$store.state.activeWallet;
-    return wallet;
-  }
-
-  get isEVMSupported() {
-    return this.wallet.ethAddress;
-  }
-
-  onChangeSource(ev: any) {
-    const val: ChainIdType = ev.target.value;
-    this.sourceChain = val;
-    this.onChange();
-  }
-
-  onChangeDestination(ev: any) {
-    const val: ChainIdType = ev.target.value;
-    this.targetChain = val;
-    this.onChange();
-  }
-
-  onAmtChange() {
-    this.onChange();
-  }
-
-  onChange() {
-    const data: ChainSwapFormData = {
-      sourceChain: this.sourceChain,
-      destinationChain: this.targetChain,
-      amount: this.amt,
+      sourceChain,
+      targetChain,
+      amt,
     };
-    this.$emit("change", data);
-  }
+  },
+  computed: {
+    chainNames() {
+      return chainNames;
+    },
+    formAmtText() {
+      return bnToBig(this.amt, 9).toLocaleString();
+    },
+    sourceOptions(): ChainIdType[] {
+      if (!this.isEVMSupported) {
+        return ["X", "P"];
+      }
 
+      const all = [...chainTypes];
+      return all;
+    },
+    destinationOptions(): ChainIdType[] {
+      return {
+        X: ["P", "C"],
+        P: ["X", "C"],
+        C: ["X", "P"],
+      }[this.sourceChain] as ChainIdType[];
+    },
+    wallet() {
+      const wallet: MnemonicWallet = this.$store.state.activeWallet;
+      return wallet;
+    },
+    isEVMSupported() {
+      return this.wallet.ethAddress;
+    },
+  },
+  watch: {
+    destinationOptions: [
+      {
+        handler: "onDestinationsChange",
+      },
+    ],
+  },
   mounted() {
     this.onChange();
-  }
-}
+  },
+  methods: {
+    clear() {
+      this.amt = new BN(0);
+      this.onChange();
+    },
+    onChangeSource(ev: any) {
+      const val: ChainIdType = ev.target.value;
+      this.sourceChain = val;
+      this.onChange();
+    },
+    onChangeDestination(ev: any) {
+      const val: ChainIdType = ev.target.value;
+      this.targetChain = val;
+      this.onChange();
+    },
+    onAmtChange() {
+      this.onChange();
+    },
+    onChange() {
+      const data: ChainSwapFormData = {
+        sourceChain: this.sourceChain,
+        destinationChain: this.targetChain,
+        amount: this.amt,
+      };
+      this.$emit("change", data);
+    },
+    onDestinationsChange() {
+      const val = this.destinationOptions[0];
+      if (val) {
+        this.targetChain = val;
+        this.onChange();
+      }
+    },
+  },
+});
 export default Form;
 </script>
 <style scoped lang="scss">

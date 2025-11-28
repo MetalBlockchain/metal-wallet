@@ -7,21 +7,22 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 import ToSContent from "@/components/misc/ToSContent.vue";
 import ToSCoreContent from "@/components/misc/ToSCoreContent.vue";
-@Component({
+
+export const Legal = defineComponent({
   components: { ToSContent, ToSCoreContent },
-})
-export class Legal extends Vue {
-  get isCore() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("core")) {
-      return true;
-    }
-    return false;
-  }
-}
+  computed: {
+    isCore() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has("core")) {
+        return true;
+      }
+      return false;
+    },
+  },
+});
 export default Legal;
 </script>
 <style scoped lang="scss">

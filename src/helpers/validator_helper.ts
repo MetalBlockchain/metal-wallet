@@ -1,4 +1,4 @@
-import type { ValidatorMetaData } from "@/store/types";
+import type { ValidatorMetaData } from "@/stores/vuex/types";
 import axios from "axios";
 
 export async function getValidatorMetaData(): Promise<ValidatorMetaData> {

@@ -1,30 +1,34 @@
 <template>
-  <modal :title="$t('modal.nft.title')" ref="modal">
+  <modal ref="modal" :title="$t('modal.nft.title')">
     <div class="nft_view_body">
-      <ERC721View :token="token" :index="tokenId" class="view"></ERC721View>
+      <ERC721View class="view" :index="tokenId" :token="token"></ERC721View>
     </div>
   </modal>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
+import type ERC721Token from "@/js/ERC721Token";
+import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import ERC721View from "../misc/ERC721View.vue";
-import type ERC721Token from "@/js/ERC721Token";
-@Component({
+
+export default defineComponent({
   components: { ERC721View, Modal },
-})
-export default class ERC721ViewModal extends Vue {
-  @Prop() token!: ERC721Token;
-  @Prop() tokenId!: string;
+  props: {
+    token: {
+      type: Object as PropType<ERC721Token>,
+    },
+    tokenId: {
+      type: String,
+    },
+  },
 
-  $refs!: {
-    modal: Modal;
-  };
-
-  open() {
-    this.$refs.modal.open();
-  }
-}
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .nft_view_body {

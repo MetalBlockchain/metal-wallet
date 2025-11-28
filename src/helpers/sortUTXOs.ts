@@ -1,20 +1,21 @@
 import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXO as EVMUTXO } from "@metalblockchain/metaljs/dist/apis/evm";
 import type {
   AmountOutput,
   UTXO as PlatformUTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { UTXO as EVMUTXO } from "@metalblockchain/metaljs/dist/apis/evm";
 
 /**
  * @return Sorted array of UTXOs
  * @param utxos UTXOs to sort
  * @param isAscending If true, sorts lower value UTXO first.
  */
+
 export function sortUTXOsByAmount<
-  UTXOType extends AVMUTXO | PlatformUTXO | EVMUTXO
+  UTXOType extends AVMUTXO | PlatformUTXO | EVMUTXO,
 >(utxos: UTXOType[], isAscending: boolean) {
-  return utxos.sort((a, b) => {
+  return [...utxos].sort((a, b) => {
     const amtA = (a.getOutput() as AmountOutput).getAmount();
     const amtB = (b.getOutput() as AmountOutput).getAmount();
     if (amtA.eq(amtB)) return 0;

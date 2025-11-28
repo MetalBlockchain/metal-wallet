@@ -2,7 +2,7 @@
   <div>
     <label>Total</label>
     <p class="total">{{ totalBalance.toLocaleString() }}</p>
-    <div class="cols" v-if="isReady">
+    <div v-if="isReady" class="cols">
       <div class="column">
         <h3>X-Chain</h3>
         <div class="bal_row">
@@ -10,11 +10,11 @@
             <label>Available</label>
             <p>{{ xUnlocked }}</p>
           </div>
-          <div v-if="!balances.X.locked.isZero()">
+          <div v-if="!balances?.X.locked.isZero()">
             <label>Locked</label>
             <p>{{ xLocked }}</p>
           </div>
-          <div v-if="!balances.X.multisig.isZero()">
+          <div v-if="!balances?.X.multisig.isZero()">
             <label>Multisig</label>
             <p>{{ xMultisig }}</p>
           </div>
@@ -27,11 +27,11 @@
             <label>Available</label>
             <p>{{ pUnlocked }}</p>
           </div>
-          <div v-if="!balances.P.locked.isZero()">
+          <div v-if="!balances?.P.locked.isZero()">
             <label>Locked</label>
             <p>{{ pLocked }}</p>
           </div>
-          <div v-if="!balances.P.lockedStakeable.isZero()">
+          <div v-if="!balances?.P.lockedStakeable.isZero()">
             <label>Locked Stakeable</label>
             <p>{{ pLockedStake }}</p>
           </div>
@@ -39,7 +39,7 @@
             <label>Staking</label>
             <p>{{ stake }}</p>
           </div>
-          <div v-if="!balances.P.multisig.isZero()">
+          <div v-if="!balances?.P.multisig.isZero()">
             <label>Multisig</label>
             <p>{{ pMultisig }}</p>
           </div>
@@ -55,78 +55,84 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { iAvaxBalance, BN } from "@metalblockchain/metal-wallet-sdk";
+import type { BN, iAvaxBalance } from "@metalblockchain/metal-wallet-sdk";
+import type { PropType } from "vue";
 import {
-  bnToAvaxX,
-  bnToAvaxP,
-  bnToAvaxC,
   Big,
-  bnToBigAvaxX,
+  bnToAvaxC,
+  bnToAvaxP,
+  bnToAvaxX,
   bnToBigAvaxC,
+  bnToBigAvaxX,
 } from "@metalblockchain/metal-wallet-sdk";
+import { defineComponent } from "vue";
 
-@Component
-export class Balances extends Vue {
-  @Prop() balances!: iAvaxBalance;
-  @Prop() stakeAmt!: BN;
+export const Balances = defineComponent({
+  props: {
+    balances: {
+      type: Object as PropType<iAvaxBalance>,
+    },
+    stakeAmt: {
+      type: Object as PropType<BN>,
+    },
+  },
+  computed: {
+    isReady() {
+      return this.balances && this.stakeAmt;
+    },
+    xUnlocked() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.X.unlocked);
+    },
+    xLocked() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.X.locked);
+    },
+    xMultisig() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.X.multisig);
+    },
+    pUnlocked() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.P.unlocked);
+    },
+    pLocked() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.P.locked);
+    },
+    pMultisig() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.P.multisig);
+    },
+    pLockedStake() {
+      if (!this.balances) return undefined;
+      return bnToAvaxX(this.balances.P.lockedStakeable);
+    },
+    stake() {
+      if (!this.stakeAmt) return undefined;
+      return bnToAvaxP(this.stakeAmt);
+    },
+    cUnlocked() {
+      if (!this.balances) return undefined;
+      return bnToAvaxC(this.balances.C);
+    },
+    totalBalance() {
+      if (!this.balances || !this.stakeAmt) {
+        return Big(0);
+      }
 
-  get isReady() {
-    return this.balances && this.stakeAmt;
-  }
-
-  get xUnlocked() {
-    return bnToAvaxX(this.balances.X.unlocked);
-  }
-
-  get xLocked() {
-    return bnToAvaxX(this.balances.X.locked);
-  }
-
-  get xMultisig() {
-    return bnToAvaxX(this.balances.X.multisig);
-  }
-
-  get pUnlocked() {
-    return bnToAvaxX(this.balances.P.unlocked);
-  }
-
-  get pLocked() {
-    return bnToAvaxX(this.balances.P.locked);
-  }
-
-  get pMultisig() {
-    return bnToAvaxX(this.balances.P.multisig);
-  }
-
-  get pLockedStake() {
-    return bnToAvaxX(this.balances.P.lockedStakeable);
-  }
-
-  get stake() {
-    return bnToAvaxP(this.stakeAmt);
-  }
-
-  get cUnlocked() {
-    return bnToAvaxC(this.balances.C);
-  }
-
-  get totalBalance() {
-    if (!this.balances || !this.stakeAmt) {
-      return Big(0);
-    }
-
-    return bnToBigAvaxX(
-      this.balances.X.unlocked
-        .add(this.balances.X.locked)
-        .add(this.balances.X.multisig)
-        .add(this.balances.P.unlocked)
-        .add(this.balances.P.locked)
-        .add(this.balances.P.lockedStakeable)
-        .add(this.balances.P.multisig.add(this.stakeAmt))
-    ).add(bnToBigAvaxC(this.balances.C));
-  }
-}
+      return bnToBigAvaxX(
+        this.balances.X.unlocked
+          .add(this.balances.X.locked)
+          .add(this.balances.X.multisig)
+          .add(this.balances.P.unlocked)
+          .add(this.balances.P.locked)
+          .add(this.balances.P.lockedStakeable)
+          .add(this.balances.P.multisig.add(this.stakeAmt)),
+      ).add(bnToBigAvaxC(this.balances.C));
+    },
+  },
+});
 export default Balances;
 </script>
 <style scoped lang="scss">

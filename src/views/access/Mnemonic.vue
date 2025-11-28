@@ -6,23 +6,23 @@
       </header>
       <p>Your mnemonic phrase is 24 words seperated by an empty space.</p>
       <input
-        type="password"
         ref="mnemonic_in"
-        placeholder="Type your mnemonic phrase"
-        autocomplete="off"
         autocapitalize="off"
+        autocomplete="off"
+        placeholder="Type your mnemonic phrase"
+        type="password"
       />
       <div class="button_container">
-        <p class="err" v-if="err">{{ err }}</p>
+        <p v-if="err" class="err">{{ err }}</p>
         <v-btn
           class="ava_button but_primary button_secondary access"
-          @click="access"
           depressed
           :loading="isLoading"
+          @click="access"
         >
           {{ $t("access.mnemonic.submit") }}
         </v-btn>
-        <router-link to="/access" class="link">
+        <router-link class="link" to="/access">
           {{ $t("access.mnemonic.cancel") }}
         </router-link>
       </div>
@@ -30,95 +30,85 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
 import * as bip39 from "bip39";
-import MnemonicPasswordInput from "@/components/misc/MnemonicPasswordInput.vue";
+import { defineComponent } from "vue";
 
-@Component({
-  components: {
-    MnemonicPasswordInput,
+export default defineComponent({
+  data() {
+    return {
+      isLoading: false,
+      err: "",
+      canSubmit: false,
+    };
   },
-})
-export default class Mnemonic extends Vue {
-  isLoading = false;
-  err = "";
-  canSubmit = false;
+  beforeUnmount() {
+    (this.$refs.mnemonic_in as HTMLInputElement).value = "";
+  },
+  methods: {
+    errCheck() {
+      const phrase = this.getMnemonic();
 
-  $refs!: {
-    mnemonic_in: HTMLInputElement;
-  };
-
-  beforeDestroy() {
-    this.$refs.mnemonic_in.value = "";
-  }
-
-  errCheck() {
-    const phrase = this.getMnemonic();
-
-    if (!phrase) {
-      return;
-    }
-
-    const words = phrase.split(" ");
-
-    // not a valid key phrase
-    if (words.length !== 24) {
-      this.err = `${this.$t("access.mnemonic.error")}`;
-      return false;
-    }
-
-    const isValid = bip39.validateMnemonic(phrase);
-    if (!isValid) {
-      this.err =
-        "Invalid mnemonic phrase. Make sure your mnemonic is all lowercase.";
-      return false;
-    }
-
-    return true;
-  }
-
-  getWordCount() {
-    const phrase = this.getMnemonic() || "";
-    return phrase.trim().split(" ").length;
-  }
-
-  getMnemonic() {
-    const inputVal = this.$refs["mnemonic_in"].value;
-    return inputVal.trim();
-  }
-
-  async access() {
-    this.err = "";
-    const phrase = this.getMnemonic();
-
-    this.isLoading = true;
-
-    if (!this.errCheck()) {
-      this.isLoading = false;
-      return;
-    }
-
-    setTimeout(async () => {
-      try {
-        await this.$store.dispatch("accessWallet", phrase);
-        this.isLoading = false;
-      } catch (e) {
-        this.isLoading = false;
-        this.err = `${this.$t("access.mnemonic.error")}`;
+      if (!phrase) {
+        return;
       }
-    }, 500);
-  }
-}
+
+      const words = phrase.split(" ");
+
+      // not a valid key phrase
+      if (words.length !== 24) {
+        this.err = `${this.$t("access.mnemonic.error")}`;
+        return false;
+      }
+
+      const isValid = bip39.validateMnemonic(phrase);
+      if (!isValid) {
+        this.err =
+          "Invalid mnemonic phrase. Make sure your mnemonic is all lowercase.";
+        return false;
+      }
+
+      return true;
+    },
+    getWordCount() {
+      const phrase = this.getMnemonic() || "";
+      return phrase.trim().split(" ").length;
+    },
+    getMnemonic() {
+      const inputVal = (this.$refs.mnemonic_in as HTMLInputElement).value;
+      return inputVal.trim();
+    },
+    async access() {
+      this.err = "";
+      const phrase = this.getMnemonic();
+
+      this.isLoading = true;
+
+      if (!this.errCheck()) {
+        this.isLoading = false;
+        return;
+      }
+
+      setTimeout(async () => {
+        try {
+          await this.$store.dispatch("accessWallet", phrase);
+          this.isLoading = false;
+        } catch {
+          this.isLoading = false;
+          this.err = `${this.$t("access.mnemonic.error")}`;
+        }
+      }, 500);
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .mnemonic_auth {
   margin: 0px auto;
   width: max-content;
-  padding: main.$container-padding;
+  padding: vars.$container-padding;
 
   .left,
   .right {
@@ -138,7 +128,7 @@ h1 {
 
 label {
   text-align: left;
-  color: main.$primary-color-light;
+  color: vars.$primary-color-light;
   font-size: 12px;
   margin-bottom: 20px;
 }
@@ -158,7 +148,7 @@ input[type="password"] {
 .phrase_disp {
   width: 100%;
   max-width: 560px;
-  margin-bottom: main.$vertical-padding;
+  margin-bottom: vars.$vertical-padding;
 }
 
 .err {
@@ -178,7 +168,7 @@ input[type="password"] {
   margin-bottom: 6px;
   width: 100%;
   font-size: 13px;
-  background-color: main.$white;
+  background-color: vars.$white;
   border-radius: 4px;
 }
 
@@ -193,14 +183,14 @@ input[type="password"] {
   justify-content: flex-start;
 }
 
-@include main.mobile_device {
+@include mixins.mobile_device {
   .mnemonic_auth {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    padding: main.$container-padding-mobile;
+    padding: vars.$container-padding-mobile;
 
     .left,
     .right {
@@ -215,7 +205,7 @@ input[type="password"] {
 
     .right {
       order: 1;
-      margin-bottom: main.$vertical-padding-mobile;
+      margin-bottom: vars.$vertical-padding-mobile;
     }
 
     > * {
@@ -225,7 +215,7 @@ input[type="password"] {
 
   h1 {
     text-align: center;
-    font-size: main.$m-size-mobile;
+    font-size: vars.$m-size-mobile;
   }
 
   label {
@@ -236,7 +226,7 @@ input[type="password"] {
   .phrase_disp {
     width: 100%;
     max-width: 560px;
-    margin-bottom: main.$vertical-padding-mobile;
+    margin-bottom: vars.$vertical-padding-mobile;
   }
 
   .err {

@@ -1,47 +1,54 @@
 <template>
   <div class="erc_row">
-    <img :src="token.data.logoURI" v-if="token.data.logoURI" />
+    <img v-if="token?.data.logoURI" :src="token.data.logoURI" />
     <div v-else class="no_logo">
       <p>?</p>
     </div>
     <p class="col_name">
-      {{ token.data.name }} ({{ token.data.symbol }})
+      {{ token?.data.name }} ({{ token?.data.symbol }})
       <span>ERC20</span>
     </p>
-    <router-link :to="sendLink" class="send_col" v-if="isBalance">
-      <img
-        v-if="$root.$data.theme === 'day'"
-        src="@/assets/sidebar/transfer_nav.svg"
-      />
+    <router-link v-if="isBalance" class="send_col" :to="sendLink">
+      <img v-if="isDay" src="@/assets/sidebar/transfer_nav.svg" />
       <img v-else src="@/assets/sidebar/transfer_nav_night.svg" />
     </router-link>
-    <p class="balance_col">{{ balText }} {{ token.data.symbol }}</p>
+    <p class="balance_col">{{ balText }} {{ token?.data.symbol }}</p>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type Erc20Token from "@/js/Erc20Token";
+import { defineComponent } from "vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-@Component
-export class ERC20Row extends Vue {
-  @Prop() token!: Erc20Token;
-
-  get balText() {
-    return this.token.balanceBig.toLocaleString();
-  }
-
-  get isBalance() {
-    return !this.token.balanceBN.isZero();
-  }
-
-  get sendLink() {
-    return `/wallet/transfer?chain=C&token=${this.token.data.address}`;
-  }
-}
+export const ERC20Row = defineComponent({
+  props: {
+    token: {
+      type: Object as PropType<Erc20Token>,
+    },
+  },
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+  computed: {
+    balText() {
+      return this.token?.balanceBig.toLocaleString() ?? "";
+    },
+    isBalance() {
+      return !this.token?.balanceBN.isZero();
+    },
+    sendLink() {
+      return `/wallet/transfer?chain=C&token=${this.token?.data.address}`;
+    },
+  },
+});
 export default ERC20Row;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 .erc_row {
   > * {
@@ -105,7 +112,7 @@ img {
   color: var(--primary-color-light);
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .erc_row {
     padding: 6px 0;
   }
@@ -117,8 +124,5 @@ img {
     height: $logo_w;
     border-radius: $logo_w;
   }
-}
-
-@include main.mobile-device {
 }
 </style>

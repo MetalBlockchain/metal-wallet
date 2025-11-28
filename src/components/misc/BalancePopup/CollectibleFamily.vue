@@ -1,84 +1,86 @@
 <template>
   <div v-if="utxos.length > 0" class="collectible_family">
-    <p class="fam_title">{{ family.name }}</p>
+    <p class="fam_title">{{ family?.name }}</p>
     <div class="group_grid">
       <div
         v-for="(utxo, i) in uniqueGroups"
-        :used="disabledIds.includes(utxo.getUTXOID())"
         :key="utxo.getUTXOID()"
         class="card"
+        :used="disabledIds.includes(utxo.getUTXOID())"
         @click="click(utxo)"
       >
         <NftPayloadView
-          :payload="payloads[i]"
-          small="true"
           class="payload_view"
+          :payload="payloads[i]"
+          :small="true"
         ></NftPayloadView>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { IWalletNftDict } from "@/store/types";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
 
+import type { IWalletNftDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";
 
-@Component({
+export const CollectibleFamily = defineComponent({
   components: {
     NftPayloadView,
   },
-})
-export class CollectibleFamily extends Vue {
-  @Prop() family!: AvaNftFamily;
-  @Prop({ default: [] }) disabledIds!: string[];
-
-  get nftFamilies() {
-    return this.$store.getters["Assets/nftFamilies"];
-  }
-
-  get nftDict(): IWalletNftDict {
-    // return this.$store.getters.walletNftDict
-    return this.$store.getters["Assets/walletNftDict"];
-  }
-  get utxos() {
-    const id = this.family.id;
-    return this.nftDict[id] || [];
-  }
-
-  get uniqueGroups() {
-    const ids: number[] = [];
-    return this.utxos.filter((utxo) => {
-      const gId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
-      if (ids.includes(gId)) {
-        return false;
-      } else {
-        ids.push(gId);
-        return true;
-      }
-    });
-  }
-
-  get payloads() {
-    return this.uniqueGroups.map((utxo) => {
-      return getPayloadFromUTXO(utxo);
-    });
-  }
-
-  click(utxo: UTXO) {
-    this.$emit("select", utxo);
-  }
-}
+  props: {
+    family: {
+      type: Object as PropType<AvaNftFamily>,
+    },
+    disabledIds: { default: () => [], type: Array as PropType<string[]> },
+  },
+  computed: {
+    nftFamilies() {
+      return this.$store.getters["Assets/nftFamilies"];
+    },
+    nftDict(): IWalletNftDict {
+      // return this.$store.getters.walletNftDict
+      return this.$store.getters["Assets/walletNftDict"];
+    },
+    utxos() {
+      const id = this.family?.id;
+      return (id && this.nftDict[id]) || [];
+    },
+    uniqueGroups() {
+      const ids: number[] = [];
+      return this.utxos.filter((utxo) => {
+        const gId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
+        if (ids.includes(gId)) {
+          return false;
+        } else {
+          ids.push(gId);
+          return true;
+        }
+      });
+    },
+    payloads() {
+      return this.uniqueGroups.map((utxo) => {
+        return getPayloadFromUTXO(utxo);
+      });
+    },
+  },
+  methods: {
+    click(utxo: UTXO) {
+      this.$emit("select", utxo);
+    },
+  },
+});
 export default CollectibleFamily;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 .collectible_family {
   display: grid;
@@ -121,7 +123,7 @@ $card_w: 80px;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   $card_w: 60px;
 
   .collectible_family {

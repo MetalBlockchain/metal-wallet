@@ -1,9 +1,9 @@
-import { ava } from "@/AVA";
-import { splitToParts } from "@/js/Glacier/utils";
-import Glacier from "@/js/Glacier/Glacier";
-import { isMainnetNetworkID } from "@/store/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/store/modules/network/isTestnetNetworkID";
 import { Network } from "@metalblockchain/glacier-sdk";
+import Glacier from "@/js/Glacier/Glacier";
+import { splitToParts } from "@/js/Glacier/utils";
+import { ava } from "@/misc/AVA";
+import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
 
 export async function listChainsForAddresses(addrs: string[]) {
   const addressLimit = 64;
@@ -23,7 +23,7 @@ export async function listChainsForAddresses(addrs: string[]) {
   });
 
   const results = await Promise.all(promises);
-  const flat = results.map((res: any) => res.addresses).flat();
+  const flat = results.flatMap((res: any) => res.addresses);
 
   return flat;
 }

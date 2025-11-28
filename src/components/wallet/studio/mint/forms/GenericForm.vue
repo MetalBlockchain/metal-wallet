@@ -2,23 +2,23 @@
   <div>
     <div class="input_cont">
       <label>{{ $t("studio.mint.forms.generic.label1") }}</label>
-      <input class="text" max="128" v-model="title" @input="onInput" />
+      <input v-model="title" class="text" max="128" @input="onInput" />
     </div>
     <div class="input_cont">
       <label>{{ $t("studio.mint.forms.generic.label2") }}</label>
       <input
+        v-model="imgUrl"
         class="text"
         placeholder="https://"
-        v-model="imgUrl"
         @input="onInput"
       />
     </div>
     <div class="input_cont">
       <label>{{ $t("studio.mint.forms.generic.label3") }}</label>
       <textarea
+        v-model="description"
         class="text"
         maxlength="256"
-        v-model="description"
         @input="onInput"
       />
     </div>
@@ -30,76 +30,79 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
 import type {
   GenericFormType,
   IGenericNft,
 } from "@/components/wallet/studio/mint/types";
+import { defineComponent } from "vue";
 
-@Component
-export class GenericForm extends Vue {
-  title = "";
-  description = "";
-  imgUrl = "";
-  error = "";
-  // radius = 15
+export const GenericForm = defineComponent({
+  emits: ["on-input"],
+  data() {
+    return {
+      title: "",
+      description: "",
+      imgUrl: "",
+      error: "",
+    };
+  },
+  methods: {
+    validate() {
+      // if (!this.title) {
+      //     this.error = 'You must set a title.'
+      //     return false
+      // }
 
-  validate() {
-    // if (!this.title) {
-    //     this.error = 'You must set a title.'
-    //     return false
-    // }
+      try {
+        new URL(this.imgUrl);
+      } catch {
+        this.error = this.$t("studio.mint.forms.generic.err1") as string;
+        // this.error = 'Not a valid Image URL.'
+        return false;
+      }
+      if (!this.imgUrl) {
+        this.error = this.$t("studio.mint.forms.generic.err2") as string;
+        // this.error = 'You must set the image.'
+        return false;
+      }
 
-    try {
-      new URL(this.imgUrl);
-    } catch (e) {
-      this.error = this.$t("studio.mint.forms.generic.err1") as string;
-      // this.error = 'Not a valid Image URL.'
-      return false;
-    }
-    if (!this.imgUrl) {
-      this.error = this.$t("studio.mint.forms.generic.err2") as string;
-      // this.error = 'You must set the image.'
-      return false;
-    }
+      if (this.imgUrl.length > 516) {
+        this.error = this.$t("studio.mint.forms.generic.err3") as string;
+        // this.error = 'Image URL too long.'
+        return false;
+      }
 
-    if (this.imgUrl.length > 516) {
-      this.error = this.$t("studio.mint.forms.generic.err3") as string;
-      // this.error = 'Image URL too long.'
-      return false;
-    }
+      // if (this.radius < 0 || this.radius > 100) {
+      //     this.error = 'Invalid corner radius.'
+      //     return false
+      // }
 
-    // if (this.radius < 0 || this.radius > 100) {
-    //     this.error = 'Invalid corner radius.'
-    //     return false
-    // }
+      return true;
+    },
+    onInput() {
+      let msg: null | GenericFormType = null;
+      this.error = "";
 
-    return true;
-  }
+      if (this.validate()) {
+        const data: IGenericNft = {
+          version: 1,
+          type: "generic",
+          title: this.title,
+          img: this.imgUrl,
+          // radius: this.radius,
+          desc: this.description,
+        };
 
-  onInput() {
-    let msg: null | GenericFormType = null;
-    this.error = "";
-
-    if (this.validate()) {
-      const data: IGenericNft = {
-        version: 1,
-        type: "generic",
-        title: this.title,
-        img: this.imgUrl,
-        // radius: this.radius,
-        desc: this.description,
-      };
-
-      msg = {
-        data: {
-          avalanche: data,
-        },
-      };
-    }
-    this.$emit("onInput", msg);
-  }
-}
+        msg = {
+          data: {
+            avalanche: data,
+          },
+        };
+      }
+      this.$emit("on-input", msg);
+    },
+  },
+});
 export default GenericForm;
 </script>
 <style scoped lang="scss">

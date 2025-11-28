@@ -1,78 +1,82 @@
 <!-- NO LONGER IN USE-->
 
 <template>
-  <div class="balance_popup" v-show="isActive">
+  <div v-show="isActive" class="balance_popup">
     <div class="bg" @click="closePopup"></div>
     <div class="popup_body">
       <p class="desc">
         Select an asset
-        <button class="close" @click="closePopup" style="float: right">
+        <button class="close" style="float: right" @click="closePopup">
           <fa icon="times"></fa>
         </button>
       </p>
-      <div class="rows" v-if="!isNft">
+      <div v-if="!isNft" class="rows">
         <BalanceRow
-          class="bal_row"
           v-for="asset in assets"
           :key="asset.id"
-          :zero="asset.amount.isZero()"
-          @click.native="select(asset)"
-          :disabled="isDisabled(asset)"
           :asset="asset"
+          class="bal_row"
+          :disabled="isDisabled(asset)"
+          :zero="asset.amount.isZero()"
+          @click="select(asset)"
         ></BalanceRow>
       </div>
       <CollectibleTab
-        class="nfts"
-        @select="selectNFT"
-        :disabled-ids="disabledIds"
         v-else
+        class="nfts"
+        :disabled-ids="disabledIds"
+        @select="selectNFT"
       ></CollectibleTab>
     </div>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import { defineComponent } from "vue";
 import BalanceRow from "./BalanceRow.vue";
 import CollectibleTab from "./CollectibleTab.vue";
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 
-@Component({
+export const BalancePopup = defineComponent({
   components: {
     BalanceRow,
     CollectibleTab,
   },
-})
-export class BalancePopup extends Vue {
-  @Prop() assets!: AvaAsset[];
-  @Prop({ default: false }) isNft?: boolean;
-  @Prop({ default: () => [] }) disabledIds!: string[]; // asset id | if nft the utxo id
+  props: {
+    assets: {
+      type: Array as PropType<AvaAsset[]>,
+    },
+    isNft: { default: false, type: Boolean },
+    disabledIds: { default: () => [], type: Array as PropType<string[]> },
+  },
+  emits: ["select", "close"],
+  data() {
+    return {
+      isActive: false,
+    };
+  },
+  methods: {
+    select(asset: AvaAsset) {
+      if (asset.amount.isZero()) return;
+      if (this.isDisabled(asset)) return;
 
-  isActive = false;
-
-  select(asset: AvaAsset) {
-    if (asset.amount.isZero()) return;
-    if (this.isDisabled(asset)) return;
-
-    this.$emit("select", asset);
-  }
-
-  selectNFT(utxo: UTXO) {
-    this.$emit("select", utxo);
-    this.closePopup();
-  }
-
-  isDisabled(asset: AvaAsset): boolean {
-    if (this.disabledIds.includes(asset.id)) return true;
-    return false;
-  }
-
-  closePopup() {
-    this.isActive = false;
-    this.$emit("close");
-  }
-}
+      this.$emit("select", asset);
+    },
+    selectNFT(utxo: UTXO) {
+      this.$emit("select", utxo);
+      this.closePopup();
+    },
+    isDisabled(asset: AvaAsset): boolean {
+      if (this.disabledIds.includes(asset.id)) return true;
+      return false;
+    },
+    closePopup() {
+      this.isActive = false;
+      this.$emit("close");
+    },
+  },
+});
 export default BalancePopup;
 </script>
 <style lang="scss">
@@ -98,7 +102,7 @@ export default BalancePopup;
 }
 </style>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 .bg {
   position: fixed;
   z-index: 2;
@@ -179,7 +183,7 @@ export default BalancePopup;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .bg {
     background-color: rgba(0, 0, 0, 0.4);
   }

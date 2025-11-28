@@ -1,29 +1,34 @@
 <template>
   <div class="nft_allow">
-    <button @click="show" v-if="!isSmall">
+    <button v-if="!isSmall" @click="show">
       <fa icon="eye"></fa>
       <br />
       Show
     </button>
-    <button @click="show" v-else>
+    <button v-else @click="show">
       <fa icon="eye"></fa>
     </button>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Model, Prop } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class NftPayloadAllow extends Vue {
-  @Prop({}) nftID!: string;
-  @Prop({ default: false }) isSmall!: boolean;
-  @Model("change", { type: Boolean }) readonly isShow!: boolean;
-
-  show() {
-    this.$store.commit("Assets/whitelistNFT", this.nftID);
-    this.$emit("change", true);
-  }
-}
+export default defineComponent({
+  props: {
+    nftID: {
+      type: String,
+    },
+    isSmall: { default: false, type: Boolean },
+    modelValue: { type: Boolean },
+  },
+  emits: ["update:modelValue"],
+  methods: {
+    show() {
+      this.$store.commit("Assets/whitelistNFT", this.nftID);
+      this.$emit("update:modelValue", true);
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .nft_allow {

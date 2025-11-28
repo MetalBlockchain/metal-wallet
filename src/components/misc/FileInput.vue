@@ -1,72 +1,76 @@
 <template>
   <div class="file_input hover_border">
-    <input type="file" :multiple="multiple" @input="oninput()" ref="input" />
+    <input ref="input" :multiple="multiple" type="file" @input="oninput()" />
     <p v-if="fileNum === 0">
       <span class="upload_text">Upload a file</span>
       or drag and drop
     </p>
-    <p v-else-if="files">{{ files[0].name }}</p>
+    <p v-else-if="files">{{ files[0]?.name }}</p>
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export class FileInput extends Vue {
-  files: FileList | null = null;
-
-  @Prop({ default: false }) multiple!: boolean;
-  @Prop({ default: "raw" }) read_type!: string;
-
-  oninput() {
-    const input = this.$refs.input as HTMLInputElement;
-    this.files = input.files as FileList;
-    if (this.read_type === "raw") {
-      if (this.multiple) {
-        this.$emit("change", this.files);
+export const FileInput = defineComponent({
+  props: {
+    multiple: { default: false, type: Boolean },
+    readType: { default: "raw", type: String },
+  },
+  emits: ["change"],
+  data(): {
+    files: FileList | null;
+  } {
+    return {
+      files: null,
+    };
+  },
+  computed: {
+    fileNum() {
+      if (!this.files) return 0;
+      return this.files.length;
+    },
+  },
+  methods: {
+    oninput() {
+      const input = this.$refs.input as HTMLInputElement;
+      this.files = input.files as FileList;
+      if (this.readType === "raw") {
+        if (this.multiple) {
+          this.$emit("change", this.files);
+        } else {
+          this.$emit("change", this.files[0]);
+        }
       } else {
-        this.$emit("change", this.files[0]);
+        this.read();
       }
-    } else {
-      this.read();
-    }
-  }
+    },
+    read() {
+      if (!this.files) return;
 
-  read() {
-    if (!this.files) return;
+      const reader = new FileReader(); // no arguments
+      reader.addEventListener("load", () => {
+        this.$emit("change", reader.result);
+      });
+      reader.addEventListener("error", () => {
+        console.log(reader.error);
+      });
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const parent = this;
-
-    const reader = new FileReader(); // no arguments
-    reader.onload = function () {
-      parent.$emit("change", reader.result);
-    };
-    reader.onerror = function () {
-      console.log(reader.error);
-    };
-
-    if (this.read_type === "text") {
-      reader.readAsText(this.files[0]);
-    }
-  }
-
-  clear() {
-    const input = this.$refs.input as HTMLInputElement;
-    input.value = "";
-    this.files = null;
-  }
-
-  get fileNum() {
-    if (!this.files) return 0;
-    return this.files.length;
-  }
-}
+      if (this.readType === "text" && this.files[0]) {
+        // eslint-disable-next-line unicorn/prefer-blob-reading-methods
+        reader.readAsText(this.files[0]);
+      }
+    },
+    clear() {
+      const input = this.$refs.input as HTMLInputElement;
+      input.value = "";
+      this.files = null;
+    },
+  },
+});
 export default FileInput;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
 
 .file_input {
   position: relative;
@@ -74,11 +78,11 @@ export default FileInput;
   cursor: pointer;
   /* color: main.$primary-color; */
   color: rgb(118, 118, 118);
-  background-color: main.$background-color !important;
+  background-color: vars.$background-color !important;
   border: 1px solid;
   border-radius: 6px;
   max-width: 100%;
-  border-color: main.$primary-color;
+  border-color: vars.$primary-color;
   font-family: "Inter", sans-serif;
   font-weight: 700;
 }

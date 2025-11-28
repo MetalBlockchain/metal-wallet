@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"
-      data-theme="day"
+      data-theme="light"
       class="notranslate"
       translate="no">
 
 <head>
-      <meta charset="UTF-8" />
-      <link rel="icon"
-            href="/favicon.png" />
+      <meta charset="UTF-8">
       <meta name="viewport"
-            content="width=device-width, initial-scale=1.0" />
+            content="width=device-width, initial-scale=1.0">
       <title>Redefining Finance | Metal Wallet</title>
       <meta property="og:title"
             content="Redefining Finance | Metal Wallet"
@@ -27,15 +25,36 @@
             content="%VITE_BASE_URL%" />
       <meta property="og:type"
             content="website" />
-      <style>
-            body {
-                  background-color: #fff;
-            }
 
+      <link rel="icon"
+            type="image/png"
+            href="/favicon-96x96.png"
+            sizes="96x96" />
+      <link rel="icon"
+            type="image/svg+xml"
+            href="/favicon.svg" />
+      <link rel="shortcut icon"
+            href="/favicon.ico" />
+      <link rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png" />
+      <meta name="apple-mobile-web-app-title"
+            content="Metal Wallet" />
+      <link rel="manifest"
+            href="/site.webmanifest" />
+
+      <style>
             #app_loading {
-                  text-align: center;
-                  color: #d2d2d2;
-                  margin-top: 35vh;
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  height: 100dvh;
+                  width: 100dvw;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: white;
+                  z-index: 10000;
             }
 
             #app_loading img {
@@ -43,14 +62,15 @@
                   object-fit: contain;
             }
       </style>
-      <link href="https://fonts.googleapis.com/css?family=Inconsolata|Rubik|DM+Sans&display=swap"
-            rel="stylesheet">
+      <!-- TODO Review this -->
+      <!-- <link href="https://fonts.googleapis.com/css?family=Inconsolata|Rubik|DM+Sans&display=swap"
+            rel="stylesheet"> -->
 </head>
 
 <body>
       <div id="app_loading">
             <img rel="preload"
-                 src="/gif/loading_0.gif">
+                 src="/loaders/minimal_spinner.svg" />
       </div>
       <div id="app"></div>
       <script type="module"

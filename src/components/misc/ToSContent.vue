@@ -4,7 +4,7 @@
       <span class="c5">Metal Wallet</span>
       <span class="c3">Terms and Conditions</span>
     </p>
-    <h1 class="c6" id="h.gjdgxs">
+    <h1 id="h.gjdgxs" class="c6">
       <span class="c9 c10">1. Terms and Conditions</span>
     </h1>
     <p class="c4">
@@ -535,10 +535,9 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class ToSContent extends Vue {}
+export default defineComponent({});
 </script>
 <style scoped lang="scss">
 .content {

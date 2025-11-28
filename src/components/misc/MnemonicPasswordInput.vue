@@ -3,67 +3,65 @@
     <span v-for="i in 24" :key="i">
       {{ i }}.
       <input
-        type="password"
-        autocomplete="off"
-        autocapitalize="off"
-        @focus="onFocus"
-        @blur="onBlur"
-        @input="onInput($event, i - 1)"
         :ref="`in_${i - 1}`"
+        autocapitalize="off"
+        autocomplete="off"
+        type="password"
+        @blur="onBlur"
+        @focus="onFocus"
+        @input="onInput($event, i - 1)"
         @paste="onPaste"
       />
     </span>
   </div>
 </template>
+
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
 const SIZE = 24;
-@Component
-export default class MnemonicPasswordInput extends Vue {
-  // words = Array.from(''.repeat(24))
-  onFocus(ev: any) {
-    ev.target.setAttribute("type", "text");
-  }
+export default defineComponent({
+  emits: ["change"],
+  methods: {
+    onFocus(ev: any) {
+      ev.target.setAttribute("type", "text");
+    },
+    onBlur(ev: any) {
+      ev.target.setAttribute("type", "password");
+    },
+    onPaste(e: any) {
+      e.preventDefault();
+    },
+    onInput(ev: any, index: number) {
+      const val: string = ev.target.value.trim();
+      const words: string[] = val.split(" ").filter((w) => w !== "");
 
-  onBlur(ev: any) {
-    ev.target.setAttribute("type", "password");
-  }
+      if (words.length > 1) {
+        for (const [i, word] of words.entries()) {
+          const wordIndex = index + i;
+          if (wordIndex >= SIZE) continue;
 
-  onPaste(e: any) {
-    e.preventDefault();
-  }
+          //@ts-ignore
+          const dom = this.$refs[`in_${wordIndex}`][0];
+          dom.value = word;
+          dom.focus();
+        }
+      }
 
-  onInput(ev: any, index: number) {
-    const val: string = ev.target.value.trim();
-    const words: string[] = val.split(" ").filter((w) => w !== "");
-
-    if (words.length > 1) {
-      words.forEach((word, i) => {
-        const wordIndex = index + i;
-        if (wordIndex >= SIZE) return;
-
+      this.emitValue();
+    },
+    emitValue() {
+      let val = "";
+      for (let i = 0; i < SIZE; i++) {
         //@ts-ignore
-        const dom = this.$refs[`in_${wordIndex}`][0];
-        dom.value = word;
-        dom.focus();
-      });
-    }
+        const input = this.$refs[`in_${i}`][0];
+        val += `${input.value} `;
+      }
 
-    this.emitValue();
-  }
-
-  emitValue() {
-    let val = "";
-    for (let i = 0; i < SIZE; i++) {
-      //@ts-ignore
-      const input = this.$refs[`in_${i}`][0];
-      val += `${input.value} `;
-    }
-
-    this.$emit("change", val.trim());
-  }
-}
+      this.$emit("change", val.trim());
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .input_cont {

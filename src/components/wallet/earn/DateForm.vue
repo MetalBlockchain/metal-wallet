@@ -12,52 +12,84 @@
     <!--        </div>-->
     <div class="hover_border">
       <button class="max_but" @click="maxoutEndDate">Max</button>
-      <datetime
+      <DateTimePicker
         v-model="localEnd"
-        type="datetime"
         class="date"
-        :min-datetime="endDateMin"
         :max-datetime="endDateMax"
-      ></datetime>
+        :min-datetime="endDateMin"
+      ></DateTimePicker>
     </div>
   </div>
 </template>
+
 <script lang="ts">
-import { DAY_MS, MINUTE_MS } from "../../../constants";
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import { defineComponent } from "vue";
+import { DAY_MS, MINUTE_MS } from "@/constants";
 
 const MIN_STAKE_DURATION = DAY_MS * 14;
 
-@Component
-export default class DateForm extends Vue {
-  // timeNow = 0
+export default defineComponent({
+  props: {
+    maxEndDate: {
+      type: String,
+    },
+  },
+  emits: ["change-end"],
+  data(): {
+    localStart: string;
+    localEnd: string;
+  } {
+    return {
+      localStart: "",
+      localEnd: "",
+    };
+  },
+  computed: {
+    stakeDuration(): number {
+      const start = new Date(this.localStart);
+      const end = new Date(this.localEnd);
+      const diff = end.getTime() - start.getTime();
+      return diff;
+    },
+    startDateMin() {
+      const now = Date.now();
+      const res = now + MINUTE_MS * 15;
+      return new Date(res).toISOString();
+    },
+    endDateMin() {
+      const start = this.localStart;
+      const startDate = new Date(start);
 
-  localStart = this.startDateMin;
-  localEnd = this.endDateMin;
+      const end = startDate.getTime() + MIN_STAKE_DURATION;
+      const endDate = new Date(end);
+      return endDate.toISOString();
+    },
+    endDateMax() {
+      if (this.maxEndDate) return this.maxEndDate;
 
-  @Prop() maxEndDate?: string;
+      const start = this.localStart;
+      const startDate = new Date(start);
 
-  // @Watch('localStart')
-  // startChange(val: string) {
-  //     this.setStartDate(val)
-  //
-  //     if (this.stakeDuration < MIN_STAKE_DURATION) {
-  //         this.localEnd = this.endDateMin
-  //     }
-  // }
+      const end = startDate.getTime() + DAY_MS * 365;
+      const endDate = new Date(end);
+      return endDate.toISOString();
+    },
+    defaultEndDate() {
+      const start = this.localStart;
+      const startDate = new Date(start);
 
-  @Watch("localEnd")
-  endChange(val: string) {
-    this.setEndDate(val);
-
-    const endTime = new Date(val).getTime();
-    const minDateTime = new Date(this.endDateMin).getTime();
-
-    if (endTime < minDateTime) {
-      this.localEnd = this.endDateMin;
-    }
-  }
-
+      const end = startDate.getTime() + DAY_MS * 21;
+      const endDate = new Date(end);
+      return endDate.toISOString();
+    },
+  },
+  watch: {
+    localEnd: [
+      {
+        handler: "endChange",
+      },
+    ],
+  },
   mounted() {
     this.localStart = this.startDateMin;
 
@@ -66,89 +98,26 @@ export default class DateForm extends Vue {
 
     // this.setStartDate(this.localStart)
     this.setEndDate(this.localEnd);
-  }
+  },
+  methods: {
+    setEndDate(val: string) {
+      this.$emit("change-end", val);
+    },
+    maxoutEndDate() {
+      this.localEnd = this.endDateMax;
+    },
+    endChange(val: string) {
+      this.setEndDate(val);
 
-  // updateTimeNow() {
-  //     this.timeNow = Date.now()
-  //
-  //     let remaining = MINUTE_MS - (this.timeNow % MINUTE_MS)
-  //     // If current start date is less than now
-  //     let startCurrent = new Date(this.localStart)
-  //     if (startCurrent.getTime() <= this.timeNow + remaining) {
-  //         this.localStart = this.startDateMin
-  //     }
-  //     setTimeout(() => {
-  //         this.updateTimeNow()
-  //     }, 10000)
-  // }
+      const endTime = new Date(val).getTime();
+      const minDateTime = new Date(this.endDateMin).getTime();
 
-  // setStartDate(val: string) {
-  //     this.$emit('change_start', val)
-  // }
-
-  setEndDate(val: string) {
-    this.$emit("change_end", val);
-  }
-
-  maxoutEndDate() {
-    this.localEnd = this.endDateMax;
-  }
-
-  get stakeDuration(): number {
-    const start = new Date(this.localStart);
-    const end = new Date(this.localEnd);
-    const diff = end.getTime() - start.getTime();
-    return diff;
-  }
-
-  // 15 minutes from now
-  // In reality it will be 5 minutes after the form is submitted
-  get startDateMin() {
-    const now = Date.now();
-    const res = now + MINUTE_MS * 15;
-    return new Date(res).toISOString();
-  }
-
-  // 2 weeks
-  // get startDateMax() {
-  //     let startDate = new Date()
-  //     // add 2 weeks
-  //     let endTime = startDate.getTime() + 60000 * 60 * 24 * 14
-  //     let endDate = new Date(endTime)
-  //     return endDate.toISOString()
-  // }
-
-  // now + 15 minutes + 2 weeks (Min Staking Duration)
-  get endDateMin() {
-    const start = this.localStart;
-    const startDate = new Date(start);
-
-    const end = startDate.getTime() + MIN_STAKE_DURATION;
-    const endDate = new Date(end);
-    return endDate.toISOString();
-  }
-
-  // Start date + 1 year, or the prop
-  get endDateMax() {
-    if (this.maxEndDate) return this.maxEndDate;
-
-    const start = this.localStart;
-    const startDate = new Date(start);
-
-    const end = startDate.getTime() + DAY_MS * 365;
-    const endDate = new Date(end);
-    return endDate.toISOString();
-  }
-
-  get defaultEndDate() {
-    const start = this.localStart;
-    const startDate = new Date(start);
-
-    const end = startDate.getTime() + DAY_MS * 21;
-    const endDate = new Date(end);
-    return endDate.toISOString();
-  }
-}
+      if (endTime < minDateTime) {
+        this.localEnd = this.endDateMin;
+      }
+    },
+  },
+});
 </script>
 <style lang="scss">
 .dates_form {

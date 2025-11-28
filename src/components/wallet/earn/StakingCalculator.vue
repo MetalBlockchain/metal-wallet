@@ -2,9 +2,7 @@
   <div></div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export default class StakingCalculator extends Vue {}
+export default defineComponent({});
 </script>

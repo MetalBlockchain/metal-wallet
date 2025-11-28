@@ -5,10 +5,10 @@
         {{ timeText }}
         <a
           v-if="explorerUrl"
+          class="explorer_link"
           :href="explorerUrl"
           target="_blank"
           tooltip="View in Explorer"
-          class="explorer_link"
         >
           <fa icon="search"></fa>
         </a>
@@ -27,124 +27,117 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import moment from "moment";
-import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
+import type { PropType } from "vue";
 import type {
+  TransactionType,
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
-import { isTransactionX, isTransactionC } from "@/js/Glacier/models";
-import ImportExport from "@/components/SidePanels/History/ViewTypes/ImportExport.vue";
-import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";
-import StakingTx from "@/components/SidePanels/History/ViewTypes/StakingTx.vue";
-import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
-import type { Utxo, PChainUtxo } from "@metalblockchain/glacier-sdk";
-import { getUrlFromTransaction } from "@/js/Glacier/getUrlFromTransaction";
-import { ava } from "@/AVA";
-import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 import type { WalletType } from "@/js/wallets/types";
+import moment from "moment";
+import { defineComponent } from "vue";
+import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";
+import ImportExport from "@/components/SidePanels/History/ViewTypes/ImportExport.vue";
+import StakingTx from "@/components/SidePanels/History/ViewTypes/StakingTx.vue";
+import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
+import { getUrlFromTransaction } from "@/js/Glacier/getUrlFromTransaction";
+import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
+import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
+import { ava } from "@/misc/AVA";
 
-@Component({
+export const TxHistoryRow = defineComponent({
   components: {
     TxHistoryNftFamilyGroup,
   },
-})
-export class TxHistoryRow extends Vue {
-  @Prop() transaction!: XChainTransaction | PChainTransaction;
+  props: {
+    transaction: {
+      type: Object as PropType<TransactionType>,
+    },
+  },
+  computed: {
+    explorerUrl(): string | null {
+      if (!this.transaction) return null;
+      const netID = ava.getNetworkID();
+      return getUrlFromTransaction(netID, this.transaction);
+    },
+    hasMultisig() {
+      if (!this.ownedOutputs) return false;
+      let totMultiSig = 0;
+      // eslint-disable-next-line unicorn/no-array-for-each
+      this.ownedOutputs.forEach((utxo: Utxo | PChainUtxo) => {
+        if (utxo.addresses.length > 1) {
+          totMultiSig++;
+        }
+      });
+      return totMultiSig > 0;
+    },
+    outputUTXOs(): Utxo[] | PChainUtxo[] {
+      return (this.transaction as XChainTransaction)?.emittedUtxos ?? [];
+    },
+    addresses() {
+      const wallet: WalletType | null = this.$store.state.activeWallet;
+      if (!wallet) return [];
+      return wallet.getHistoryAddresses();
+    },
+    ownedOutputs() {
+      return (this.outputUTXOs as (Utxo | PChainUtxo)[]).filter(
+        (utxo: Utxo | PChainUtxo) => {
+          return isOwnedUTXO(utxo, this.addresses);
+        },
+      );
+    },
+    memo(): string | null {
+      // TODO: Is Memo supported
+      return "";
+    },
+    timestamp() {
+      if (!this.transaction) return 0;
+      return isTransactionX(this.transaction) ||
+        isTransactionC(this.transaction)
+        ? this.transaction.timestamp * 1000
+        : this.transaction.blockTimestamp * 1000;
+    },
+    time() {
+      return moment(this.timestamp);
+    },
+    timeText(): string {
+      const now = Date.now();
+      const diff = now - new Date(this.timestamp).getTime();
 
-  get explorerUrl(): string | null {
-    const netID = ava.getNetworkID();
-    return getUrlFromTransaction(netID, this.transaction);
-  }
+      const dayMs = 1000 * 60 * 60 * 24;
 
-  /**
-   * True if this tx contains a multi owner output
-   */
-  get hasMultisig() {
-    if (!this.ownedOutputs) return false;
-    let totMultiSig = 0;
-    this.ownedOutputs.forEach((utxo: Utxo | PChainUtxo) => {
-      if (utxo.addresses.length > 1) {
-        totMultiSig++;
+      if (diff > dayMs) {
+        return this.time.format("MMM DD, YYYY");
       }
-    });
-    return totMultiSig > 0;
-  }
+      return this.time.fromNow();
+    },
+    viewComponent() {
+      const type = this.transaction?.txType as TransactionTypeName;
 
-  get outputUTXOs(): Utxo[] | PChainUtxo[] {
-    return this.transaction.emittedUtxos || [];
-  }
-
-  get addresses() {
-    const wallet: WalletType | null = this.$store.state.activeWallet;
-    if (!wallet) return [];
-    return wallet.getHistoryAddresses();
-  }
-
-  /**
-   * Outputs owned by this wallet
-   */
-  get ownedOutputs() {
-    return (this.outputUTXOs as (Utxo | PChainUtxo)[]).filter(
-      (utxo: Utxo | PChainUtxo) => {
-        return isOwnedUTXO(utxo, this.addresses);
+      switch (type) {
+        case "ExportTx":
+        case "ImportTx": {
+          return ImportExport;
+        }
+        case "AddDelegatorTx":
+        case "AddPermissionlessDelegatorTx":
+        case "AddValidatorTx":
+        case "AddPermissionlessValidatorTx": {
+          return StakingTx;
+        }
+        default: {
+          return BaseTx;
+        }
       }
-    );
-  }
-
-  get memo(): string | null {
-    // TODO: Is Memo supported
-    return "";
-  }
-
-  get timestamp() {
-    if (isTransactionX(this.transaction) || isTransactionC(this.transaction)) {
-      return this.transaction.timestamp * 1000;
-    } else {
-      return this.transaction.blockTimestamp * 1000;
-    }
-  }
-
-  get time() {
-    return moment(this.timestamp);
-  }
-
-  get timeText(): string {
-    const now = Date.now();
-    const diff = now - new Date(this.timestamp).getTime();
-
-    const dayMs = 1000 * 60 * 60 * 24;
-
-    if (diff > dayMs) {
-      return this.time.format("MMM DD, YYYY");
-    }
-    return this.time.fromNow();
-  }
-
-  get viewComponent() {
-    const type = this.transaction.txType as TransactionTypeName;
-
-    switch (type) {
-      case "ExportTx":
-      case "ImportTx":
-        return ImportExport;
-      case "AddDelegatorTx":
-      case "AddPermissionlessDelegatorTx":
-      case "AddValidatorTx":
-      case "AddPermissionlessValidatorTx":
-        return StakingTx;
-      default:
-        return BaseTx;
-    }
-  }
-}
+    },
+  },
+});
 export default TxHistoryRow;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
 
 .icons {
   justify-self: center;
@@ -198,7 +191,7 @@ export default TxHistoryRow;
   overflow-wrap: break-word;
   word-break: break-word;
   font-size: 12px;
-  color: main.$primary-color-light;
+  color: vars.$primary-color-light;
   display: grid;
   grid-template-columns: max-content 1fr;
   column-gap: 12px;
@@ -233,7 +226,7 @@ export default TxHistoryRow;
   font-size: 0.8em;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .icons {
     justify-self: left;
     img {

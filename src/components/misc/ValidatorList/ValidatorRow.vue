@@ -1,8 +1,10 @@
 <template>
   <tr class="validator_row">
     <td class="id">
-      <p v-if="validator.name" style="font-weight: 600">{{ validator.name }}</p>
-      <p>{{ validator.nodeID }}</p>
+      <p v-if="validator?.name" style="font-weight: 600">
+        {{ validator.name }}
+      </p>
+      <p>{{ validator?.nodeID }}</p>
     </td>
     <td class="amount">{{ amtText }}</td>
     <td class="amount">{{ remainingAmtText }}</td>
@@ -15,68 +17,67 @@
   </tr>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
+import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import { BN } from "@metalblockchain/metaljs";
 import moment from "moment";
-import type { BN } from "@metalblockchain/metaljs";
+import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
-import type { ValidatorListItem } from "@/store/modules/platform/types";
 
-@Component
-export class ValidatorsList extends Vue {
-  @Prop() validator!: ValidatorListItem;
-
-  get remainingMs(): number {
-    const end = this.validator.endTime;
-    const remain = end.getTime() - Date.now();
-    return remain;
-  }
-
-  get remainingTimeText() {
-    const ms = this.remainingMs;
-    const duration = moment.duration(ms, "milliseconds");
-    return duration.humanize(true);
-  }
-
-  get stakeAmt(): BN {
-    return this.validator.validatorStake;
-  }
-
-  get amtText() {
-    const amt = this.stakeAmt;
-    const big = bnToBig(amt, 9);
-    return big.toLocaleString(0);
-  }
-
-  get feeText() {
-    return this.validator.fee;
-  }
-
-  get numDelegators() {
-    return this.validator.numDelegators;
-  }
-
-  get totalDelegated(): BN {
-    return this.validator.delegatedStake;
-  }
-
-  get remainingStake(): BN {
-    return this.validator.remainingStake;
-  }
-
-  get remainingAmtText(): string {
-    const big = bnToBig(this.remainingStake, 9);
-    return big.toLocaleString(0);
-  }
-
-  select() {
-    this.$emit("select", this.validator);
-  }
-}
+export const ValidatorsList = defineComponent({
+  props: {
+    validator: {
+      type: Object as PropType<ValidatorListItem>,
+    },
+  },
+  emits: ["select"],
+  computed: {
+    remainingMs(): number {
+      const end = this.validator?.endTime;
+      if (!end) return 0;
+      const remain = end.getTime() - Date.now();
+      return remain;
+    },
+    remainingTimeText() {
+      const ms = this.remainingMs;
+      const duration = moment.duration(ms, "milliseconds");
+      return duration.humanize(true);
+    },
+    stakeAmt(): BN {
+      return this.validator?.validatorStake ?? new BN(0);
+    },
+    amtText() {
+      const amt = this.stakeAmt;
+      const big = bnToBig(amt, 9);
+      return big.toLocaleString(0);
+    },
+    feeText() {
+      return this.validator?.fee;
+    },
+    numDelegators() {
+      return this.validator?.numDelegators;
+    },
+    totalDelegated(): BN {
+      return this.validator?.delegatedStake ?? new BN(0);
+    },
+    remainingStake(): BN {
+      return this.validator?.remainingStake ?? new BN(0);
+    },
+    remainingAmtText(): string {
+      const big = bnToBig(this.remainingStake, 9);
+      return big.toLocaleString(0);
+    },
+  },
+  methods: {
+    select() {
+      this.$emit("select", this.validator);
+    },
+  },
+});
 export default ValidatorsList;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 
 .amount {
   text-align: right;
@@ -98,7 +99,7 @@ td {
   font-size: 13px;
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   td {
     font-size: 10px !important;
   }

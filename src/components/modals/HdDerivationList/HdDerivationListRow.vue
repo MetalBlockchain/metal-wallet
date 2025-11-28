@@ -5,7 +5,7 @@
       <span>{{ address }}</span>
       &nbsp;
       <!-- TODO Why ledger type doesn't have any action -->
-      <span class="verify" v-if="walletType === 'ledger'" @click="() => {}">
+      <span v-if="walletType === 'ledger'" class="verify" @click="() => {}">
         {{ $t("create.verify") }}
       </span>
     </p>
@@ -22,46 +22,52 @@
 </template>
 
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-import Big from "big.js";
+import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
 import type { WalletType } from "@/js/wallets/types";
+import Big from "big.js";
+import { defineComponent } from "vue";
 
-@Component
-export class HdDerivationListRow extends Vue {
-  @Prop() index!: number;
-  @Prop() path!: number;
-  @Prop() address!: string;
-  @Prop() balance!: DerivationListBalanceDict;
-
-  get cleanBalance(): DerivationListBalanceDict {
-    const res: DerivationListBalanceDict = {};
-    for (const bal in this.balance) {
-      const balance: Big = this.balance[bal];
-      if (balance.gt(Big(0))) {
-        res[bal] = balance;
+export const HdDerivationListRow = defineComponent({
+  props: {
+    index: {
+      type: Number,
+    },
+    path: {
+      type: Number,
+    },
+    address: {
+      type: String,
+    },
+    balance: {
+      type: Object as PropType<DerivationListBalanceDict>,
+    },
+  },
+  computed: {
+    cleanBalance(): DerivationListBalanceDict {
+      const res: DerivationListBalanceDict = {};
+      for (const bal in this.balance) {
+        const balance = this.balance[bal];
+        if (balance?.gt(Big(0))) {
+          res[bal] = balance;
+        }
       }
-    }
-    return res;
-  }
-
-  get noBalance(): boolean {
-    return Object.keys(this.cleanBalance).length === 0;
-  }
-
-  get assetsDict() {
-    return this.$store.state.Assets.assetsDict;
-  }
-
-  get wallet() {
-    return this.$store.state.activeWallet as WalletType;
-  }
-
-  get walletType() {
-    return this.wallet.type;
-  }
-}
+      return res;
+    },
+    noBalance(): boolean {
+      return Object.keys(this.cleanBalance).length === 0;
+    },
+    assetsDict() {
+      return this.$store.state.Assets.assetsDict;
+    },
+    wallet() {
+      return this.$store.state.activeWallet as WalletType;
+    },
+    walletType() {
+      return this.wallet.type;
+    },
+  },
+});
 export default HdDerivationListRow;
 </script>
 <style scoped lang="scss">

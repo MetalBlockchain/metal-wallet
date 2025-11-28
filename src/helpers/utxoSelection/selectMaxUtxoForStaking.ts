@@ -1,19 +1,11 @@
-import {
-  UTXO,
-  UTXOSet,
-} from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import { bintools, pChain } from "@/AVA";
 import { BN } from "@metalblockchain/metaljs";
-import { getCredentialBytes } from "@/helpers/utxoSelection/getCredentialBytes";
+import { Signer } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
+import { PrimaryNetworkID } from "@metalblockchain/metaljs/dist/utils";
 import { getTxSize } from "@/helpers/utxoSelection/getTxSize";
 import { sumUtxos } from "@/helpers/utxoSelection/sumUtxos";
+import { pChain } from "@/misc/AVA";
 import { DUMMY_NODE_ID, MAX_TX_SIZE_P } from "./constants";
-import { PrimaryNetworkID } from "@metalblockchain/metaljs/dist/utils";
-import {
-  PlatformVMConstants,
-  ProofOfPossession,
-  Signer,
-} from "@metalblockchain/metaljs/dist/apis/platformvm";
 
 /**
  * Selects the max number of utxos that will fit in a staking transaction.
@@ -32,10 +24,10 @@ export async function selectMaxUtxoForStaking(
   rewardAddress: string,
   stakeReturnAddr: string,
   changeAddress: string,
-  isAddValidator = true
+  isAddValidator = true,
 ) {
   const stakeAmoutClone = stakeAmount.clone();
-  const start = new Date(new Date().getTime() + 30 * 10000);
+  const start = new Date(Date.now() + 30 * 10_000);
   const end = new Date(start.getTime() + 1200 * 60 * 1000);
   // Convert dates to unix time
   const startTime = new BN(Math.round(start.getTime() / 1000));
@@ -61,7 +53,7 @@ export async function selectMaxUtxoForStaking(
           [rewardAddress],
           1,
           PrimaryNetworkID,
-          new Signer()
+          new Signer(),
         )
       : await pChain.buildAddPermissionlessDelegatorTx(
           tempSet,
@@ -73,7 +65,7 @@ export async function selectMaxUtxoForStaking(
           endTime,
           stakeAmoutClone,
           [rewardAddress],
-          PrimaryNetworkID
+          PrimaryNetworkID,
         );
 
     // What is to total size of the transaction
@@ -94,7 +86,7 @@ export async function selectMaxUtxoForStaking(
       amount: totAmount,
       utxos: result,
     };
-  } catch (e) {
+  } catch {
     return {
       amount: stakeAmount,
       utxos: utxoSet,

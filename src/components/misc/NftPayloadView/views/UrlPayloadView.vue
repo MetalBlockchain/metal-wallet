@@ -4,15 +4,15 @@
     @mouseenter="isHover = true"
     @mouseleave="isHover = false"
   >
-    <img :src="url" @load="isImage = true" v-show="isImage" />
+    <img v-show="isImage" :src="url" @load="isImage = true" />
     <video
-      :src="url"
-      @loadedmetadata="isVideo = true"
       v-show="isVideo"
       :controls="isHover"
+      controlsList="nodownload"
       loop
       muted
-      controlsList="nodownload"
+      :src="url"
+      @loadedmetadata="isVideo = true"
     />
     <div v-if="!isImage && !isVideo" class="unknown">
       <p style="font-size: 2em">
@@ -24,46 +24,55 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
 import type { URLPayload } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
 
-@Component
-export default class UrlPayloadView extends Vue {
-  @Prop() payload!: URLPayload;
+export default defineComponent({
+  props: {
+    payload: {
+      type: Object as PropType<URLPayload>,
+    },
+  },
+  data() {
+    const img_types = [
+      "jpeg",
+      "jpg",
+      "gif",
+      "png",
+      "apng",
+      "svg",
+      "bmp",
+      "ico",
+      "webp",
+    ];
+    return {
+      img_types,
+      valid_types: img_types.concat(["pdf"]),
+      isImage: false,
+      isVideo: false,
+      isHover: false,
+    };
+  },
+  computed: {
+    url() {
+      return this.payload?.getContent().toString() ?? "";
+    },
+    fileType(): string | null {
+      const url = this.url;
 
-  img_types = [
-    "jpeg",
-    "jpg",
-    "gif",
-    "png",
-    "apng",
-    "svg",
-    "bmp",
-    "ico",
-    "webp",
-  ];
-  valid_types = this.img_types.concat(["pdf"]);
-  isImage = false;
-  isVideo = false;
-  isHover = false;
-  get url() {
-    return this.payload.getContent().toString();
-  }
+      const split = url.split(".");
 
-  get fileType(): string | null {
-    const url = this.url;
+      // Couldn't find extension
+      if (split.length === 1) return null;
 
-    const split = url.split(".");
+      const extension = split.at(-1);
 
-    // Couldn't find extension
-    if (split.length === 1) return null;
-
-    const extension: string = split[split.length - 1];
-
-    if (!this.valid_types.includes(extension)) return null;
-    return extension;
-  }
-}
+      if (!extension || !this.valid_types.includes(extension)) return null;
+      return extension;
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .url_payload_view {

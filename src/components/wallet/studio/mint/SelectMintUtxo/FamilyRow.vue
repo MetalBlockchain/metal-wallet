@@ -2,9 +2,9 @@
   <div class="family">
     <div class="previews">
       <NftFamilyCardsPreview
-        :utxos="groupUtxos"
-        :spread="isHover"
         :max="maxReviewItems"
+        :spread="isHover"
+        :utxos="groupUtxos"
       ></NftFamilyCardsPreview>
       <div v-if="groupUtxos.length === 0" class="group_preview empty_card">
         <p><fa icon="plus"></fa></p>
@@ -16,91 +16,92 @@
       @mouseenter="mouseEnter"
       @mouseleave="mouseLeave"
     >
-      <p class="name">{{ family.name }}</p>
-      <p class="symbol">{{ family.symbol }}</p>
+      <p class="name">{{ family?.name }}</p>
+      <p class="symbol">{{ family?.symbol }}</p>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
-import type { AvaNftFamily } from "../../../../../js/AvaNftFamily";
-import type { IWalletNftMintDict } from "@/store/types";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import type { PropType } from "vue";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
+import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import NftFamilyCardsPreview from "@/components/misc/NftFamilyCardsPreview.vue";
-@Component({
-  components: { NftFamilyCardsPreview, NftPayloadView },
-})
-export class FamilyRow extends Vue {
-  @Prop() family!: AvaNftFamily;
 
-  maxReviewItems = 14;
+export const FamilyRow = defineComponent({
+  components: { NftFamilyCardsPreview },
+  props: {
+    family: {
+      type: Object as PropType<AvaNftFamily>,
+    },
+  },
+  emits: ["select"],
+  data() {
+    return {
+      maxReviewItems: 14,
+      isHover: false,
+    };
+  },
+  computed: {
+    mintUtxos() {
+      return this.nftMintDict[this.family?.id ?? 0];
+    },
+    nftMintDict(): IWalletNftMintDict {
+      // return this.$store.getters.walletNftMintDict
+      return this.$store.getters["Assets/nftMintDict"];
+    },
+    nftUtxoDict(): IWalletNftMintDict {
+      // return this.$store.getters.walletNftDict
+      return this.$store.getters["Assets/walletNftDict"];
+    },
+    nftUtxos(): UTXO[] {
+      const id = this.family?.id;
+      return id && this.nftUtxoDict ? (this.nftUtxoDict[id] ?? []) : [];
+    },
+    groupUtxos() {
+      const utxos = this.nftUtxos;
+      const ids: number[] = [];
 
-  isHover = false;
-  mouseEnter() {
-    this.isHover = true;
-  }
-  mouseLeave() {
-    this.isHover = false;
-  }
+      const filtered = utxos.filter((utxo) => {
+        const groupId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
 
-  get mintUtxos() {
-    return this.nftMintDict[this.family.id];
-  }
+        if (ids.includes(groupId)) {
+          return false;
+        } else {
+          ids.push(groupId);
+          return true;
+        }
+      });
 
-  get nftMintDict(): IWalletNftMintDict {
-    // return this.$store.getters.walletNftMintDict
-    return this.$store.getters["Assets/nftMintDict"];
-  }
+      // order by group id
+      filtered.sort((a, b) => {
+        const gA = (a.getOutput() as NFTTransferOutput).getGroupID();
+        const gB = (b.getOutput() as NFTTransferOutput).getGroupID();
+        return gA - gB;
+      });
 
-  get nftUtxoDict(): IWalletNftMintDict {
-    // return this.$store.getters.walletNftDict
-    return this.$store.getters["Assets/walletNftDict"];
-  }
-
-  // return utxos belonging to this family
-  get nftUtxos(): UTXO[] {
-    return this.nftUtxoDict[this.family.id] || [];
-  }
-
-  // Return 1 of each group
-  get groupUtxos() {
-    const utxos = this.nftUtxos;
-    const ids: number[] = [];
-
-    const filtered = utxos.filter((utxo) => {
-      const groupId = (utxo.getOutput() as NFTTransferOutput).getGroupID();
-
-      if (ids.includes(groupId)) {
-        return false;
-      } else {
-        ids.push(groupId);
-        return true;
-      }
-    });
-
-    // order by group id
-    filtered.sort((a, b) => {
-      const gA = (a.getOutput() as NFTTransferOutput).getGroupID();
-      const gB = (b.getOutput() as NFTTransferOutput).getGroupID();
-      return gA - gB;
-    });
-
-    return filtered.slice(0, this.maxReviewItems);
-  }
-
-  select() {
-    this.$emit("select", this.mintUtxos[0]);
-  }
-}
+      return filtered.slice(0, this.maxReviewItems);
+    },
+  },
+  methods: {
+    mouseEnter() {
+      this.isHover = true;
+    },
+    mouseLeave() {
+      this.isHover = false;
+    },
+    select() {
+      this.$emit("select", this.mintUtxos?.at(0));
+    },
+  },
+});
 export default FamilyRow;
 </script>
 <style scoped lang="scss">
-@use "../../../../../main";
-
 .family {
   margin-top: 24px;
   //border: 1px solid var(--bg-light);

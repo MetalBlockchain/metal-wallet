@@ -1,34 +1,34 @@
 <template>
   <div class="access_card">
     <h1>{{ $t("access.title") }}</h1>
-    <router-link to="/create" class="link">{{
+    <router-link class="link" to="/create">{{
       $t("access.create")
     }}</router-link>
     <div class="menus">
       <AccountsFound class="accounts_menu"></AccountsFound>
       <div class="options">
-        <router-link to="/access/privatekey" class="menu_option button_primary">
+        <router-link class="menu_option button_primary" to="/access/privatekey">
           {{ $t("access.but_private_key") }}
           <ImageDayNight
             day="/img/access_icons/day/privatekey.svg"
             night="/img/access_icons/night/privatekey.svg"
           ></ImageDayNight>
         </router-link>
-        <router-link to="/access/mnemonic" class="menu_option button_primary">
+        <router-link class="menu_option button_primary" to="/access/mnemonic">
           {{ $t("access.but_mnemonic") }}
           <ImageDayNight
             day="/img/access_icons/day/mnemonic.svg"
             night="/img/access_icons/night/mnemonic.svg"
           ></ImageDayNight>
         </router-link>
-        <router-link to="/access/keystore" class="menu_option button_primary">
+        <router-link class="menu_option button_primary" to="/access/keystore">
           {{ $t("access.but_keystore") }}
           <ImageDayNight
             day="/img/access_icons/day/keystore.svg"
             night="/img/access_icons/night/keystore.svg"
           ></ImageDayNight>
         </router-link>
-        <router-link to="/access/xpub" class="menu_option button_primary">
+        <router-link class="menu_option button_primary" to="/access/xpub">
           XPUB (Readonly)
           <span><fa icon="glasses"></fa></span>
         </router-link>
@@ -37,29 +37,29 @@
     </div>
 
     <ToS style="margin: 20px !important"></ToS>
-    <router-link to="/" class="link">{{ $t("access.cancel") }}</router-link>
+    <router-link class="link" to="/">{{ $t("access.cancel") }}</router-link>
   </div>
 </template>
 
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 import AccountsFound from "@/components/Access/AccountsFound.vue";
-import ToS from "@/components/misc/ToS.vue";
 import ImageDayNight from "@/components/misc/ImageDayNight.vue";
+import ToS from "@/components/misc/ToS.vue";
 
-@Component({
+export default defineComponent({
   components: {
     ImageDayNight,
     ToS,
     AccountsFound,
   },
-})
-export default class Menu extends Vue {}
+});
 </script>
 
 <style scoped lang="scss">
-@use "../../main";
-@use "/src/components/Access/menu";
+@use "@/styles/abstracts/vars";
+@use "@/styles/abstracts/mixins";
+@use "@/components/Access/menu";
 
 .access_card {
   margin: 0px auto;
@@ -69,13 +69,13 @@ export default class Menu extends Vue {}
 }
 
 img {
-  width: main.$img-size;
-  height: main.$img-size;
-  margin-bottom: main.$vertical-padding;
+  width: vars.$img-size;
+  height: vars.$img-size;
+  margin-bottom: vars.$vertical-padding;
 }
 
 h1 {
-  font-size: main.$l-size;
+  font-size: vars.$l-size;
   font-weight: 700;
   color: var(--tertiary-color);
   margin-bottom: 24px;
@@ -83,8 +83,8 @@ h1 {
 
 hr {
   max-width: 67% !important;
-  margin: main.$vertical-padding auto 0;
-  color: main.$primary-color-light;
+  margin: vars.$vertical-padding auto 0;
+  color: vars.$primary-color-light;
   opacity: 0.2;
 }
 
@@ -117,19 +117,19 @@ hr {
   margin-top: 1em;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   img {
-    width: main.$img-size-mobile;
-    height: main.$img-size-mobile;
-    margin-bottom: main.$vertical-padding-mobile;
+    width: vars.$img-size-mobile;
+    height: vars.$img-size-mobile;
+    margin-bottom: vars.$vertical-padding-mobile;
   }
 
   h1 {
-    font-size: main.$l-size-mobile;
+    font-size: vars.$l-size-mobile;
   }
 
   .card {
-    padding: main.$container-padding-mobile;
+    padding: vars.$container-padding-mobile;
   }
 
   .options {

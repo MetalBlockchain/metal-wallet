@@ -1,7 +1,7 @@
 <template>
   <div class="fungibles_view">
     <AddERC20TokenModal ref="add_token_modal"></AddERC20TokenModal>
-    <TokenListModal ref="tokenlist_modal"></TokenListModal>
+    <TokenListModal ref="token_list_modal"></TokenListModal>
     <div class="headers">
       <p class="name_col">{{ $t("portfolio.name") }}</p>
       <p></p>
@@ -15,18 +15,18 @@
       <div v-if="walletBalances.length === 0" class="empty">
         <p>{{ $t("portfolio.nobalance") }}</p>
       </div>
-      <div class="scrollable no_scroll_bar" v-else>
+      <div v-else class="scrollable no_scroll_bar">
         <div class="scrollabe_cont">
           <fungible-row
-            class="asset"
             v-for="asset in walletBalances"
             :key="asset.id"
             :asset="asset"
+            class="asset"
           ></fungible-row>
           <ERC20Row
-            class="asset"
             v-for="erc in erc20Balances"
             :key="erc.data.address"
+            class="asset"
             :token="erc"
           ></ERC20Row>
           <div class="asset add_token_row">
@@ -40,123 +40,112 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component, Prop } from "vue-property-decorator";
-
-import FaucetLink from "@/components/misc/FaucetLink.vue";
-import FungibleRow from "@/components/wallet/portfolio/FungibleRow.vue";
 import type AvaAsset from "@/js/AvaAsset";
 import type Erc20Token from "@/js/Erc20Token";
-import ERC20Row from "@/components/wallet/portfolio/ERC20Row.vue";
+import { defineComponent } from "vue";
 import AddERC20TokenModal from "@/components/modals/AddERC20TokenModal.vue";
 import TokenListModal from "@/components/modals/TokenList/TokenListModal.vue";
+import ERC20Row from "@/components/wallet/portfolio/ERC20Row.vue";
+import FungibleRow from "@/components/wallet/portfolio/FungibleRow.vue";
 
-@Component({
+export const Fungibles = defineComponent({
   components: {
     TokenListModal,
     AddERC20TokenModal,
     ERC20Row,
-    FaucetLink,
     FungibleRow,
   },
-})
-export class Fungibles extends Vue {
-  @Prop() search!: string;
+  props: {
+    search: {
+      type: String,
+    },
+  },
+  computed: {
+    networkStatus(): string {
+      const stat = this.$store.state.Network.status;
+      return stat;
+    },
+    walletBalancesSorted(): AvaAsset[] {
+      // let balance: AvaAsset[] = this.$store.getters['walletAssetsArray']
+      const balance: AvaAsset[] =
+        this.$store.getters["Assets/walletAssetsArray"];
 
-  $refs!: {
-    add_token_modal: AddERC20TokenModal;
-    tokenlist_modal: TokenListModal;
-  };
+      // Sort by balance, then name
+      balance.sort((a, b) => {
+        const symbolA = a.symbol.toUpperCase();
+        const symbolB = b.symbol.toUpperCase();
+        const amtA = a.getAmount();
+        const amtB = b.getAmount();
+        const idA = a.id;
+        const idB = b.id;
 
-  get networkStatus(): string {
-    const stat = this.$store.state.Network.status;
-    return stat;
-  }
-
-  addToken() {
-    this.$refs.add_token_modal.open();
-  }
-
-  addTokenList() {
-    this.$refs.tokenlist_modal.open();
-  }
-
-  get walletBalancesSorted(): AvaAsset[] {
-    // let balance: AvaAsset[] = this.$store.getters['walletAssetsArray']
-    const balance: AvaAsset[] = this.$store.getters["Assets/walletAssetsArray"];
-
-    // Sort by balance, then name
-    balance.sort((a, b) => {
-      const symbolA = a.symbol.toUpperCase();
-      const symbolB = b.symbol.toUpperCase();
-      const amtA = a.getAmount();
-      const amtB = b.getAmount();
-      const idA = a.id;
-      const idB = b.id;
-
-      // AVA always on top
-      if (idA === this.avaxToken.id) {
-        return -1;
-      } else if (idB === this.avaxToken.id) {
-        return 1;
-      }
-
-      if (amtA.gt(amtB)) {
-        return -1;
-      } else if (amtA.lt(amtB)) {
-        return 1;
-      }
-
-      if (symbolA < symbolB) {
-        return -1;
-      } else if (symbolA > symbolB) {
-        return 1;
-      }
-      return 0;
-    });
-
-    return balance;
-  }
-
-  get avaxToken(): AvaAsset {
-    return this.$store.getters["Assets/AssetAVA"];
-  }
-
-  get erc20Balances(): Erc20Token[] {
-    const tokens: Erc20Token[] =
-      this.$store.getters["Assets/networkErc20Tokens"];
-    const filt = tokens.filter((token) => {
-      if (token.balanceBN.isZero()) return false;
-      return true;
-    });
-    return filt;
-  }
-
-  get walletBalances(): AvaAsset[] {
-    let balance = this.walletBalancesSorted;
-
-    if (this.search) {
-      balance = balance.filter((val) => {
-        const query = this.search.toUpperCase();
-
-        const nameUp = val.name.toUpperCase();
-        const symbolUp = val.symbol.toUpperCase();
-
-        if (nameUp.includes(query) || symbolUp.includes(query)) {
-          return true;
-        } else {
-          return false;
+        // AVA always on top
+        if (idA === this.avaxToken.id) {
+          return -1;
+        } else if (idB === this.avaxToken.id) {
+          return 1;
         }
-      });
-    }
 
-    return balance;
-  }
-}
+        if (amtA.gt(amtB)) {
+          return -1;
+        } else if (amtA.lt(amtB)) {
+          return 1;
+        }
+
+        if (symbolA < symbolB) {
+          return -1;
+        } else if (symbolA > symbolB) {
+          return 1;
+        }
+        return 0;
+      });
+
+      return balance;
+    },
+    avaxToken(): AvaAsset {
+      return this.$store.getters["Assets/AssetAVA"];
+    },
+    erc20Balances(): Erc20Token[] {
+      const tokens: Erc20Token[] =
+        this.$store.getters["Assets/networkErc20Tokens"];
+      const filt = tokens.filter((token) => {
+        if (token.balanceBN.isZero()) return false;
+        return true;
+      });
+      return filt;
+    },
+    walletBalances(): AvaAsset[] {
+      let balance = this.walletBalancesSorted;
+
+      if (this.search) {
+        balance = balance.filter((val) => {
+          const query = this.search?.toUpperCase() ?? "";
+
+          const nameUp = val.name.toUpperCase();
+          const symbolUp = val.symbol.toUpperCase();
+
+          return nameUp.includes(query) || symbolUp.includes(query)
+            ? true
+            : false;
+        });
+      }
+
+      return balance;
+    },
+  },
+  methods: {
+    addToken() {
+      (this.$refs.add_token_modal as typeof AddERC20TokenModal).open();
+    },
+    addTokenList() {
+      (this.$refs.token_list_modal as typeof TokenListModal).open();
+    },
+  },
+});
 export default Fungibles;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 @use "./portfolio";
 
 .fungibles_view {
@@ -229,7 +218,7 @@ export default Fungibles;
   white-space: nowrap;
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .headers,
   .asset {
     grid-template-columns: 50px 1fr 1fr 50px;
@@ -262,14 +251,14 @@ export default Fungibles;
   }
 }
 
-@include main.medium-device {
+@include mixins.medium-device {
   .headers {
     padding: 12px 0;
   }
 }
 </style>
 <style lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 .fungibles_view {
   .balance_col {
     text-align: right;
@@ -292,7 +281,7 @@ export default Fungibles;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .fungibles_view {
     .headers,
     .asset {

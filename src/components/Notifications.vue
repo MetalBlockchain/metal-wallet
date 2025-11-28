@@ -1,7 +1,7 @@
 <template>
   <div class="notifications">
     <transition-group name="list">
-      <div class="notif_item" v-for="notif in items" :key="notif.id">
+      <div v-for="notif in items" :key="notif.id" class="notif_item">
         <p
           class="notif_title"
           :style="{
@@ -16,15 +16,15 @@
   </div>
 </template>
 <script lang="ts">
-import "reflect-metadata";
-import { Vue, Component } from "vue-property-decorator";
+import { defineComponent } from "vue";
 
-@Component
-export class Notifications extends Vue {
-  get items() {
-    return this.$store.state.Notifications.items;
-  }
-}
+export const Notifications = defineComponent({
+  computed: {
+    items() {
+      return this.$store.state.Notifications.items;
+    },
+  },
+});
 export default Notifications;
 </script>
 

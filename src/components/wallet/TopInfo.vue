@@ -4,25 +4,29 @@
     <address-card class="top_card addr_card"></address-card>
   </div>
 </template>
-<script>
-import BalanceCard from "./TopCards/BalanceCard/BalanceCard.vue";
+<script lang="ts">
+import { defineComponent } from "vue";
 import AddressCard from "./TopCards/AddressCard/AddressCard.vue";
+import BalanceCard from "./TopCards/BalanceCard/BalanceCard.vue";
 
-export default {
+export const TopInfo = defineComponent({
   components: {
     BalanceCard,
     AddressCard,
   },
-};
+});
+export default TopInfo;
 </script>
 <style scoped lang="scss">
-@use "../../main";
+@use "@/styles/abstracts/mixins";
+@use "@/styles/abstracts/vars";
 
 .top_cards {
   display: grid;
   grid-template-columns: 1fr 360px;
   grid-gap: 15px;
 }
+
 .top_card {
   flex-grow: 1;
   color: var(--primary-color);
@@ -37,11 +41,6 @@ export default {
   animation-timing-function: ease-out;
 }
 
-.balance_card {
-}
-
-.addr_card {
-}
 .card_left {
   background-color: #f4efff;
   flex-basis: 70px;
@@ -67,7 +66,7 @@ export default {
 }
 
 .top_card h4 {
-  color: main.$primary-color;
+  color: vars.$primary-color;
   font-weight: bold;
   text-align: left;
 }
@@ -103,25 +102,18 @@ export default {
   object-fit: contain;
 }
 
-@media only screen and (max-width: main.$mobile_width) {
-}
-
-@include main.medium-device {
+@include mixins.medium-device {
   .top_cards {
     grid-template-columns: 1fr 320px;
     grid-gap: 9px;
   }
 }
 
-@include main.mobile-device {
+@include mixins.mobile-device {
   .top_cards {
     grid-template-columns: none;
     grid-template-rows: min-content;
     grid-gap: 9px;
-  }
-
-  .top_card {
-    /*padding: ;*/
   }
 
   .balance_card {

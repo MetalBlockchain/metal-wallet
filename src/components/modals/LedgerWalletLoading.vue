@@ -1,5 +1,5 @@
 <template>
-  <modal ref="modal" title="Loading Wallet" :can_close="false">
+  <modal ref="modal" :can-close="false" title="Loading Wallet">
     <div class="ledger_loading_body">
       <Spinner style="font-size: 1.5em; margin-bottom: 1em"></Spinner>
       <p>Please wait while we load your wallet information.</p>
@@ -7,36 +7,36 @@
   </modal>
 </template>
 <script lang="ts">
-import { Vue, Component, Watch } from "vue-property-decorator";
-import Modal from "@/components/modals/Modal.vue";
+import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
-@Component({
-  components: { Spinner, Modal },
-})
-export default class LedgerWalletLoading extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
-  get isActive() {
-    return this.$store.state.Ledger.isWalletLoading;
-  }
+import Modal from "@/components/modals/Modal.vue";
 
+export default defineComponent({
+  components: { Spinner, Modal },
+  computed: {
+    isActive() {
+      return this.$store.state.Ledger.isWalletLoading;
+    },
+  },
+  watch: {
+    isActive: [{ immediate: true, handler: "onActive" }],
+  },
   mounted() {
     if (this.isActive) {
-      this.$refs.modal.open();
+      (this.$refs.modal as typeof Modal).open();
     }
-  }
-
-  @Watch("isActive", { immediate: true })
-  onActive(val: boolean): void {
-    if (!this.$refs.modal) return;
-    if (val) {
-      this.$refs.modal.open();
-    } else {
-      this.$refs.modal.close();
-    }
-  }
-}
+  },
+  methods: {
+    onActive(val: boolean): void {
+      if (!this.$refs.modal) return;
+      if (val) {
+        (this.$refs.modal as typeof Modal).open();
+      } else {
+        (this.$refs.modal as typeof Modal).close();
+      }
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .ledger_loading_body {

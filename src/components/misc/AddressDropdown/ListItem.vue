@@ -7,7 +7,7 @@
     </div>
   </li>
 </template>
-<script>
+<script lang="ts">
 export default {
   props: {
     index: Number,

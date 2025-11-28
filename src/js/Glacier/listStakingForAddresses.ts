@@ -1,15 +1,15 @@
-import { ava } from "@/AVA";
-import { isMainnetNetworkID } from "@/store/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/store/modules/network/isTestnetNetworkID";
+import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 import type { ListStakingParams } from "@/js/Glacier/models";
+import { Network, PChainId, SortOrder } from "@metalblockchain/glacier-sdk";
 import { splitToParts } from "@/js/Glacier/utils";
+import { ava } from "@/misc/AVA";
+import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
 import { filterDuplicateGlacierTxs } from "./filterDuplicateGlacierTxs";
 import Glacier from "./Glacier";
-import { Network, PChainId, SortOrder } from "@metalblockchain/glacier-sdk";
-import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 
 export async function listStakingForAddresses(addrs: string[]) {
-  if (!addrs.length) return [];
+  if (addrs.length === 0) return [];
 
   const netID = ava.getNetworkID();
 
@@ -22,7 +22,7 @@ export async function listStakingForAddresses(addrs: string[]) {
   const addrParts = splitToParts<string>(addrs, addressLimit);
 
   async function fetchAll(
-    config: ListStakingParams
+    config: ListStakingParams,
   ): Promise<PChainTransaction[]> {
     // const res = await GlacierService.listStaking(config)
     const res =
@@ -30,7 +30,7 @@ export async function listStakingForAddresses(addrs: string[]) {
         {
           ...config,
           addresses: config.addresses.join(","),
-        }
+        },
       );
 
     if (res.nextPageToken) {

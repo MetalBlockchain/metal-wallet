@@ -9,15 +9,15 @@
       @mouseleave="isHover = false"
     >
       <div class="generic_view">
-        <img :src="img" @load="isImage = true" v-show="isImage" />
+        <img v-show="isImage" :src="img" @load="isImage = true" />
         <video
-          :src="img"
-          @loadedmetadata="onVideoMeta"
           v-show="isVideo"
           :controls="isHover"
+          controlsList="nodownload"
           loop
           muted
-          controlsList="nodownload"
+          :src="img"
+          @loadedmetadata="onVideoMeta"
         />
       </div>
     </div>
@@ -27,68 +27,79 @@
   </div>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import type { JSONPayload } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
 import type { IGenericNft } from "@/components/wallet/studio/mint/types";
+import { defineComponent } from "vue";
 
-@Component
-export class UtfPayloadView extends Vue {
-  $refs!: {
-    image: HTMLImageElement;
-    video: HTMLVideoElement;
-  };
-  @Prop() payload!: JSONPayload;
-
-  isVideo = false;
-  isImage = false;
-  isAudio = false;
-
-  isError = false;
-  jsonData: IGenericNft | null = null;
-  isHover = false;
-
-  get content(): string {
-    return this.payload.getContent().toString();
-  }
-
-  get desc() {
-    return this.jsonData?.desc;
-  }
-
-  get img() {
-    return this.jsonData?.img;
-  }
-
-  get title() {
-    return this.jsonData?.title;
-  }
-
-  onVideoMeta(ev: any) {
-    this.isVideo = true;
-  }
-
+export const UtfPayloadView = defineComponent({
+  props: {
+    payload: {
+      type: Object as PropType<JSONPayload>,
+    },
+  },
+  data(): {
+    isVideo: boolean;
+    isImage: boolean;
+    isAudio: boolean;
+    isError: boolean;
+    jsonData: IGenericNft | null;
+    isHover: boolean;
+  } {
+    const jsonData: IGenericNft | null = null;
+    return {
+      isVideo: false,
+      isImage: false,
+      isAudio: false,
+      isError: false,
+      jsonData,
+      isHover: false,
+    };
+  },
+  computed: {
+    content(): string {
+      return this.payload?.getContent().toString() ?? "";
+    },
+    desc() {
+      return this.jsonData?.desc;
+    },
+    img() {
+      return this.jsonData?.img;
+    },
+    title() {
+      return this.jsonData?.title;
+    },
+  },
+  watch: {
+    payload: [
+      {
+        handler: "onPayloadChange",
+      },
+    ],
+  },
   mounted() {
     try {
       this.jsonData = JSON.parse(this.content).avalanche;
-    } catch (e) {
+    } catch {
       this.isError = true;
     }
-  }
-
-  @Watch("payload")
-  onPayloadChange(val: JSONPayload) {
-    try {
-      this.jsonData = JSON.parse(this.content).avalanche;
-    } catch (e) {
-      this.isError = true;
-    }
-  }
-}
+  },
+  methods: {
+    onVideoMeta(_: any) {
+      this.isVideo = true;
+    },
+    onPayloadChange(_: JSONPayload) {
+      try {
+        this.jsonData = JSON.parse(this.content).avalanche;
+      } catch {
+        this.isError = true;
+      }
+    },
+  },
+});
 export default UtfPayloadView;
 </script>
 <style scoped lang="scss">
-@use "../../../../main";
-
 .generic_payload_view {
   position: relative;
 }
@@ -137,8 +148,5 @@ video {
 .desc {
   margin-top: 4px;
   font-size: 13px;
-}
-
-@include main.mobile-device {
 }
 </style>

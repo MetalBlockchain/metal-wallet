@@ -1,9 +1,9 @@
 <template>
   <modal
     ref="modal"
-    title="Account Settings"
     class="modal_main"
-    @beforeClose="clear"
+    title="Account Settings"
+    @before-close="clear"
   >
     <div class="modal_body">
       <div class="header">
@@ -22,85 +22,81 @@
         </p>
       </div>
 
-      <div class="options" v-if="!subComponent">
+      <div v-if="!subComponent" class="options">
         <button
           v-if="hasVolatile"
-          @click="saveKeys"
           class="ava_button"
           style="color: var(--warning)"
+          @click="saveKeys"
         >
           <fa icon="exclamation-triangle"></fa>
           Save Keys
         </button>
-        <button @click="changePassword" class="ava_button">
+        <button class="ava_button" @click="changePassword">
           Change Password
         </button>
-        <button @click="deleteAccount" class="ava_button">
+        <button class="ava_button" @click="deleteAccount">
           Delete Account
         </button>
       </div>
       <template v-else>
-        <component v-if="subComponent" :is="subComponent"></component>
+        <component :is="subComponent" v-if="subComponent"></component>
         <button @click="clear">Cancel</button>
       </template>
     </div>
   </modal>
 </template>
 <script lang="ts">
-import { Vue, Component } from "vue-property-decorator";
-
-import Modal from "@/components/modals/Modal.vue";
+import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
-import type { iUserAccountEncrypted } from "@/store/types";
 import ChangePassword from "@/components/modals/AccountSettings/ChangePassword.vue";
 import DeleteAccount from "@/components/modals/AccountSettings/DeleteAccount.vue";
 import SaveKeys from "@/components/modals/AccountSettings/SaveKeys.vue";
+import Modal from "@/components/modals/Modal.vue";
 
-@Component({
+export const AccountSettingsModal = defineComponent({
   components: {
     ChangePassword,
     Identicon,
     Modal,
   },
-})
-export class AccountSettingsModal extends Vue {
-  $refs!: {
-    modal: Modal;
-  };
+  data() {
+    const subComponent: any = null;
 
-  subComponent: any = null;
-
-  get account(): iUserAccountEncrypted | undefined {
-    return this.$store.getters["Accounts/account"];
-  }
-  open() {
-    this.$refs.modal.open();
-  }
-
-  close() {
-    this.$refs.modal.close();
-  }
-
-  clear() {
-    this.subComponent = null;
-  }
-
-  changePassword() {
-    this.subComponent = ChangePassword;
-  }
-
-  deleteAccount() {
-    this.subComponent = DeleteAccount;
-  }
-
-  saveKeys() {
-    this.subComponent = SaveKeys;
-  }
-
-  get hasVolatile() {
-    return this.$store.state.volatileWallets.length > 0;
-  }
-}
+    return {
+      subComponent,
+    };
+  },
+  computed: {
+    account(): iUserAccountEncrypted | undefined {
+      return this.$store.getters["Accounts/account"];
+    },
+    hasVolatile() {
+      return this.$store.state.volatileWallets.length > 0;
+    },
+  },
+  methods: {
+    open() {
+      (this.$refs.modal as typeof Modal).open();
+    },
+    close() {
+      (this.$refs.modal as typeof Modal).close();
+    },
+    clear() {
+      this.subComponent = null;
+    },
+    changePassword() {
+      this.subComponent = ChangePassword;
+    },
+    deleteAccount() {
+      this.subComponent = DeleteAccount;
+    },
+    saveKeys() {
+      this.subComponent = SaveKeys;
+    },
+  },
+});
 export default AccountSettingsModal;
 </script>
 

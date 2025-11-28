@@ -1,11 +1,11 @@
 <template>
-  <div v-if="hasBalance || !family.canSupport">
+  <div v-if="hasBalance || !family?.canSupport">
     <div class="fam_header">
-      <p class="name">{{ family.name }}</p>
-      <p class="symbol">{{ family.symbol }}</p>
-      <p class="fam_id">{{ family.contractAddress }}</p>
+      <p class="name">{{ family?.name }}</p>
+      <p class="symbol">{{ family?.symbol }}</p>
+      <p class="fam_id">{{ family?.contractAddress }}</p>
     </div>
-    <div class="list" v-if="family.canSupport">
+    <div v-if="family?.canSupport" class="list">
       <ERC721View
         v-for="tokenIndex in walletBalance"
         :key="tokenIndex"
@@ -20,27 +20,31 @@
   </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from "vue-property-decorator";
+import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import { defineComponent } from "vue";
 import ERC721View from "@/components/wallet/portfolio/ERC721Card.vue";
-@Component({
+
+export const ERC721FamilyRow = defineComponent({
   components: { ERC721View },
-})
-export class ERC721FamilyRow extends Vue {
-  @Prop() family!: ERC721Token;
-
-  get walletBalance(): string[] {
-    return (
-      this.$store.state.Assets.ERC721.walletBalance[
-        this.family.contractAddress
-      ] || []
-    );
-  }
-
-  get hasBalance() {
-    return this.walletBalance.length > 0;
-  }
-}
+  props: {
+    family: {
+      type: Object as PropType<ERC721Token>,
+    },
+  },
+  computed: {
+    walletBalance(): string[] {
+      return this.family
+        ? this.$store.state.Assets.ERC721.walletBalance[
+            this.family.contractAddress
+          ] || []
+        : [];
+    },
+    hasBalance() {
+      return this.walletBalance.length > 0;
+    },
+  },
+});
 export default ERC721FamilyRow;
 </script>
 <style scoped lang="scss">
