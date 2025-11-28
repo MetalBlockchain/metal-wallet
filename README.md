@@ -16,20 +16,20 @@ This template should help get you started developing with Vue 3 in Vite.
 
 1. Clone the repo `git clone https://github.com/MetalBlockchain/metal-wallet.git`
 2. Go to root of the project `cd metal-wallet`
-3. Install javascript dependencies with `npm install`.
+3. Install javascript dependencies with `yarn`.
 ## Running The Project
 
 In order for the wallet to work, it needs the Metal network to operate on. By default the wallet will connect to the Metal mainnet.
 
 1. If you want to connect to a local network, make sure you have installed and able to run a MetalGo node properly.
-2. Run the project with hot reloading `npm run dev`
+2. Run the project with hot reloading `yarn dev`
 
 When you go to the website on your browser, you might get a warning saying
 "Site is not secure". This is because we are signing our own SSL Certificates. Please ignore and continue to the website.
 
 ## Deployment
 
-1.  Compile and minify to have a production ready application with `npm run build`.
+1.  Compile and minify to have a production ready application with `yarn build`.
 2.  Serve from the `/dist` directory.
 
 ## Changing the Network
@@ -99,18 +99,18 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 ## Project Setup
 
 ```sh
-npm install
+yarn
 ```
 
 ### Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+yarn dev
 ```
 
 ### Type-Check, Compile and Minify for Production
 
 ```sh
-npm run build
+yarn build
 ```
 
