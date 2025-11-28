@@ -20,32 +20,24 @@ jobs:
               with:
                   node-version: ${{ matrix.node }}
 
-            # This should be caching node modules, hashing the cache key with the yarn lock code and busting that when yarn lock changes
-            - name: cache modules
-              uses: actions/cache@v4
-              with:
-                  path: '**/node_modules'
-                  key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-            - run: sudo npm install -g yarn
             - name: Create .npmrc
               run: echo '//registry.npmjs.org/:_authToken= ${{ secrets.NPM_TOKEN }}' >> .npmrc
-            - run: yarn install --network-timeout 1000000
+            - run: npm ci --network-timeout 1000000
               env:
                   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
 
             - name: linting
-              run: yarn run lint
+              run: npm run lint
 
             - name: unit-tests
-              run: yarn test:unit
+              run: npm test:unit
 
             - name: cypress-run
               uses: cypress-io/github-action@v2
               env:
                   USE_HTTP: true
               with:
-                  start: yarn test:e2e:ci
+                  start: npm run test:e2e:ci
                   wait-on: 'http://localhost:4173/'
                   # wait for 3 minutes for the server to respond
                   wait-on-timeout: 300
