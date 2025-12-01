@@ -80,4 +80,5 @@ function updateWalletBalanceC() {
   wallet.getEthBalance();
 }
 
+// eslint-disable-next-line import/no-mutable-exports
 export let socketEVM: ethers.providers.WebSocketProvider;

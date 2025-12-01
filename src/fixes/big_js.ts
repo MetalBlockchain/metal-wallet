@@ -4,6 +4,7 @@ import Big from "big.js";
 // Adding toLocaleString method for big.js
 declare module "big.js" {
   interface Big {
+    // eslint-disable-next-line @typescript-eslint/method-signature-style
     toLocaleString(toFixed?: number): string;
   }
 }
@@ -19,10 +20,10 @@ Big.prototype.toLocaleString = function (toFixed = 9) {
     let remainderStr = split[1];
 
     // remove trailing 0s
-    let lastChar = remainderStr.charAt(remainderStr.length - 1);
+    let lastChar = remainderStr.at(-1);
     while (lastChar === "0") {
       remainderStr = remainderStr.slice(0, Math.max(0, remainderStr.length - 1));
-      lastChar = remainderStr.charAt(remainderStr.length - 1);
+      lastChar = remainderStr.at(-1);
     }
 
     const trimmed = remainderStr.slice(0, Math.max(0, toFixed));

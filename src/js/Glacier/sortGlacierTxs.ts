@@ -10,6 +10,7 @@ export function sortGlacierTxs(
   txs: TransactionType[],
   sortOrder: SortOrder = SortOrder.DESC,
 ) {
+  // eslint-disable-next-line unicorn/no-array-sort
   return txs.sort((a, b) => {
     const timeA =
       (a as XChainTransaction | CChainTransaction).timestamp ||

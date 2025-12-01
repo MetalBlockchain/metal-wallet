@@ -15,6 +15,7 @@ export function getCredentialBytes(tx: UnsignedTxX | UnsignedTxP) {
   let credsSize = 0;
   tx.getTransaction()
     .getIns()
+    // eslint-disable-next-line unicorn/no-array-for-each
     .forEach((input: TransferableInputX | TransferableInputP) => {
       const numSigs = input.getInput().getSigIdxs().length;
       // Each cred is of size 8 + 65 * sigs

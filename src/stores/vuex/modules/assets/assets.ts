@@ -708,6 +708,7 @@ const assets_module: Module<AssetsState, RootState> = {
       const res: IWalletNftMintDict = {};
       const mintUTXOs = state.nftMintUTXOs;
 
+      // eslint-disable-next-line unicorn/no-for-loop
       for (let i = 0; i < mintUTXOs.length; i++) {
         const utxo: UTXO | undefined = mintUTXOs[i];
         if (utxo) {

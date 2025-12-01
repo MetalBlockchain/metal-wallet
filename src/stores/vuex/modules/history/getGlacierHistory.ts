@@ -25,6 +25,7 @@ export async function getGlacierHistory(
     external && avmAddrs.push(external);
   }
 
+  // eslint-disable-next-line unicorn/no-array-reverse
   const pvmAddrs: string[] = wallet.getAllAddressesP().reverse();
 
   // this shouldn't ever happen, but to avoid getting every transaction...
@@ -55,6 +56,7 @@ export async function getGlacierHistory(
   );
 
   const externalAddrs =
+    // eslint-disable-next-line unicorn/no-array-reverse
     xExternal.length > pvmAddrs.length ? xExternal.reverse() : pvmAddrs;
 
   const txsGlacierC = await getTransactionsForAddresses(

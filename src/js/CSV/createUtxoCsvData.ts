@@ -20,6 +20,8 @@ export function createUtxoCsvData(
   locktime: number;
 } {
   const isOwned = isOwnedUTXO(utxo, ownedAddresses);
+
+  // eslint-disable-next-line unicorn/prefer-ternary
   if (isUtxo(utxo)) {
     return {
       amount: utxo.asset.amount,

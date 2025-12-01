@@ -60,22 +60,7 @@ abstract class AbstractWallet {
   isFetchUtxos: boolean;
   isInit: boolean;
 
-  abstract getEvmAddressBech(): string;
-  abstract getEvmAddress(): string;
-  abstract getCurrentAddressAvm(): string;
-  abstract getChangeAddressAvm(): string;
-  abstract getCurrentAddressPlatform(): string;
-  abstract getAllAddressesP(): string[];
-  abstract getAllAddressesX(): string[];
-  abstract getAllChangeAddressesX(): string[];
-  abstract getAllExternalAddressesX(): string[];
-  abstract getHistoryAddresses(): string[];
-  abstract signC(unsignedTx: EVMUnsignedTx): Promise<EVMTx>;
-  abstract signX(unsignedTx: AVMUnsignedTx): Promise<AVMTx>;
-  abstract signP(unsignedTx: PlatformUnsignedTx): Promise<PlatformTx>;
-
-  abstract signMessage(msg: string, address?: string): Promise<string>;
-  abstract getPlatformUTXOSet(): PlatformUTXOSet;
+  
 
   /**
    *
@@ -88,7 +73,10 @@ abstract class AbstractWallet {
   getUTXOSet(): AVMUTXOSet {
     return this.utxoset;
   }
+  
+  
 
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   protected constructor() {
     this.id = nanoid();
     this.utxoset = new AVMUTXOSet();
@@ -191,17 +179,9 @@ abstract class AbstractWallet {
     return this.issueC(tx);
   }
 
-  protected async issueX(tx: AVMTx) {
-    return issueX(tx);
-  }
+  
 
-  protected async issueP(tx: PlatformTx) {
-    return issueP(tx);
-  }
-
-  protected async issueC(tx: EVMTx) {
-    return issueC(tx);
-  }
+  
 
   async getStake() {
     const addrs = this.getAllAddressesP();
@@ -644,5 +624,36 @@ abstract class AbstractWallet {
     const tx = await this.signP(unsignedTx);
     return issueP(tx);
   }
+
+  protected async issueX(tx: AVMTx) {
+    return issueX(tx);
+  }
+
+  protected async issueP(tx: PlatformTx) {
+    return issueP(tx);
+  }
+
+  protected async issueC(tx: EVMTx) {
+    return issueC(tx);
+  }
+
+  abstract getEvmAddressBech(): string;
+  abstract getEvmAddress(): string;
+  abstract getCurrentAddressAvm(): string;
+  abstract getChangeAddressAvm(): string;
+  abstract getCurrentAddressPlatform(): string;
+  abstract getAllAddressesP(): string[];
+  abstract getAllAddressesX(): string[];
+  abstract getAllChangeAddressesX(): string[];
+  abstract getAllExternalAddressesX(): string[];
+  abstract getHistoryAddresses(): string[];
+  abstract signC(unsignedTx: EVMUnsignedTx): Promise<EVMTx>;
+  abstract signX(unsignedTx: AVMUnsignedTx): Promise<AVMTx>;
+  abstract signP(unsignedTx: PlatformUnsignedTx): Promise<PlatformTx>;
+
+  abstract signMessage(msg: string, address?: string): Promise<string>;
+  abstract getPlatformUTXOSet(): PlatformUTXOSet;
+
+  
 }
 export { AbstractWallet };

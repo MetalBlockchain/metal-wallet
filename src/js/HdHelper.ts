@@ -143,9 +143,9 @@ class HdHelper {
     }
 
     const addrs: string[] = this.getAllDerivedAddresses();
-    let result: AVMUTXOSet | PlatformUTXOSet;
+    // let result: AVMUTXOSet | PlatformUTXOSet;
 
-    result = await (this.chainId === "X"
+    const result = await (this.chainId === "X"
       ? avmGetAllUTXOs(addrs)
       : platformGetAllUTXOs(addrs));
     this.utxoSet = result; // we can use local copy of utxos as cache for some functions
@@ -176,9 +176,9 @@ class HdHelper {
   // Updates the helper keychain to contain keys upto the HD Index
   updateKeychain(): AVMKeyChain | PlatformVMKeyChain {
     const hrp = getPreferredHRP(ava.getNetworkID());
-    let keychain: AVMKeyChain | PlatformVMKeyChain;
+    
 
-    keychain =
+    const keychain =
       this.chainId === "X"
         ? new AVMKeyChain(hrp, this.chainId)
         : new PlatformVMKeyChain(hrp, this.chainId);
@@ -285,9 +285,7 @@ class HdHelper {
       addrs.push(address);
     }
 
-    let utxoSet;
-
-    utxoSet =
+    const utxoSet =
       this.chainId === "X"
         ? (await avm.getUTXOs(addrs)).utxos
         : (await pChain.getUTXOs(addrs)).utxos;
@@ -357,9 +355,7 @@ class HdHelper {
     isPrivate = true,
   ): AVMKeyPair | PlatformVMKeyPair {
     // If key is cached return that
-    let cacheExternal: AVMKeyPair | PlatformVMKeyPair;
-
-    cacheExternal =
+    const cacheExternal =
       this.chainId === "X"
         ? (this.keyCache[index] as AVMKeyPair)
         : (this.keyCache[index] as PlatformVMKeyPair);

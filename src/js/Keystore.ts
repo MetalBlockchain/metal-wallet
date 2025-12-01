@@ -72,6 +72,7 @@ async function readV2(data: KeyFileV2, pass: string) {
   const keys: KeyFileKeyV2[] = data.keys;
   const keysDecrypt: KeyFileKeyDecryptedV2[] = [];
 
+  // eslint-disable-next-line unicorn/no-for-loop
   for (let i = 0; i < keys.length; i++) {
     const key_data: KeyFileKeyV2 | undefined = keys[i];
 

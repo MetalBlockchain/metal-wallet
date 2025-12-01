@@ -8,6 +8,7 @@ import {
   isTransactionX,
 } from "@/js/Glacier/models";
 
+// eslint-disable-next-line unicorn/prefer-set-has
 const SUPPORTED_TYPE: TransactionTypeName[] = [
   "BaseTx",
   "ExportTx",

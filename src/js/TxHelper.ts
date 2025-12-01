@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-literal-enum-member */
 import type { Buffer } from "@metalblockchain/metaljs";
 import type {
   UTXO as AVMUTXO,
@@ -69,6 +70,7 @@ export async function buildUnsignedTransaction(
   let isFeeAdded = false;
 
   // Aggregate Fungible ins & outs
+  // eslint-disable-next-line unicorn/no-for-loop
   for (let i = 0; i < orders.length; i++) {
     const order: ITransaction | AVMUTXO | undefined = orders[i];
 

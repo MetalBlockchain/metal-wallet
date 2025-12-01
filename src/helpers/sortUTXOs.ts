@@ -15,6 +15,7 @@ import { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/p
 export function sortUTXOsByAmount<
   UTXOType extends AVMUTXO | PlatformUTXO | EVMUTXO,
 >(utxos: UTXOType[], isAscending: boolean) {
+  // eslint-disable-next-line unicorn/no-array-sort
   return [...utxos].sort((a, b) => {
     const amtA = (a.getOutput() as AmountOutput).getAmount();
     const amtB = (b.getOutput() as AmountOutput).getAmount();
