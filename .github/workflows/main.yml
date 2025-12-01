@@ -5,7 +5,7 @@ jobs:
     build:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        runs-on: macos-latest
+        runs-on: ubuntu-latest
 
         strategy:
             matrix:
