@@ -1,4 +1,4 @@
-import type { Utxo, PChainUtxo } from "@metalblockchain/glacier-sdk";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 
 /**
  * Check if the UTXO is owned by one of the given addresses
@@ -12,8 +12,8 @@ export function isOwnedUTXO(utxo: Utxo | PChainUtxo, ownedAddresses: string[]) {
   });
 
   return (
-    utxo.addresses.filter((addr: any) => {
+    utxo.addresses.some((addr: any) => {
       return ownedAddresses.includes(addr);
-    }).length > 0
+    })
   );
 }

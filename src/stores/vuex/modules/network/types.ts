@@ -1,5 +1,5 @@
-import type { AvaNetwork } from "@/js/AvaNetwork";
 import type { BN } from "@metalblockchain/metaljs";
+import type { AvaNetwork } from "@/js/AvaNetwork";
 
 export interface NetworkState {
   networks: AvaNetwork[];

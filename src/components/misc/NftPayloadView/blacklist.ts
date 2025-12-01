@@ -5,8 +5,7 @@ export const URLBLacklist = [`avax-reward.su`];
  * @param url
  */
 export function isUrlBanned(url: string) {
-  for (let i = 0; i < URLBLacklist.length; i++) {
-    const urlPart = URLBLacklist[i];
+  for (const urlPart of URLBLacklist) {
     if (!urlPart) continue;
 
     if (url.includes(urlPart)) {

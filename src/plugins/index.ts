@@ -9,6 +9,8 @@ import type { App } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 
 import { faBtc, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { faSquare } from "@fortawesome/free-regular-svg-icons";
+
 import {
   faAngleLeft,
   faAngleRight,
@@ -73,27 +75,25 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-
 // Styles
 // import '@mdi/font/css/materialdesignicons.css'
 
 // Plugins
 
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createHead } from "@unhead/vue/client";
 // Composables
 import { createVuetify } from "vuetify";
+
 import { aliases, fa } from "vuetify/iconsets/fa-svg";
 
 import router from "@/router";
-
 import vuex from "@/stores/vuex";
-import i18n from "./i18n";
 
+import i18n from "./i18n";
 import { posthogPlugin } from "./posthog";
 import "vuetify/styles";
 import "unfonts.css";
-import { faSquare } from "@fortawesome/free-regular-svg-icons";
 
 library.add(
   faDollarSign,

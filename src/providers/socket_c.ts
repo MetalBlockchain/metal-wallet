@@ -1,7 +1,7 @@
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { WalletType } from "@/js/wallets/types";
 import { ethers } from "ethers";
 import store from "@/stores/vuex";
-import type { WalletType } from "@/js/wallets/types";
 
 const SOCKET_RECONNECT_TIMEOUT = 1000;
 
@@ -11,7 +11,7 @@ export function connectSocketC(network: AvaNetwork) {
     const wsProvider = new ethers.providers.WebSocketProvider(wsUrl);
 
     if (socketEVM) {
-      socketEVM._websocket.onclose = () => {};
+      socketEVM._websocket.addEventListener('close', () => {});
       socketEVM.destroy();
       socketEVM = wsProvider;
     } else {
@@ -24,18 +24,18 @@ export function connectSocketC(network: AvaNetwork) {
     const defaultOnOpen = wsProvider._websocket.onopen;
     const defaultOnClose = wsProvider._websocket.onclose;
 
-    wsProvider._websocket.onopen = (ev: any) => {
+    wsProvider._websocket.addEventListener('open', (ev: any) => {
       if (defaultOnOpen) defaultOnOpen(ev);
-    };
+    });
 
-    wsProvider._websocket.onclose = (ev: any) => {
+    wsProvider._websocket.addEventListener('close', (ev: any) => {
       if (defaultOnClose) defaultOnClose(ev);
 
       setTimeout(() => {
         connectSocketC(network);
       }, SOCKET_RECONNECT_TIMEOUT);
-    };
-  } catch (e) {
+    });
+  } catch {
     console.info("EVM Websocket connection failed.");
   }
 }

@@ -33,13 +33,13 @@ export async function setTimeoutInterval(
               resolve();
             }
           })
-          .catch((err) => {
+          .catch((error) => {
             clearInterval(intervalID);
-            reject(err);
+            reject(error);
           });
-      } catch (e) {
+      } catch (error) {
         clearInterval(intervalID);
-        reject(e);
+        reject(error);
       }
     }, interval);
   });

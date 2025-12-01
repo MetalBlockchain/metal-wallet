@@ -6,7 +6,7 @@ const COINGECKO_URL =
 
 const coingeckoApi = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
-  timeout: 10000,
+  timeout: 10_000,
 });
 
 export async function getAvaxPriceUSD(): Promise<number> {

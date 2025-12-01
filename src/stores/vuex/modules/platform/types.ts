@@ -1,9 +1,9 @@
+import type { BN } from "@metalblockchain/metaljs";
 import type {
   DelegatorPendingRaw,
   ValidatorPendingRaw,
   ValidatorRaw,
 } from "@/components/misc/ValidatorList/types";
-import type { BN } from "@metalblockchain/metaljs";
 
 export interface PlatformState {
   validators: ValidatorRaw[];

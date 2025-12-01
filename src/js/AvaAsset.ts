@@ -48,19 +48,11 @@ class AvaAsset {
   }
 
   getAmount(locked = false): Big {
-    if (!locked) {
-      return Big(this.amount.toString(10)).div(this.pow);
-    } else {
-      return Big(this.amountLocked.toString(10)).div(this.pow);
-    }
+    return locked ? Big(this.amountLocked.toString(10)).div(this.pow) : Big(this.amount.toString(10)).div(this.pow);
   }
 
   getAmountBN(locked = false): BN {
-    if (!locked) {
-      return this.amount;
-    } else {
-      return this.amountLocked;
-    }
+    return locked ? this.amountLocked : this.amount;
   }
 
   getTotalAmount(): BN {

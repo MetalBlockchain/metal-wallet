@@ -1,17 +1,17 @@
-import Metal, { BinTools } from "@metalblockchain/metaljs";
 import type {
-  KeyChain as AVMKeyChain,
   AVMAPI,
+  KeyChain as AVMKeyChain,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import type { EVMAPI } from "@metalblockchain/metaljs/dist/apis/evm";
+
 import type { InfoAPI } from "@metalblockchain/metaljs/dist/apis/info";
 import type { PlatformVMAPI } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import Metal, { BinTools } from "@metalblockchain/metaljs";
 
 // Connect to TestNet by default
 // Doesn't really matter how we initialize, it will get changed by the network module later
 const ip = "bootstrap.ava.network";
-const port = 21000;
+const port = 21_000;
 const protocol = "https";
 const network_id = 2;
 const chain_id = "X";
@@ -28,7 +28,7 @@ function isValidAddress(addr: string) {
   try {
     const res = bintools.stringToAddress(addr);
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
@@ -36,10 +36,10 @@ function isValidAddress(addr: string) {
 export {
   ava,
   avm,
-  pChain,
+  bintools,
   cChain,
   infoApi,
-  bintools,
   isValidAddress,
   keyChain,
+  pChain,
 };

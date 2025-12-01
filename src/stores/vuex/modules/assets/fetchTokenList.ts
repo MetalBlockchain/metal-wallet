@@ -13,8 +13,8 @@ export async function fetchTokenList(): Promise<TokenList> {
   );
   const json = await res.json();
 
-  const tokensMainnet = json[381931].tokens.map(mapTokenInfo);
-  const tokensTestnet = json[381932].tokens.map(mapTokenInfo);
+  const tokensMainnet = json[381_931].tokens.map((_: any) => mapTokenInfo(_));
+  const tokensTestnet = json[381_932].tokens.map((_: any) => mapTokenInfo(_));
 
   return {
     name: "Metal (C-Chain)",

@@ -1,7 +1,7 @@
-import { Interface } from "@ethersproject/abi";
-import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
-import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
 import type { BN } from "ethereumjs-util";
+import { Interface } from "@ethersproject/abi";
+import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
+import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
 
 export interface AbiParsed {
   name: string;

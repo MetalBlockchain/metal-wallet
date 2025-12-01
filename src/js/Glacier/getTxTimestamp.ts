@@ -1,13 +1,9 @@
-import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
 import type { TransactionType } from "@/js/Glacier/models";
+import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
 /**
  * Return Javascript UNIX timestamp of the given transaction
  * @param tx
  */
 export function getTxTimestamp(tx: TransactionType) {
-  if (isTransactionX(tx) || isTransactionC(tx)) {
-    return tx.timestamp * 1000;
-  } else {
-    return tx.blockTimestamp * 1000;
-  }
+  return isTransactionX(tx) || isTransactionC(tx) ? tx.timestamp * 1000 : tx.blockTimestamp * 1000;
 }

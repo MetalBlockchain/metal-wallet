@@ -6,7 +6,7 @@ export function splitToParts<ArrayType>(array: ArrayType[], size: number) {
   if (!size) return [array];
   const parts = [];
   const copy = [...array];
-  while (copy.length) {
+  while (copy.length > 0) {
     parts.push(copy.splice(0, size));
   }
   return parts;

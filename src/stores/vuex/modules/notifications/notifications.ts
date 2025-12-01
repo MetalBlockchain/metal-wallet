@@ -1,10 +1,10 @@
 import type { Module } from "vuex";
-import type { RootState } from "@/stores/vuex/types";
 import type {
-  NotifState,
   Notification,
   NotificationInput,
+  NotifState,
 } from "@/stores/vuex/modules/notifications/types";
+import type { RootState } from "@/stores/vuex/types";
 
 const COLOR_SUCCESS = "#6BC688";
 const COLOR_WARNING = "#c39043";
@@ -26,22 +26,25 @@ const notifications_module: Module<NotifState, RootState> = {
       let color = COLOR_SUCCESS;
 
       switch (type) {
-        case "success":
+        case "success": {
           color = COLOR_SUCCESS;
           break;
-        case "error":
+        }
+        case "error": {
           color = COLOR_ERROR;
           break;
-        case "warning":
+        }
+        case "warning": {
           color = COLOR_WARNING;
           break;
+        }
       }
 
       const item: Notification = {
-        id: id,
+        id,
         title: data.title,
         message: data.message,
-        color: color,
+        color,
         duration: 5000,
       };
 

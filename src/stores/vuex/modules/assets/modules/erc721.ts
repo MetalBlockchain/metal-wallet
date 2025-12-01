@@ -1,13 +1,13 @@
 import type { Module } from "vuex";
-import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
-import ERC721Token from "@/js/ERC721Token";
+import type { WalletType } from "@/js/wallets/types";
 import type {
   Erc721ModuleState,
   ERC721TokenInput,
 } from "@/stores/vuex/modules/assets/modules/types";
+import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
 import type { RootState } from "@/stores/vuex/types";
 import ERC721_TOKEN_LIST from "@/data/ERC721Tokenlist.json";
-import type { WalletType } from "@/js/wallets/types";
+import ERC721Token from "@/js/ERC721Token";
 
 const erc721_module: Module<Erc721ModuleState, RootState> = {
   namespaced: true,
@@ -30,8 +30,7 @@ const erc721_module: Module<Erc721ModuleState, RootState> = {
     loadCustomContracts(state) {
       const tokensRaw = localStorage.getItem("erc721_tokens") || "[]";
       const tokens: TokenListToken[] = JSON.parse(tokensRaw);
-      for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i];
+      for (const token of tokens) {
         if (token) {
           state.erc721TokensCustom.push(new ERC721Token(token));
         }
@@ -50,8 +49,7 @@ const erc721_module: Module<Erc721ModuleState, RootState> = {
       const tokens = state.erc721Tokens.concat(state.erc721TokensCustom);
 
       // Make sure its not added before
-      for (let i = 0; i < tokens.length; i++) {
-        const t = tokens[i];
+      for (const t of tokens) {
         if (
           t &&
           data.address === t.data.address &&
@@ -76,8 +74,7 @@ const erc721_module: Module<Erc721ModuleState, RootState> = {
       // Load default erc721 token contracts
       const erc721Tokens = ERC721_TOKEN_LIST.tokens;
 
-      for (let i = 0; i < erc721Tokens.length; i++) {
-        const token = erc721Tokens[i];
+      for (const token of erc721Tokens) {
         if (token) {
           state.erc721Tokens.push(new ERC721Token(token));
         }
@@ -92,16 +89,15 @@ const erc721_module: Module<Erc721ModuleState, RootState> = {
 
       // Loop through contracts and update wallet balance object
       const contracts: ERC721Token[] = getters.networkContracts;
-      for (let i = 0; i < contracts.length; i++) {
-        const erc721 = contracts[i];
+      for (const erc721 of contracts) {
         if (erc721) {
           erc721
             .getAllTokensIds(walletAddr)
             .then((tokenIds: string[]) => {
               state.walletBalance[erc721.contractAddress] = tokenIds;
             })
-            .catch((err) => {
-              console.error(err);
+            .catch((error) => {
+              console.error(error);
             });
         }
       }
@@ -162,8 +158,7 @@ const erc721_module: Module<Erc721ModuleState, RootState> = {
     },
     find: (state, getters) => (contractAddr: string) => {
       const tokens: ERC721Token[] = getters.networkContracts;
-      for (let i = 0; i < tokens.length; i++) {
-        const t = tokens[i];
+      for (const t of tokens) {
         if (t && t.data.address === contractAddr) {
           return t;
         }

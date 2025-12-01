@@ -1,9 +1,9 @@
 import type { Module } from "vuex";
-import type { RootState } from "@/stores/vuex/types";
 import type { HistoryState } from "@/stores/vuex/modules/history/types";
+import type { RootState } from "@/stores/vuex/types";
+import { getGlacierHistory } from "@/stores/vuex/modules/history/getGlacierHistory";
 import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
 import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
-import { getGlacierHistory } from "@/stores/vuex/modules/history/getGlacierHistory";
 
 const history_module: Module<HistoryState, RootState> = {
   namespaced: true,
@@ -101,8 +101,8 @@ const history_module: Module<HistoryState, RootState> = {
           isMainnet,
         );
         state.allTransactions = txs;
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error);
         state.isError = true;
       }
       state.isUpdatingAll = false;

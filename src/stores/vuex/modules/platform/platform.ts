@@ -1,8 +1,8 @@
 import type { Module } from "vuex";
-import type { RootState } from "@/stores/vuex/types";
-
-import { BN } from "@metalblockchain/metaljs";
-import { pChain } from "@/misc/AVA";
+import type {
+  DelegatorPendingRaw,
+  ValidatorRaw,
+} from "@/components/misc/ValidatorList/types";
 
 import type {
   GetValidatorsResponse,
@@ -10,13 +10,13 @@ import type {
   ValidatorDelegatorPendingDict,
   ValidatorListItem,
 } from "@/stores/vuex/modules/platform/types";
-import type {
-  DelegatorPendingRaw,
-  ValidatorRaw,
-} from "@/components/misc/ValidatorList/types";
-import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
+import type { RootState } from "@/stores/vuex/types";
 
-const MINUTE_MS = 60000;
+import { BN } from "@metalblockchain/metaljs";
+import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
+import { pChain } from "@/misc/AVA";
+
+const MINUTE_MS = 60_000;
 const HOUR_MS = MINUTE_MS * 60;
 const DAY_MS = HOUR_MS * 24;
 
@@ -66,7 +66,7 @@ const platform_module: Module<PlatformState, RootState> = {
 
       let validators = state.validators;
       validators = validators.filter((v) => {
-        const endTime = parseInt(v.endTime) * 1000;
+        const endTime = Number.parseInt(v.endTime) * 1000;
         const dif = endTime - now;
 
         // If End time is less than 2 weeks + 1 hour, remove from list they are no use
@@ -83,8 +83,7 @@ const platform_module: Module<PlatformState, RootState> = {
 
       let res: ValidatorListItem[] = [];
 
-      for (let i = 0; i < validators.length; i++) {
-        const v = validators[i];
+      for (const v of validators) {
 
         if (v) {
           const nodeID = v.nodeID;
@@ -104,13 +103,13 @@ const platform_module: Module<PlatformState, RootState> = {
             );
           }
 
-          const startTime = new Date(parseInt(v.startTime) * 1000);
-          const endTime = new Date(parseInt(v.endTime) * 1000);
+          const startTime = new Date(Number.parseInt(v.startTime) * 1000);
+          const endTime = new Date(Number.parseInt(v.endTime) * 1000);
 
           const delegatedStake = delegatedAmt.add(delegatedPendingAmt);
           const validatorStake = new BN(v.stakeAmount);
           // Calculate remaining stake
-          const absMaxStake = ONEAVAX.mul(new BN(3000000));
+          const absMaxStake = ONEAVAX.mul(new BN(3_000_000));
           const relativeMaxStake = validatorStake.mul(new BN(5));
           const stakeLimit = BN.min(absMaxStake, relativeMaxStake);
 
@@ -120,15 +119,15 @@ const platform_module: Module<PlatformState, RootState> = {
 
           const listItem: ValidatorListItem = {
             nodeID: v.nodeID,
-            validatorStake: validatorStake,
-            delegatedStake: delegatedStake,
-            remainingStake: remainingStake,
+            validatorStake,
+            delegatedStake,
+            remainingStake,
             numDelegators:
-              parseInt(v.delegatorCount) + delegatorsPending.length,
-            startTime: startTime,
+              Number.parseInt(v.delegatorCount) + delegatorsPending.length,
+            startTime,
             endTime,
-            uptime: parseFloat(v.uptime),
-            fee: parseFloat(v.delegationFee),
+            uptime: Number.parseFloat(v.uptime),
+            fee: Number.parseFloat(v.delegationFee),
           };
           res.push(listItem);
         }
@@ -148,8 +147,7 @@ const platform_module: Module<PlatformState, RootState> = {
     nodeDelegatorPendingMap(state): ValidatorDelegatorPendingDict {
       const res: ValidatorDelegatorPendingDict = {};
       const delegators = state.delegatorsPending;
-      for (let i = 0; i < delegators.length; i++) {
-        const delegator = delegators[i];
+      for (const delegator of delegators) {
         if (delegator) {
           const nodeID = delegator.nodeID;
           const target = res[nodeID];
@@ -175,11 +173,7 @@ const platform_module: Module<PlatformState, RootState> = {
       const mult = new BN(10).pow(new BN(6 + 9));
       const absMaxStake = new BN(3).mul(mult);
 
-      if (relativeMaxStake.lt(absMaxStake)) {
-        return relativeMaxStake;
-      } else {
-        return absMaxStake;
-      }
+      return relativeMaxStake.lt(absMaxStake) ? relativeMaxStake : absMaxStake;
     },
   },
 };

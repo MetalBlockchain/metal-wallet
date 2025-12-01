@@ -1,10 +1,10 @@
 import type {
-  UnsignedTx as UnsignedTxX,
   TransferableInput as TransferableInputX,
+  UnsignedTx as UnsignedTxX,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type {
-  UnsignedTx as UnsignedTxP,
   TransferableInput as TransferableInputP,
+  UnsignedTx as UnsignedTxP,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 
 /**

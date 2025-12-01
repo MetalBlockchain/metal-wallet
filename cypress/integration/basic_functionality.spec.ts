@@ -27,7 +27,7 @@ describe("Basic Functionality", () => {
 
     it("can add custom network option", () => {
       cy.get('[data-cy="custom-network-option"]').should("have.length", 1);
-      cy.get('[data-cy="create-custom-option"]', { timeout: 10000 })
+      cy.get('[data-cy="create-custom-option"]', { timeout: 10_000 })
         .should("have.length", 1)
         .click();
 

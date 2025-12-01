@@ -53,7 +53,7 @@ class AvaNetwork {
           withCredentials: true,
         },
       )
-      .catch((err) => {
+      .catch((error) => {
         return false;
       });
 
@@ -75,7 +75,7 @@ class AvaNetwork {
         },
       );
       this.withCredentials = true;
-    } catch (e) {
+    } catch {
       this.withCredentials = false;
     }
   }
@@ -96,17 +96,13 @@ class AvaNetwork {
       if (ip) {
         this.ip = ip;
       }
-      this.port = parseInt(port ?? "9650");
+      this.port = Number.parseInt(port ?? "9650");
     } else {
       const ip = split[1];
       if (ip) {
         this.ip = ip;
       }
-      if (this.protocol === "http") {
-        this.port = 80;
-      } else {
-        this.port = 443;
-      }
+      this.port = this.protocol === "http" ? 80 : 443;
     }
   }
   getFullURL() {

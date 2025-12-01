@@ -11,7 +11,7 @@ declare module "big.js" {
 Big.prototype.toLocaleString = function (toFixed = 9) {
   const fixedStr = this.toFixed(toFixed);
   const split = fixedStr.split(".");
-  const wholeStr = parseInt(split[0]).toLocaleString("en-US");
+  const wholeStr = Number.parseInt(split[0]).toLocaleString("en-US");
 
   if (split.length === 1) {
     return wholeStr;
@@ -21,11 +21,11 @@ Big.prototype.toLocaleString = function (toFixed = 9) {
     // remove trailing 0s
     let lastChar = remainderStr.charAt(remainderStr.length - 1);
     while (lastChar === "0") {
-      remainderStr = remainderStr.substring(0, remainderStr.length - 1);
+      remainderStr = remainderStr.slice(0, Math.max(0, remainderStr.length - 1));
       lastChar = remainderStr.charAt(remainderStr.length - 1);
     }
 
-    const trimmed = remainderStr.substring(0, toFixed);
+    const trimmed = remainderStr.slice(0, Math.max(0, toFixed));
     if (!trimmed) return wholeStr;
     return `${wholeStr}.${trimmed}`;
   }

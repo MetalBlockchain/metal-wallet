@@ -1,8 +1,8 @@
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
 import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
-import { DAY_MS } from "@/constants";
-import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import { BN } from "@metalblockchain/metaljs";
+import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
+import { DAY_MS } from "@/constants";
 
 function filterValidatorList(
   list: ValidatorListItem[],
