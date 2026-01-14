@@ -5,13 +5,16 @@ import store from "@/stores/vuex";
 
 const SOCKET_RECONNECT_TIMEOUT = 1000;
 
+let reconnectListener: ((ev: any) => void) | undefined = undefined;
+
 export function connectSocketC(network: AvaNetwork) {
   try {
     const wsUrl = network.getWsUrlC();
     const wsProvider = new ethers.providers.WebSocketProvider(wsUrl);
-
     if (socketEVM) {
-      socketEVM._websocket.addEventListener('close', () => {});
+      if(reconnectListener) {
+        socketEVM._websocket.removeEventListener("close", reconnectListener);
+      }
       socketEVM.destroy();
       socketEVM = wsProvider;
     } else {
@@ -20,21 +23,12 @@ export function connectSocketC(network: AvaNetwork) {
 
     updateEVMSubscriptions();
 
-    // Save default function so we can keep calling it
-    const defaultOnOpen = wsProvider._websocket.onopen;
-    const defaultOnClose = wsProvider._websocket.onclose;
-
-    wsProvider._websocket.addEventListener('open', (ev: any) => {
-      if (defaultOnOpen) defaultOnOpen(ev);
-    });
-
-    wsProvider._websocket.addEventListener('close', (ev: any) => {
-      if (defaultOnClose) defaultOnClose(ev);
-
+    reconnectListener = () => {
       setTimeout(() => {
         connectSocketC(network);
       }, SOCKET_RECONNECT_TIMEOUT);
-    });
+    };
+    wsProvider._websocket.addEventListener("close", reconnectListener);
   } catch {
     console.info("EVM Websocket connection failed.");
   }
@@ -70,7 +64,9 @@ function addBlockHeaderListener(provider: ethers.providers.WebSocketProvider) {
 }
 
 function blockHeaderCallback() {
+  console.log("1!");
   updateWalletBalanceC();
+  console.log("2!");
 }
 
 function updateWalletBalanceC() {
