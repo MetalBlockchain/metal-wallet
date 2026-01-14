@@ -25,7 +25,6 @@
 <script lang="ts" setup>
 import { useHead } from "@unhead/vue";
 import { onMounted, useTemplateRef } from "vue";
-import { useI18n } from "vue-i18n";
 import { useStore } from "vuex";
 import AnalyticsCmp from "@/components/Analytics/Analytics.vue";
 import NetworkLoadingBlock from "@/components/misc/NetworkLoadingBlock.vue";
@@ -40,18 +39,20 @@ import Notifications from "@/components/Notifications.vue";
 
 import TestNetBanner from "@/components/TestNetBanner.vue";
 import { themeKey } from "@/constants/injection_tokens";
+import { manageLocalization } from './composables/manage-localizations';
 
 const mainCols = useTemplateRef("main-cols");
 
-const i18n = useI18n();
+// const i18n = useI18n();
 const router = useRouter();
 const route = useRoute();
 const store = useStore();
+const { loadLocalization } = manageLocalization()
 
 // Init language preference
 const locale = localStorage.getItem("lang");
 if (locale) {
-  i18n.locale.value = locale;
+  loadLocalization(locale);
 }
 
 provide(themeKey, ref("light"));

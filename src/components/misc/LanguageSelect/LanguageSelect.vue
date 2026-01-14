@@ -24,13 +24,14 @@
     </v-menu>
   </div>
 </template>
-<script lang="ts">
+<script lang="ts" setup>
 import type { LanguageItem } from "@/components/misc/LanguageSelect/types";
 
-import { defineComponent } from "vue";
-
-import { useI18n } from "vue-i18n";
+import { manageLocalization } from '@/composables/manage-localizations';
+import { SUPPORTED_LANGS } from "@/constants";
 import ISO_LANGS_MAP from "@/constants/iso-lang-map";
+
+const { currentLocale, loadLocalization } = manageLocalization()
 
 interface FLAG_DICT {
   [key: string]: string;
@@ -53,52 +54,36 @@ const FLAGS_OVERRIDE: FLAG_DICT = {
   ja: "jp",
 };
 
-export const LanguageSelect = defineComponent({
-  data() {
-    return {
-      locale: "en",
-    };
-  },
-  computed: {
-    i18n() {
-      const i18n = useI18n();
-      return i18n;
-    },
-    flag() {
-      const selCode = this.locale;
-      return `fi-${FLAGS_OVERRIDE[selCode] ?? selCode}`;
-    },
-    items(): LanguageItem[] {
-      const res = [];
-      const messages = this.i18n.messages.value;
-      for (const langCode in messages) {
-        const data = ISO_LANGS_MAP[langCode];
-        if (data) {
-          res.push({
-            code: langCode,
-            name: data.name,
-            nativeName: data.nativeName,
-          });
-        }
-      }
-      return res;
-    },
-    currentLang(): LanguageItem | undefined {
-      return this.items.find((_) => _.code === this.locale);
-    },
-  },
-  mounted() {
-    this.locale = this.i18n.locale.value;
-  },
-  methods: {
-    onSelectedChange(val: string) {
-      this.locale = val;
-      this.i18n.locale.value = val;
-      localStorage.setItem("lang", val);
-    },
-  },
+const locale = computed(() => currentLocale.value);
+
+const flag = computed(() => {
+  const selCode = locale.value;
+  return `fi-${FLAGS_OVERRIDE[selCode] ?? selCode}`;
 });
-export default LanguageSelect;
+
+const items = computed(() =>
+  SUPPORTED_LANGS.reduce((accum: LanguageItem[], langCode) => {
+    const data = ISO_LANGS_MAP[langCode];
+    if (data) {
+      accum.push({
+        code: langCode,
+        name: data.name,
+        nativeName: data.nativeName,
+      });
+    }
+    return accum;
+  }, []),
+);
+
+const currentLang = computed<LanguageItem | undefined>(() => {
+  return items.value.find((_) => _.code === locale.value);
+});
+
+function onSelectedChange(val: string) {
+  loadLocalization(val);
+
+  localStorage.setItem("lang", val);
+}
 </script>
 
 <style scoped lang="scss">
