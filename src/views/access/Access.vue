@@ -20,7 +20,7 @@ import { defineComponent } from "vue";
 export const Access = defineComponent({
   setup() {
     const description =
-      "Access your stored crypto assets in a simple fashion, yet highly secure, and non-custodial fashion. Your Avalanche wallet is a few clicks away!";
+      "Access your stored crypto assets in a simple fashion, yet highly secure, and non-custodial fashion. You Metal wallet is a few clicks away!";
     useHead({
       title: () => "Access Stored Crypto Assets",
       meta: [
@@ -34,7 +34,7 @@ export const Access = defineComponent({
         },
         {
           property: "og:title",
-          content: "Access Stored Crypto Assets | Avalanche Wallet",
+          content: "Access Stored Crypto Assets | Metal Wallet",
         },
       ],
     });

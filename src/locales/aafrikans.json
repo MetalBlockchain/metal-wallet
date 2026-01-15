@@ -5,15 +5,15 @@
   "address": "Adres",
   "add_pk": "Voeg Privaat Sleutel by",
   "home": {
-    "desc": "Avalanche Wallet is 'n eenvoudige, veilige, nie-toesighouende beursie vir die berging van Avalanche-bates.",
+    "desc": "Metal Wallet is 'n eenvoudige, veilige, nie-toesighouende beursie vir die berging van Metal-bates.",
     "access": {
       "title": "Welkom terug!",
-      "desc": "Kry 'toegang' tot jou bestaande Avalanche beursie hier.",
+      "desc": "Kry 'toegang' tot jou bestaande Metal beursie hier.",
       "submit": "Kry toegang tot beursie"
     },
     "create": {
-      "title": "Nuut aan Avalanche Wallet?",
-      "desc": "'Skep' 'n nuwe beursie om Avalanche-bates te stuur, ontvang en omruil.",
+      "title": "Nuut aan Metal Wallet?",
+      "desc": "'Skep' 'n nuwe beursie om Metal-bates te stuur, ontvang en omruil.",
       "submit": "Skep Nuwe Beursie"
     }
   },
@@ -58,18 +58,18 @@
     }
   },
   "create": {
-    "generate": "Genereer 'n nuwe frase om u Avalanche Wallet op te stel.",
+    "generate": "Genereer 'n nuwe frase om u Metal Wallet op te stel.",
     "but_have": "Het u alreeds a beursie?",
     "submit": "Genereer Sleutelfrase",
     "cancel": "Kanselleer",
     "mnemonic_title": "Hierdie is u sleutelfrase.",
-    "mnemonic_desc": "Gebruik hierdie 24 woorde in volgorde om u Avalanche Wallet te herstel",
+    "mnemonic_desc": "Gebruik hierdie 24 woorde in volgorde om u Metal Wallet te herstel",
     "attention": "Aandag!",
-    "warning": "Stoor hierdie sleutelfrase op 'n veilige plek. Enigiemand met hierdie sleutelfrase kan toegang tot u Avalanche Wallet verkry. Daar is geen manier om verlore sleutelfrases te herstel nie.",
+    "warning": "Stoor hierdie sleutelfrase op 'n veilige plek. Enigiemand met hierdie sleutelfrase kan toegang tot u Metal Wallet verkry. Daar is geen manier om verlore sleutelfrases te herstel nie.",
     "confirm": "Ek het my sleutelwoord op 'n veilige plek neergeskryf.",
     "regenerate": "Genereer Weereens",
     "success_title": "Baie geluk!",
-    "success_desc": "Dit is tyd om toegang tot u Avalanche Wallet te kry.",
+    "success_desc": "Dit is tyd om toegang tot u Metal Wallet te kry.",
     "success_submit": "Kry Toegang tot Beursie",
     "verify": "Verifieer",
     "verifytitle": "Verifieer Mnemoniek",
@@ -78,7 +78,7 @@
     "error_word": "Die mnemoniese frase wat u vir woord ingevoer het, stem nie ooreen met die werklike frase nie."
   },
   "top": {
-    "title1": "Afgeleide Avalanche-beursie-adres",
+    "title1": "Afgeleide Metal-beursie-adres",
     "title2": "Saldo",
     "title3": "Subnet",
     "title4": "Netwerk",
@@ -86,7 +86,7 @@
     "nftempty": "U het geen tekens wat nie aanpasbaar is nie versamel.",
     "locked": "Gesluit",
     "info2": "Ek het muntstukke in die Teken Uitverkoping gekoop. Waar is my METAL?",
-    "info2_desc": "Hierdie beursie is aan die Avalanche Everest-toetsnetwerk gekoppel. U aankoop sal in die beursie verskyn na die bekendstelling van Avalanche Mainnet.",
+    "info2_desc": "Hierdie beursie is aan die Metal Everest-toetsnetwerk gekoppel. U aankoop sal in die beursie verskyn na die bekendstelling van Metal Mainnet.",
     "hover1": "Bekyk Adres-QR-kode",
     "hover2": "Druk",
     "hover3": "Kopieer",
@@ -101,7 +101,7 @@
       "collectibles": "Versamelstukke"
     },
     "address": {
-      "derived": "Afgeleide Avalanche-beursie-adres",
+      "derived": "Afgeleide Metal-beursie-adres",
       "desc": "Dit is u adres om fondse te ontvang. U adres sal na elke deposito verander."
     }
   },
@@ -181,7 +181,7 @@
     "warning_2": "U moet ten minste {0} METAL aan die P-ketting hê om 'n afgevaardigde te word.",
     "validate_card": {
       "title": "Valideer",
-      "desc": "U het 'n Avalanche-nodus waarmee u wil 'n insetting maak.",
+      "desc": "U het 'n Metal-nodus waarmee u wil 'n insetting maak.",
       "submit": "Voeg Valideerder by"
     },
     "delegate_card": {
