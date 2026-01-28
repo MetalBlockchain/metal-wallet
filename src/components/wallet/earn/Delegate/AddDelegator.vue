@@ -22,7 +22,7 @@
             </p>
             <DateForm
               :max-end-date="endMaxDate"
-              @change_end="setEnd"
+              @change-end="setEnd"
             ></DateForm>
           </div>
           <div style="margin: 30px 0; margin-bottom: 50px">

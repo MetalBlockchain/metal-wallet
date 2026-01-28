@@ -3,6 +3,7 @@
     <template #activator="{ props: activatorProps }">
       <v-text-field
         v-bind="activatorProps"
+        hide-details="auto"
         :label="label"
         readonly
         :value="formattedDatetime"

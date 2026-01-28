@@ -4,7 +4,7 @@
       <header>
         <h1>{{ $t("access.mnemonic.title") }}</h1>
       </header>
-      <p>Your mnemonic phrase is 24 words seperated by an empty space.</p>
+      <p>Your mnemonic phrase is 24 words separated by an empty space.</p>
       <input
         ref="mnemonic_in"
         autocapitalize="off"

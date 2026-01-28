@@ -39,7 +39,7 @@
               <p class="desc">
                 {{ $t("earn.validate.duration.desc") }}
               </p>
-              <DateForm @change_end="setEnd"></DateForm>
+              <DateForm @change-end="setEnd"></DateForm>
             </div>
             <div style="margin: 30px 0">
               <h4>{{ $t("earn.validate.amount.label") }}</h4>

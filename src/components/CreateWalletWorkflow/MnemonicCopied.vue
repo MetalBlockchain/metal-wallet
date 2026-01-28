@@ -1,10 +1,9 @@
 <template>
   <div>
     <v-checkbox
+      v-model="value"
       class="checkbox"
       :label="explain"
-      :model-value="modelValue"
-      @change="change"
     ></v-checkbox>
   </div>
 </template>
@@ -20,10 +19,15 @@ export const MnemonicCopied = defineComponent({
     modelValue: { type: Boolean },
   },
   emits: ["update:modelValue"],
-  methods: {
-    change() {
-      this.$emit("update:modelValue", this.modelValue);
-    },
+  computed: {
+    value: {
+      get() {
+        return this.modelValue
+      },
+      set(value: boolean) {
+        this.$emit('update:modelValue', value)
+      }
+    }
   },
 });
 export default MnemonicCopied;

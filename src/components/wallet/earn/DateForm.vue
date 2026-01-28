@@ -39,9 +39,14 @@ export default defineComponent({
     localStart: string;
     localEnd: string;
   } {
+    const now = Date.now();
+    const res = now + MINUTE_MS * 15;
+    const startDate = new Date(res);
+    const end = startDate.getTime() + DAY_MS * 21;
+
     return {
-      localStart: "",
-      localEnd: "",
+      localStart: startDate.toISOString(),
+      localEnd: new Date(end).toISOString(),
     };
   },
   computed: {
@@ -50,11 +55,6 @@ export default defineComponent({
       const end = new Date(this.localEnd);
       const diff = end.getTime() - start.getTime();
       return diff;
-    },
-    startDateMin() {
-      const now = Date.now();
-      const res = now + MINUTE_MS * 15;
-      return new Date(res).toISOString();
     },
     endDateMin() {
       const start = this.localStart;
@@ -74,30 +74,14 @@ export default defineComponent({
       const endDate = new Date(end);
       return endDate.toISOString();
     },
-    defaultEndDate() {
-      const start = this.localStart;
-      const startDate = new Date(start);
-
-      const end = startDate.getTime() + DAY_MS * 21;
-      const endDate = new Date(end);
-      return endDate.toISOString();
-    },
   },
   watch: {
     localEnd: [
       {
         handler: "endChange",
+        immediate: true
       },
     ],
-  },
-  mounted() {
-    this.localStart = this.startDateMin;
-
-    // default end date is 3 weeks
-    this.localEnd = this.defaultEndDate;
-
-    // this.setStartDate(this.localStart)
-    this.setEndDate(this.localEnd);
   },
   methods: {
     setEndDate(val: string) {
