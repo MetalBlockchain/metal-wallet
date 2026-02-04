@@ -14,7 +14,7 @@
             :max="max_amount"
             :placeholder="placeholder"
             :step="stepSize"
-            @change="amount_in"
+            @update:model-value="amount_in"
           ></BigNumInputShared>
           <p :active="token === 'native'" class="usd_val">
             ${{ usd_val.toLocaleString(2) }}

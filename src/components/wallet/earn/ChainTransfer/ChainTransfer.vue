@@ -633,7 +633,7 @@ export const ChainTransfer = defineComponent({
     },
     onChange() {
       if (this.targetChain == "P" && this.amt.gt(new BN(0))) {
-        (TxHelper as any).calculatePlatformImportFee().then((fee: any) => {
+        TxHelper.calculatePlatformImportFee().then((fee: any) => {
           this.importFee = bnToBig(fee, 9);
         });
       } else {
@@ -649,8 +649,7 @@ export const ChainTransfer = defineComponent({
             : this.wallet.getCurrentAddressAvm();
         const pChangeAddr = this.wallet.getCurrentAddressPlatform();
 
-        (TxHelper as any)
-          .calculatePlatformExportFee(
+        TxHelper.calculatePlatformExportFee(
             utxos,
             fromAddrs,
             destinationAddr,

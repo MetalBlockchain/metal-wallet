@@ -9,7 +9,7 @@ import { BN, Buffer } from "@metalblockchain/metaljs";
 import { digestMessage } from "@/helpers/helper";
 import { HdHelper } from "@/js/HdHelper";
 import { AbstractWallet } from "@/js/wallets/AbstractWallet";
-import { ava, avm, bintools, pChain } from "@/misc/AVA";
+import { ava, avm, bintools } from "@/misc/AVA";
 import { buildUnsignedTransaction } from "../TxHelper";
 
 /**

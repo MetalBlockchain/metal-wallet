@@ -3,7 +3,7 @@
     <div class="max_in_cont hover_border">
       <button class="max_but" :disabled="disabled" @click="maxOut">MAX</button>
       <div class="col_big_in">
-        <big-num-input-shared
+        <BigNumInputShared
           ref="bigIn"
           class="bigIn"
           contenteditable="bigIn"
@@ -12,8 +12,8 @@
           :max="max_amount"
           :placeholder="placeholder"
           :step="stepSize"
-          @change="amount_in"
-        ></big-num-input-shared>
+          @update:model-value="amount_in"
+        ></BigNumInputShared>
         <p :active="isAvax" class="usd_val">
           ${{ amountUSD.toLocaleString(2) }}
         </p>

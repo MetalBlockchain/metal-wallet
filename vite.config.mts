@@ -72,7 +72,7 @@ export default defineConfig({
           },
         ],
       },
-    })
+    }),
   ],
   build: {
     commonjsOptions: {
@@ -82,37 +82,6 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes("node_modules")) {
-            if (id.includes("@metalblockchain/metaljs")) {
-              return "vendor_metaljs";
-            } else if (id.includes("@metalblockchain/glacier-sdk")) {
-              return "vendor_metal_glacier";
-            } else if (id.includes("@metalblockchain/metal-wallet-sdk")) {
-              return "vendor_metal_wallet_sdk";
-            } else if (id.includes("@fortawesome")) {
-              return "vendor_fortawesome";
-            } else if(id.includes('@ledgerhq')) {
-              return "vendor_ledger";
-            } else if(id.includes('@zxing')) {
-              return "vendor_zxing";
-            } else if(id.includes('@metamask')) {
-              return "vendor_metamask";
-            } else if(id.includes('bitcoinjs-lib')) {
-              return "vendor_bitcoinjs_lib";
-            } else if(id.includes('@ethereumjs')) {
-              return "vendor_ethereumjs";
-            } else if(id.includes('ethers')) {
-              return "vendor_ethers";
-            } else if(id.includes('@avalabs')) {
-              return "vendor_avalabs";
-            } else if(id.includes('date-fns')) {
-              return "vendor_date_fns";
-            } else if(id.includes('vuetify')) {
-              return "vendor_vuetify";
-            } else if(id.includes('browserify-')) {
-              return "vendor_browserify_";
-            } else if(id.includes('ethereumjs-')) {
-              return "vendor_ethereumjs_";
-            }
             return "vendor"; // all other package goes here
           }
         },
@@ -120,7 +89,8 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["vuetify", "vue-router", "tiny-secp256k1"],
+    // "tiny-secp256k1"
+    exclude: ["vuetify", "vue-router"],
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),

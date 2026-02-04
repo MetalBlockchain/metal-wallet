@@ -9,7 +9,7 @@
         :denomination="9"
         :max="max"
         placeholder="0.00"
-        @change="amount_in"
+        @update:model-value="amount_in"
       ></BigNumInputShared>
     </div>
     <p class="ticker">METAL</p>
@@ -75,6 +75,7 @@ export const AvaxInput = defineComponent({
     },
 
     amount_in(val: BN) {
+      this.$emit("update:modelValue", val);
       this.$emit("change", val);
     },
   },
