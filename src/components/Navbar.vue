@@ -81,10 +81,13 @@
           <router-link to="/create">{{ $t("nav.create") }}</router-link>
         </template>
       </v-list>
-      <div class="mobile_bottom">
-        <AccountMenu></AccountMenu>
-        <LanguageSelect class="lang_mobile"></LanguageSelect>
-      </div>
+
+      <template #append>
+        <div class="mobile_bottom">
+          <AccountMenu></AccountMenu>
+          <LanguageSelect class="lang_mobile"></LanguageSelect>
+        </div>
+      </template>
     </v-navigation-drawer>
   </div>
 </template>
@@ -218,12 +221,7 @@ button {
 }
 
 .mobile_bottom {
-  position: absolute;
-  bottom: 30px;
-
-  > * {
-    padding: 4px 8px;
-  }
+  padding: 4px 8px 30px;
 }
 
 .lang_mobile,

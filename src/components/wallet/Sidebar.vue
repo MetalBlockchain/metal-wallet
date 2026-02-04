@@ -110,12 +110,6 @@ export default Sidebar;
     flex-direction: column;
     height: 100%;
   }
-  .alert_icon {
-    color: #f00;
-    flex-grow: 1;
-    justify-content: flex-end;
-  }
-
   .brand {
     height: 150px;
     display: flex;
@@ -185,6 +179,7 @@ export default Sidebar;
     width: 20px;
   }
 }
+
 .bottom {
   flex-grow: 1;
   display: flex;
