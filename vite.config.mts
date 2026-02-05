@@ -82,6 +82,14 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes("node_modules")) {
+            if (id.includes("vue") || id.includes("pinia")) {
+              return "vue";
+            }
+
+            if (id.includes("web3/")) {
+              return "vendor_web3";
+            }
+
             if(id.includes('@ledgerhq')) {
               return "vendor_ledger";
             }
@@ -91,6 +99,14 @@ export default defineConfig({
 
             if (id.includes("@metalblockchain/metal-wallet-sdk")) {
               return "vendor_metal_wallet_sdk";
+            }
+
+            if (id.includes("@noble")) {
+              return "vendor_noble";
+            }
+
+            if (id.includes("big.js")) {
+              return "vendor_big_js";
             }
 
             if (id.includes("@fortawesome")) {
@@ -115,9 +131,30 @@ export default defineConfig({
             if(id.includes('date-fns')) {
               return "vendor_date_fns";
             }
-            if(id.includes('vuetify')) {
-              return "vendor_vuetify";
+
+
+            if(id.includes('moment')) {
+              return "vendor_moment";
             }
+
+            if(id.includes('qrcode')) {
+              return "vendor_qrcode";
+            }
+
+            if(
+              id.includes('posthog-js') ||
+              id.includes('@opentelemetry') ||
+              id.includes('@posthog') ||
+              id.includes('preact') ||
+              id.includes('query-selector-shadow-dom') ||
+              id.includes('core-js') ||
+              id.includes('dompurify') ||
+              id.includes('fflate') ||
+              id.includes('web-vitals')
+            ) {
+              return "vendor_posthog";
+            }
+
             return "vendor"; // all other package goes here
           }
         },
