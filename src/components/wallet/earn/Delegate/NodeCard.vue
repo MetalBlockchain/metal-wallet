@@ -47,7 +47,7 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import type { ValidatorListItem } from "@/stores/types/platform";
 import Big from "big.js";
 import BN from "bn.js";
 import { defineComponent } from "vue";

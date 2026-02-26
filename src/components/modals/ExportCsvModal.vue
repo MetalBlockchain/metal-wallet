@@ -42,7 +42,7 @@ import type {
   CsvRowStakingData,
   CsvRowStakingTxType,
   ITransactionData,
-} from "@/stores/vuex/modules/history/types";
+} from "@/stores/types/history";
 import moment from "moment";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
@@ -56,7 +56,7 @@ import {
   getRewardOuts,
   getStakeAmount,
   stakingDataToCsvRow,
-} from "@/stores/vuex/modules/history/history_utils";
+} from "@/stores/utils/history_utils";
 
 export const ExportCsvModal = defineComponent({
   components: {

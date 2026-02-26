@@ -35,9 +35,9 @@ import type {
   IGroupDict,
   IGroupQuantity,
 } from "@/components/wallet/studio/mint/types";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { IWalletNftDict } from "@/stores/types";
 
-import type { IWalletNftDict } from "@/stores/vuex/types";
+import type { NftFamilyDict } from "@/stores/types/assets";
 import { defineComponent, ref } from "vue";
 import AvmNftSelectModal from "@/components/modals/AvmNftSelectModal.vue";
 import NftListItem from "@/components/wallet/transfer/NftListItem.vue";

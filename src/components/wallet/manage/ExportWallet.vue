@@ -41,7 +41,7 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { ExportWalletsInput } from "@/stores/vuex/types";
+import type { ExportWalletsInput } from "@/stores/types";
 import { defineComponent } from "vue";
 
 export const ExportWallet = defineComponent({

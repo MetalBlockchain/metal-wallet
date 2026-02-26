@@ -1,6 +1,6 @@
 import type { Module } from "vuex";
-import type { EarnState } from "@/stores/vuex/modules/earn/types";
-import type { RootState } from "@/stores/vuex/types";
+import type { RootState } from "@/stores/types";
+import type { EarnState } from "@/stores/types/earn";
 import { listStakingForAddresses } from "@/js/Glacier/listStakingForAddresses";
 
 const ledger_module: Module<EarnState, RootState> = {

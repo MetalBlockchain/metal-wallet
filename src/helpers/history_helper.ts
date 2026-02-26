@@ -1,8 +1,5 @@
 import type { WalletType } from "@/js/wallets/types";
-import type {
-  ITransactionData,
-  UTXO,
-} from "@/stores/vuex/modules/history/types";
+import type { ITransactionData, UTXO } from "@/stores/types/history";
 import { BN } from "@metalblockchain/metaljs";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 

@@ -3,8 +3,8 @@ import type { ListStakingParams } from "@/js/Glacier/models";
 import { Network, PChainId, SortOrder } from "@metalblockchain/glacier-sdk";
 import { splitToParts } from "@/js/Glacier/utils";
 import { ava } from "@/misc/AVA";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 import { filterDuplicateGlacierTxs } from "./filterDuplicateGlacierTxs";
 import Glacier from "./Glacier";
 

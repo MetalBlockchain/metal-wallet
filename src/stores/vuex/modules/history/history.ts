@@ -1,9 +1,9 @@
 import type { Module } from "vuex";
-import type { HistoryState } from "@/stores/vuex/modules/history/types";
-import type { RootState } from "@/stores/vuex/types";
-import { getGlacierHistory } from "@/stores/vuex/modules/history/getGlacierHistory";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import type { RootState } from "@/stores/types";
+import type { HistoryState } from "@/stores/types/history";
+import { getGlacierHistory } from "@/stores/utils/getGlacierHistory";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 const history_module: Module<HistoryState, RootState> = {
   namespaced: true,

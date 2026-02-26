@@ -11,19 +11,19 @@ import type { AvaNetwork } from "@/js/AvaNetwork";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletType } from "@/js/wallets/types";
 import type {
-  AddTokenListInput,
-  AssetsDict,
-  AssetsState,
-  TokenList,
-  TokenListToken,
-} from "@/stores/vuex/modules/assets/types";
-import type {
   IWalletAssetsDict,
   IWalletBalanceDict,
   IWalletNftDict,
   IWalletNftMintDict,
   RootState,
-} from "@/stores/vuex/types";
+} from "@/stores/types";
+import type {
+  AddTokenListInput,
+  AssetsDict,
+  AssetsState,
+  TokenList,
+  TokenListToken,
+} from "@/stores/types/assets";
 import { BN } from "@metalblockchain/metaljs";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
@@ -37,7 +37,7 @@ import { AvaNftFamily } from "@/js/AvaNftFamily";
 import Erc20Token from "@/js/Erc20Token";
 import { ava, avm, bintools, cChain } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
-import { fetchTokenList } from "@/stores/vuex/modules/assets/fetchTokenList";
+import { fetchTokenList } from "@/stores/utils/fetchTokenList";
 import ERC721Module from "./modules/erc721";
 
 const TOKEN_LISTS: string[] = [];

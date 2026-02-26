@@ -45,9 +45,9 @@ import { getStakeForAddresses } from "@/helpers/utxo_helper";
 import glacier from "@/js/Glacier/Glacier";
 import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
 
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 abstract class AbstractWallet {
   id: string;
@@ -60,8 +60,6 @@ abstract class AbstractWallet {
   isFetchUtxos: boolean;
   isInit: boolean;
 
-  
-
   /**
    *
    * @returns Returns the checksum encoded EVM hex address per ERC-55.
@@ -73,8 +71,6 @@ abstract class AbstractWallet {
   getUTXOSet(): AVMUTXOSet {
     return this.utxoset;
   }
-  
-  
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   protected constructor() {
@@ -178,10 +174,6 @@ abstract class AbstractWallet {
     const tx = await this.signC(unsignedTxFee);
     return this.issueC(tx);
   }
-
-  
-
-  
 
   async getStake() {
     const addrs = this.getAllAddressesP();
@@ -653,7 +645,5 @@ abstract class AbstractWallet {
 
   abstract signMessage(msg: string, address?: string): Promise<string>;
   abstract getPlatformUTXOSet(): PlatformUTXOSet;
-
-  
 }
 export { AbstractWallet };

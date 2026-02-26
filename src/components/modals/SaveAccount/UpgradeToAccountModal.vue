@@ -33,7 +33,7 @@
 </template>
 <script lang="ts">
 import type { AllKeyFileDecryptedTypes, AllKeyFileTypes } from "@/js/IKeystore";
-import type { SaveAccountInput } from "@/stores/vuex/types";
+import type { SaveAccountInput } from "@/stores/types";
 import { defineComponent } from "vue";
 import { extractKeysFromDecryptedFile, readKeyFile } from "@/js/Keystore";
 import Modal from "../Modal.vue";

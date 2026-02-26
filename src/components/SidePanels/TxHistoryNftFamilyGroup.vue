@@ -13,7 +13,7 @@
 <script lang="ts">
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type { PropType } from "vue";
-import type { UTXO } from "@/stores/vuex/modules/history/types";
+import type { UTXO } from "@/stores/types/history";
 import { Buffer } from "@metalblockchain/metaljs";
 
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";

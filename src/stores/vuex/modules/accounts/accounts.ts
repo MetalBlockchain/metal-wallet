@@ -4,16 +4,17 @@ import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletType } from "@/js/wallets/types";
 import type {
-  AccountsState,
-  ChangePasswordInput,
-} from "@/stores/vuex/modules/accounts/types";
-import type {
   AccessAccountInput,
   ImportKeyfileInput,
   iUserAccountEncrypted,
   RootState,
   SaveAccountInput,
-} from "@/stores/vuex/types";
+} from "@/stores/types";
+import type {
+  AccountsState,
+  ChangePasswordInput,
+} from "@/stores/types/accounts";
+
 import {
   addAccountToStorage,
   getAccountByIndex,

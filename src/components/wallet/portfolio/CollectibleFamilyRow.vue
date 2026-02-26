@@ -32,7 +32,7 @@ import type {
 import type { PropType } from "vue";
 import type { NftGroupDict } from "@/components/wallet/portfolio/types";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/vuex/types";
+import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/types";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { defineComponent } from "vue";
 import CollectibleFamilyGroup from "@/components/wallet/portfolio/CollectibleFamilyGroup.vue";

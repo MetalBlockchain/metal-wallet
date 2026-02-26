@@ -10,8 +10,8 @@
 </template>
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
-import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import type { IWalletNftMintDict } from "@/stores/types";
+import type { NftFamilyDict } from "@/stores/types/assets";
 import { defineComponent } from "vue";
 import FamilyRow from "@/components/wallet/studio/mint/SelectMintUtxo/FamilyRow.vue";
 

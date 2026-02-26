@@ -47,7 +47,7 @@
   </modal>
 </template>
 <script lang="ts">
-import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import type { iUserAccountEncrypted } from "@/stores/types";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import ChangePassword from "@/components/modals/AccountSettings/ChangePassword.vue";

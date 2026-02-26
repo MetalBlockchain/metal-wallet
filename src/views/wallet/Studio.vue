@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import type { IWalletNftMintDict } from "@/stores/types";
 import { defineComponent } from "vue";
 import MintNft from "@/components/wallet/studio/mint/MintNft.vue";
 import NewCollectibleFamily from "@/components/wallet/studio/NewCollectibleFamily.vue";

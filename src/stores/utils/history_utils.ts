@@ -4,10 +4,10 @@ import type {
   CsvRowStakingData,
   ITransactionData,
   UTXO,
-} from "@/stores/vuex/modules/history/types";
+} from "@/stores/types/history";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 
-export function isArraysOverlap(arr1: any[], arr2: any[]): boolean {
+function isArraysOverlap(arr1: any[], arr2: any[]): boolean {
   const overlaps = arr1.filter((item) => arr2.includes(item));
   return overlaps.length > 0;
 }
@@ -29,7 +29,7 @@ export function getOwnedOutputs(outs: UTXO[], myAddrs: string[]) {
   });
 }
 
-export function getAddresses(outs: UTXO[]): string[] {
+function getAddresses(outs: UTXO[]): string[] {
   const allAddrs: string[] = [];
 
   for (const out of outs) {
@@ -48,11 +48,11 @@ export function getAddresses(outs: UTXO[]): string[] {
  * @param outs
  * @param assetID
  */
-export function getAssetOutputs(outs: UTXO[], assetID: string) {
+function getAssetOutputs(outs: UTXO[], assetID: string) {
   return outs.filter((out) => out.assetID === assetID);
 }
 
-export function getNotOwnedOutputs(outs: UTXO[], myAddrs: string[]) {
+function getNotOwnedOutputs(outs: UTXO[], myAddrs: string[]) {
   return outs.filter((out) => {
     const outAddrs = out.addresses;
     return !isArraysOverlap(myAddrs, outAddrs);
@@ -69,7 +69,7 @@ export function getRewardOuts(outs: UTXO[]) {
   return outs.filter((out) => out.rewardUtxo);
 }
 
-export function durationToString(dur: moment.Duration): string {
+function durationToString(dur: moment.Duration): string {
   const months = dur.months();
   const days = dur.days();
   const hours = dur.hours();
@@ -118,9 +118,7 @@ export function stakingDataToCsvRow(rowData: CsvRowStakingData): string[] {
   ];
 }
 
-export function avaxTransferDataToCsvRow(
-  rowData: CsvRowAvaxTransferData,
-): string[] {
+function avaxTransferDataToCsvRow(rowData: CsvRowAvaxTransferData): string[] {
   const memo = rowData.memo ? `"${rowData.memo}"` : "-";
 
   const froms = rowData.from ? `"${rowData.from?.join("\n")}"` : "-";
@@ -166,7 +164,7 @@ export function downloadCSVFile(content: string, fileName: string) {
  * Parses the raw memo field to a human readable string.
  * @param memoRaw The base64 encoded memo string
  */
-export function parseMemo(memoRaw: string): string {
+function parseMemo(memoRaw: string): string {
   const memoText = Buffer.from(memoRaw, "base64").toString("utf8");
   // Bug that sets memo to empty string (AAAAAA==) for some tx types
   if (memoText.length === 0 || memoRaw === "AAAAAA==") return "";

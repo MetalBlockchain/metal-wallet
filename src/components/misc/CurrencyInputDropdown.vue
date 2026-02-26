@@ -35,7 +35,7 @@
 </template>
 <script lang="ts">
 import type AvaAsset from "@/js/AvaAsset";
-import type { IWalletAssetsDict, priceDict } from "@/stores/vuex/types";
+import type { IWalletAssetsDict, priceDict } from "@/stores/types";
 
 import { BN } from "@metalblockchain/metaljs";
 

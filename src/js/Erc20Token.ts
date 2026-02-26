@@ -1,4 +1,4 @@
-import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
+import type { TokenListToken } from "@/stores/types/assets";
 import { BN } from "@metalblockchain/metaljs";
 import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
 import Big from "big.js";

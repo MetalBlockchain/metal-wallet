@@ -1,4 +1,4 @@
-import type { TokenList } from "@/stores/vuex/modules/assets/types";
+import type { TokenList } from "@/stores/types/assets";
 
 function mapTokenInfo(token: any) {
   return { ...token, logoURI: token.logoUri };

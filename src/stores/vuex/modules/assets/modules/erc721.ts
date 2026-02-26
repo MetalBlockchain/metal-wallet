@@ -1,11 +1,11 @@
 import type { Module } from "vuex";
 import type { WalletType } from "@/js/wallets/types";
+import type { RootState } from "@/stores/types";
+import type { TokenListToken } from "@/stores/types/assets";
 import type {
   Erc721ModuleState,
   ERC721TokenInput,
-} from "@/stores/vuex/modules/assets/modules/types";
-import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
-import type { RootState } from "@/stores/vuex/types";
+} from "@/stores/types/erc721";
 import ERC721_TOKEN_LIST from "@/data/ERC721Tokenlist.json";
 import ERC721Token from "@/js/ERC721Token";
 

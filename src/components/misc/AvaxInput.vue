@@ -31,7 +31,7 @@
 <script lang="ts">
 import type { Big } from "@metalblockchain/metal-wallet-sdk";
 import type { BN } from "@metalblockchain/metaljs";
-import type { priceDict } from "@/stores/vuex/types";
+import type { priceDict } from "@/stores/types";
 import { bnToBig } from "@metalblockchain/metal-wallet-sdk";
 import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
 

@@ -29,7 +29,7 @@
 import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
 import type { WalletType } from "@/js/wallets/types";
-import type { priceDict } from "@/stores/vuex/types";
+import type { priceDict } from "@/stores/types";
 import { BN } from "@metalblockchain/metaljs";
 import Big from "big.js";
 import { defineComponent } from "vue";

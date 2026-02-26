@@ -16,7 +16,7 @@
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { NftFamilyDict } from "@/stores/types/assets";
 import { defineComponent } from "vue";
 import CollectibleFamily from "@/components/misc/BalancePopup/CollectibleFamily.vue";
 import Modal from "@/components/modals/Modal.vue";

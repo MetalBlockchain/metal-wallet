@@ -22,7 +22,7 @@
   </modal>
 </template>
 <script lang="ts">
-import type { ITransactionData } from "@/stores/vuex/modules/history/types";
+import type { ITransactionData } from "@/stores/types/history";
 import {
   createCsvNormal,
   getHistoryForOwnedAddresses,
@@ -30,7 +30,7 @@ import {
 
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
-import { downloadCSVFile } from "@/stores/vuex/modules/history/history_utils";
+import { downloadCSVFile } from "@/stores/utils/history_utils";
 
 export const ExportAvaxCsvModal = defineComponent({
   components: {

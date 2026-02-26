@@ -4,13 +4,13 @@ import type {
   ValidatorRaw,
 } from "@/components/misc/ValidatorList/types";
 
+import type { RootState } from "@/stores/types";
 import type {
   GetValidatorsResponse,
   PlatformState,
   ValidatorDelegatorPendingDict,
   ValidatorListItem,
-} from "@/stores/vuex/modules/platform/types";
-import type { RootState } from "@/stores/vuex/types";
+} from "@/stores/types/platform";
 
 import { BN } from "@metalblockchain/metaljs";
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
@@ -84,7 +84,6 @@ const platform_module: Module<PlatformState, RootState> = {
       let res: ValidatorListItem[] = [];
 
       for (const v of validators) {
-
         if (v) {
           const nodeID = v.nodeID;
 

@@ -95,7 +95,7 @@
 <script lang="ts">
 import type AvaAsset from "@/js/AvaAsset";
 import type { WalletType } from "@/js/wallets/types";
-import type { priceDict } from "@/stores/vuex/types";
+import type { priceDict } from "@/stores/types";
 import { BN } from "@metalblockchain/metaljs/dist";
 
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";

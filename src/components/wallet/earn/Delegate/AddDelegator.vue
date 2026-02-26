@@ -211,7 +211,7 @@ import type {
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletType } from "@/js/wallets/types";
-import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import type { ValidatorListItem } from "@/stores/types/platform";
 
 import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";

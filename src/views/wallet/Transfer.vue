@@ -142,7 +142,7 @@ import type { ChainIdType } from "@/constants";
 
 import type AvaAsset from "@/js/AvaAsset";
 import type { WalletType } from "@/js/wallets/types";
-import type { IssueBatchTxInput, priceDict } from "@/stores/vuex/types";
+import type { IssueBatchTxInput, priceDict } from "@/stores/types";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
 import { defineComponent } from "vue";

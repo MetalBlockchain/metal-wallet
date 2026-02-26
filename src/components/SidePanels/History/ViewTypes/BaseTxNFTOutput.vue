@@ -16,7 +16,7 @@
 import type { PropType } from "vue";
 
 import type AvaAsset from "@/js/AvaAsset";
-import type { UTXO } from "@/stores/vuex/modules/history/types";
+import type { UTXO } from "@/stores/types/history";
 import { defineComponent } from "vue";
 import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
 

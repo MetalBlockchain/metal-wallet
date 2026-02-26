@@ -21,7 +21,7 @@
 </template>
 <script lang="ts">
 import type { WalletType } from "@/js/wallets/types";
-import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import type { iUserAccountEncrypted } from "@/stores/types";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";

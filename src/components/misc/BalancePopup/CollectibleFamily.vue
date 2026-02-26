@@ -26,7 +26,7 @@ import type {
 import type { PropType } from "vue";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
 
-import type { IWalletNftDict } from "@/stores/vuex/types";
+import type { IWalletNftDict } from "@/stores/types";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";

@@ -1,6 +1,6 @@
 import type { Module } from "vuex";
-import type { NetworkState } from "@/stores/vuex/modules/network/types";
-import type { RootState } from "@/stores/vuex/types";
+import type { RootState } from "@/stores/types";
+import type { NetworkState } from "@/stores/types/network";
 
 import {
   getConfigFromUrl,
@@ -13,10 +13,7 @@ import { web3 } from "@/misc/evm";
 import { explorer_api } from "@/misc/explorer_api";
 import { setSocketNetwork } from "@/providers";
 import router from "@/router";
-import {
-  MainnetConfig,
-  TestnetConfig,
-} from "@/stores/vuex/modules/network/constants";
+import { MainnetConfig, TestnetConfig } from "@/stores/constants/network";
 
 const network_module: Module<NetworkState, RootState> = {
   namespaced: true,

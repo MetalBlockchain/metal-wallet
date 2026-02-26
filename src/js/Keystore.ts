@@ -28,7 +28,8 @@ import type {
 } from "./IKeystore";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
-import type { AccessWalletMultipleInput } from "@/stores/vuex/types";
+import type { WalletType } from "@/js/wallets/types";
+import type { AccessWalletMultipleInput } from "@/stores/types";
 import { Buffer as AjsBuffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
 import { keyToKeypair } from "@/helpers/helper";
@@ -367,7 +368,7 @@ function extractKeysFromDecryptedFile(
 
 // Given an array of wallets and a password, return an encrypted JSON object that is the keystore file
 async function makeKeyfile(
-  wallets: (MnemonicWallet | SingletonWallet)[],
+  wallets: WalletType[],
   pass: string,
   activeIndex: number,
 ): Promise<KeyFileV6> {

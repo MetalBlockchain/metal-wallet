@@ -128,7 +128,7 @@ import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/type
 import type Erc20Token from "@/js/Erc20Token";
 import type { WalletType } from "@/js/wallets/types";
 
-import type { priceDict } from "@/stores/vuex/types";
+import type { priceDict } from "@/stores/types";
 
 import {
   bnToAvaxC,

@@ -33,7 +33,7 @@
 <script lang="ts">
 import type Big from "big.js";
 import type { AvaWalletCore } from "@/js/wallets/types";
-import type { EarnState } from "@/stores/vuex/modules/earn/types";
+import type { EarnState } from "@/stores/types/earn";
 import { BN } from "@metalblockchain/metaljs";
 import { defineComponent } from "vue";
 import UserRewardRow from "@/components/wallet/earn/UserRewardRow.vue";

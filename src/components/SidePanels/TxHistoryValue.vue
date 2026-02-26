@@ -14,7 +14,7 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
-import type { TransactionType } from "@/stores/vuex/modules/history/types";
+import type { TransactionType } from "@/stores/types/history";
 import Big from "big.js";
 import { defineComponent } from "vue";
 

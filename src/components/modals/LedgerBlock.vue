@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts">
-import type { ILedgerBlockMessage } from "@/stores/vuex/modules/ledger/types";
+import type { ILedgerBlockMessage } from "@/stores/types/ledger";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import Modal from "./Modal.vue";

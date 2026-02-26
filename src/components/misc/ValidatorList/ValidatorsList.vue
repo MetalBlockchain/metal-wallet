@@ -53,9 +53,10 @@
 
 <script lang="ts">
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
-import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import type { ValidatorMetaData } from "@/stores/types";
 
-import type { ValidatorMetaData } from "@/stores/vuex/types";
+import type { ValidatorListItem } from "@/stores/types/platform";
+
 import { defineComponent } from "vue";
 import Tooltip from "@/components/misc/Tooltip.vue";
 import FilterSettings from "@/components/misc/ValidatorList/FilterSettings.vue";

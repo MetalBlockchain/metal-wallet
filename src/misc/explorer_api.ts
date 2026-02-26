@@ -1,4 +1,4 @@
-import type { ITransactionData } from "@/stores/vuex/modules/history/types";
+import type { ITransactionData } from "@/stores/types/history";
 import axios, { type AxiosInstance } from "axios";
 
 // Doesn't really matter what we set, it will change

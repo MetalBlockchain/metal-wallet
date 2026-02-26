@@ -107,8 +107,8 @@ import Spinner from "@/components/misc/Spinner.vue";
 import ExportGlacierHistoryModal from "@/components/modals/ExportGlacierHistoryModal.vue";
 import TxRow from "@/components/wallet/activity/TxRow.vue";
 import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 type ModeKeyType = "all" | "transfer" | "swap" | "stake";
 

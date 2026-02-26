@@ -46,7 +46,7 @@
 </template>
 <script lang="ts">
 import type ERC721Token from "@/js/ERC721Token";
-import type { ERC721TokenInput } from "@/stores/vuex/modules/assets/modules/types";
+import type { ERC721TokenInput } from "@/stores/types/erc721";
 import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
 import { defineComponent } from "vue";
 import { web3 } from "@/misc/evm";

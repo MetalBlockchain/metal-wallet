@@ -1,10 +1,10 @@
 import type { Module } from "vuex";
+import type { RootState } from "@/stores/types";
 import type {
   Notification,
   NotificationInput,
   NotifState,
-} from "@/stores/vuex/modules/notifications/types";
-import type { RootState } from "@/stores/vuex/types";
+} from "@/stores/types/notifications";
 
 const COLOR_SUCCESS = "#6BC688";
 const COLOR_WARNING = "#c39043";

@@ -8,7 +8,7 @@ import type {
   IssueBatchTxInput,
   RootState,
   ValidatorMetaData,
-} from "@/stores/vuex/types";
+} from "@/stores/types";
 import { Buffer } from "@metalblockchain/metaljs";
 import { privateToAddress } from "ethereumjs-util";
 import { createStore } from "vuex";

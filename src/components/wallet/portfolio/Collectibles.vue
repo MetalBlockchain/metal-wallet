@@ -34,8 +34,8 @@
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type ERC721Token from "@/js/ERC721Token";
 
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
-import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/vuex/types";
+import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/types";
+import type { NftFamilyDict } from "@/stores/types/assets";
 import { defineComponent } from "vue";
 import AddERC721TokenModal from "@/components/modals/AddERC721TokenModal.vue";
 import CollectibleFamilyRow from "@/components/wallet/portfolio/CollectibleFamilyRow.vue";

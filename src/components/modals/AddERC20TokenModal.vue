@@ -37,7 +37,7 @@
 
 <script lang="ts">
 import type Erc20Token from "@/js/Erc20Token";
-import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
+import type { TokenListToken } from "@/stores/types/assets";
 import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
 import { defineComponent } from "vue";
 import { web3 } from "@/misc/evm";

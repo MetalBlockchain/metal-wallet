@@ -1,4 +1,4 @@
-import type { iUserAccountEncrypted } from "@/stores/vuex/types";
+import type { iUserAccountEncrypted } from "@/stores/types";
 
 export interface AccountsState {
   accounts: iUserAccountEncrypted[];

@@ -50,7 +50,7 @@
 import type {
   iUserAccountEncrypted,
   SaveAccountInput,
-} from "@/stores/vuex/types";
+} from "@/stores/types";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import Modal from "../Modal.vue";

@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import type { AllKeyFileTypes } from "@/js/IKeystore";
-import type { ImportKeyfileInput } from "@/stores/vuex/types";
+import type { ImportKeyfileInput } from "@/stores/types";
 import { defineComponent } from "vue";
 import FileInput from "@/components/misc/FileInput.vue";
 

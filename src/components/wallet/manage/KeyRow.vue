@@ -123,7 +123,7 @@ import type { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletNameType, WalletType } from "@/js/wallets/types";
-import type { AssetsDict } from "@/stores/vuex/modules/assets/types";
+import type { AssetsDict } from "@/stores/types/assets";
 
 import { defineComponent } from "vue";
 import Tooltip from "@/components/misc/Tooltip.vue";

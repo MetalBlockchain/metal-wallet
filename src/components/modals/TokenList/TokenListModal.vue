@@ -41,7 +41,7 @@
   </modal>
 </template>
 <script lang="ts">
-import type { TokenList } from "@/stores/vuex/modules/assets/types";
+import type { TokenList } from "@/stores/types/assets";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 

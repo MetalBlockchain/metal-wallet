@@ -51,7 +51,7 @@ import {
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import { getPriceAtUnixTime } from "@/helpers/price_helper";
-import { downloadCSVFile } from "@/stores/vuex/modules/history/history_utils";
+import { downloadCSVFile } from "@/stores/utils/history_utils";
 import Balances from "@/views/wallet_readonly/Balances.vue";
 
 // import {ethers} from "ethers";

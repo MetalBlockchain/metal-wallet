@@ -21,5 +21,3 @@ export interface LedgerState {
   info: string;
   warning: string | undefined;
 }
-
-export const LEDGER_EXCHANGE_TIMEOUT = 90_000;

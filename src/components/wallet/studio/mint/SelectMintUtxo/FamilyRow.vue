@@ -28,7 +28,7 @@ import type {
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import type { IWalletNftMintDict } from "@/stores/types";
 import { defineComponent } from "vue";
 import NftFamilyCardsPreview from "@/components/misc/NftFamilyCardsPreview.vue";
 

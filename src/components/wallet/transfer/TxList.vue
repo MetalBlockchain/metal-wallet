@@ -34,7 +34,7 @@ import type {
 } from "@/components/wallet/transfer/types";
 
 import type AvaAsset from "@/js/AvaAsset";
-import type { AssetsDict } from "@/stores/vuex/modules/assets/types";
+import type { AssetsDict } from "@/stores/types/assets";
 import { BN } from "@metalblockchain/metaljs";
 import { v1 as uuidv1 } from "uuid";
 import { defineComponent } from "vue";

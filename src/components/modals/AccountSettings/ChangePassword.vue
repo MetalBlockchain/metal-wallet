@@ -32,7 +32,7 @@
   </form>
 </template>
 <script lang="ts">
-import type { ChangePasswordInput } from "@/stores/vuex/modules/accounts/types";
+import type { ChangePasswordInput } from "@/stores/types/accounts";
 import { defineComponent } from "vue";
 
 export const ChangePassword = defineComponent({

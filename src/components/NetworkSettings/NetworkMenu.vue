@@ -82,7 +82,7 @@
 </template>
 <script lang="ts">
 import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { NetworkStatus } from "@/stores/vuex/modules/network/types";
+import type { NetworkStatus } from "@/stores/types/network";
 import { defineComponent } from "vue";
 import CustomPage from "./CustomPage.vue";
 import EditPage from "./EditPage.vue";

@@ -138,7 +138,7 @@ import type {
   UrlFormType,
   UtfFormType,
 } from "@/components/wallet/studio/mint/types";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { NftFamilyDict } from "@/stores/types/assets";
 
 import {
   JSONPayload,

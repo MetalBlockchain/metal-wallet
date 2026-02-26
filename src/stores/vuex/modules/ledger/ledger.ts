@@ -1,9 +1,6 @@
 import type { Module } from "vuex";
-import type {
-  LedgerModalConfig,
-  LedgerState,
-} from "@/stores/vuex/modules/ledger/types";
-import type { RootState } from "@/stores/vuex/types";
+import type { RootState } from "@/stores/types";
+import type { LedgerModalConfig, LedgerState } from "@/stores/types/ledger";
 
 const ledger_module: Module<LedgerState, RootState> = {
   namespaced: true,

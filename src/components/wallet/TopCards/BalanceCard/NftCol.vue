@@ -31,8 +31,8 @@ import type {
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { ERC721WalletBalance } from "@/stores/vuex/modules/assets/modules/types";
-import type { IWalletNftDict } from "@/stores/vuex/types";
+import type { IWalletNftDict } from "@/stores/types";
+import type { ERC721WalletBalance } from "@/stores/types/erc721";
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";
