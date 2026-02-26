@@ -34,8 +34,11 @@
 <script lang="ts">
 import type { AllKeyFileDecryptedTypes, AllKeyFileTypes } from "@/js/IKeystore";
 import type { SaveAccountInput } from "@/stores/types";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { extractKeysFromDecryptedFile, readKeyFile } from "@/js/Keystore";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useRootStore } from "@/stores/pinia/root";
 import Modal from "../Modal.vue";
 
 export const UpgradeToAccountModal = defineComponent({
@@ -47,8 +50,12 @@ export const UpgradeToAccountModal = defineComponent({
       err: "",
     };
   },
+
+  computed: {
+    ...mapState(useRootStore, ["isAuth"]),
+  },
   watch: {
-    "$store.state.isAuth": [
+    isAuth: [
       {
         handler: "onauthchange",
       },
@@ -58,6 +65,11 @@ export const UpgradeToAccountModal = defineComponent({
     this.openIfValid();
   },
   methods: {
+    ...mapActions(useRootStore, [
+      "accessWalletMultiple",
+      "resetVolatileWallets",
+    ]),
+    ...mapActions(useAccountsStore, ["saveAccount"]),
     openIfValid() {
       const w = localStorage.getItem("w");
       if (w) {
@@ -78,7 +90,7 @@ export const UpgradeToAccountModal = defineComponent({
         );
         this.isLoading = false;
         const accessInput = extractKeysFromDecryptedFile(keyFile);
-        await this.$store.dispatch("accessWalletMultiple", {
+        await this.accessWalletMultiple({
           keys: accessInput,
           activeIndex: keyFile.activeIndex,
         });
@@ -102,13 +114,14 @@ export const UpgradeToAccountModal = defineComponent({
           password: pass,
           accountName: "Account 1",
         };
-        await this.$store.dispatch("Accounts/saveAccount", accountIn);
+        await this.saveAccount(accountIn);
 
         // Wont be using this anymore
         localStorage.removeItem("w");
 
         // These are not volatile wallets since they are loaded from storage
-        this.$store.state.volatileWallets = [];
+        this.resetVolatileWallets();
+
         this.password = "";
         this.close();
       } catch (error) {

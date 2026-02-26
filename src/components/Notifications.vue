@@ -15,17 +15,11 @@
     </transition-group>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
-export const Notifications = defineComponent({
-  computed: {
-    items() {
-      return this.$store.state.Notifications.items;
-    },
-  },
-});
-export default Notifications;
+const notificationsStore = useNotificationsStore();
+const items = computed(() => notificationsStore.items);
 </script>
 
 <style scoped>

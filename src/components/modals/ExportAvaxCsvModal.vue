@@ -22,14 +22,17 @@
   </modal>
 </template>
 <script lang="ts">
-import type { ITransactionData } from "@/stores/types/history";
 import {
   createCsvNormal,
   getHistoryForOwnedAddresses,
 } from "@metalblockchain/metal-wallet-sdk";
 
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useRootStore } from "@/stores/pinia/root";
 import { downloadCSVFile } from "@/stores/utils/history_utils";
 
 export const ExportAvaxCsvModal = defineComponent({
@@ -45,23 +48,23 @@ export const ExportAvaxCsvModal = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+    }),
+    ...mapState(useHistoryStore, {
+      transactions: "allTransactions",
+    }),
+    ...mapState(useAssetsStore, {
+      avaxID: "AVA_ASSET_ID",
+    }),
     canSubmit() {
       return true;
     },
-    transactions(): ITransactionData[] {
-      return this.$store.state.History.allTransactions;
-    },
-    wallet() {
-      return this.$store.state.activeWallet;
-    },
     xAddresses(): string[] {
-      return this.wallet.getAllAddressesX();
+      return this.wallet?.getAllAddressesX() ?? [];
     },
     xAddressesStripped(): string[] {
       return this.xAddresses.map((addr: string) => addr.split("-")[1] ?? "");
-    },
-    avaxID() {
-      return this.$store.state.Assets.AVA_ASSET_ID;
     },
   },
   methods: {
@@ -70,6 +73,7 @@ export const ExportAvaxCsvModal = defineComponent({
       (this.$refs.modal as typeof Modal).open();
     },
     async generateCSVFile() {
+      if (!this.wallet) return;
       this.isLoading = true;
 
       try {

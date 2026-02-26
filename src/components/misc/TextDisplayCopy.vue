@@ -9,6 +9,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import CopyTextShared from "@/components/shared/CopyTextShared.vue";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export const TextDisplayCopy = defineComponent({
   components: {
@@ -20,9 +21,13 @@ export const TextDisplayCopy = defineComponent({
     },
   },
   emits: ["copy"],
+  setup() {
+    const notificationsStore = useNotificationsStore();
+    return { notificationsStore };
+  },
   methods: {
     oncopy() {
-      this.$store.dispatch("Notifications/add", {
+      this.notificationsStore.add({
         title: "Copy",
         message: "Copied to clipboard.",
       });

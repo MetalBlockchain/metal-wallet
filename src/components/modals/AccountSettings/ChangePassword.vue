@@ -34,8 +34,18 @@
 <script lang="ts">
 import type { ChangePasswordInput } from "@/stores/types/accounts";
 import { defineComponent } from "vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export const ChangePassword = defineComponent({
+  setup() {
+    const accountsStore = useAccountsStore();
+    const notificationsStore = useNotificationsStore();
+    return {
+      accountsStore,
+      notificationsStore,
+    };
+  },
   data() {
     return {
       pass: "",
@@ -80,18 +90,16 @@ export const ChangePassword = defineComponent({
         passNew: this.pass,
       };
 
-      this.$store
-        .dispatch("Accounts/changePassword", input)
-        .then(() => {
-          this.$store.dispatch("Notifications/add", {
-            title: "Password Changed",
-            message: "You can now use your account with your new password.",
-          });
-          (this.$parent as any)?.close();
-        })
-        .catch((error) => {
-          this.error = error;
+      try {
+        await this.accountsStore.changePassword(input);
+        this.notificationsStore.add({
+          title: "Password Changed",
+          message: "You can now use your account with your new password.",
         });
+        (this.$parent as any)?.close();
+      } catch (error) {
+        this.error = (error as Error).message;
+      }
     },
   },
 });

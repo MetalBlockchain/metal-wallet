@@ -53,15 +53,16 @@
 
 <script lang="ts">
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
-import type { ValidatorMetaData } from "@/stores/types";
-
 import type { ValidatorListItem } from "@/stores/types/platform";
 
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Tooltip from "@/components/misc/Tooltip.vue";
 import FilterSettings from "@/components/misc/ValidatorList/FilterSettings.vue";
 import ValidatorRow from "@/components/misc/ValidatorList/ValidatorRow.vue";
 import { filterValidatorList } from "@/components/wallet/earn/Delegate/helper";
+import { usePlatformStore } from "@/stores/pinia/platform";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ValidatorsList = defineComponent({
   components: { Tooltip, ValidatorRow, FilterSettings },
@@ -81,11 +82,11 @@ export const ValidatorsList = defineComponent({
     };
   },
   computed: {
+    ...mapState(usePlatformStore, ["validatorListEarn"]),
+    ...mapState(useRootStore, ["validatorMetaData"]),
     validators(): ValidatorListItem[] {
-      let list: ValidatorListItem[] =
-        this.$store.getters["Platform/validatorListEarn"];
-      const metaData: ValidatorMetaData =
-        this.$store.getters["validatorMetaData"];
+      let list = this.validatorListEarn;
+      const metaData = this.validatorMetaData;
 
       if (metaData && metaData.validators) {
         for (const validator of list) {

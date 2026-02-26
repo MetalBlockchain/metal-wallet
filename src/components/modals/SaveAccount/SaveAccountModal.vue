@@ -47,12 +47,14 @@
   </div>
 </template>
 <script lang="ts">
-import type {
-  iUserAccountEncrypted,
-  SaveAccountInput,
-} from "@/stores/types";
+import type { iUserAccountEncrypted, SaveAccountInput } from "@/stores/types";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 import Modal from "../Modal.vue";
 
 export const SaveAccountModal = defineComponent({
@@ -76,9 +78,11 @@ export const SaveAccountModal = defineComponent({
     };
   },
   computed: {
-    walletType() {
-      return this.$store.state.activeWallet.type;
-    },
+    ...mapState(useRootStore, {
+      walletType: (store) =>
+        store.activeWallet ? store.activeWallet.type : null,
+    }),
+    ...mapState(useAccountsStore, ["baseAddresses"]),
     canSubmit() {
       if (this.error !== null) return false;
       return true;
@@ -94,11 +98,12 @@ export const SaveAccountModal = defineComponent({
 
       return null;
     },
-    baseAddresses(): string[] {
-      return this.$store.getters["Accounts/baseAddresses"];
-    },
   },
   methods: {
+    ...mapActions(useAccountsStore, ["saveAccount"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     async submit(): Promise<void> {
       this.isLoading = true;
       const pass = this.password;
@@ -108,13 +113,13 @@ export const SaveAccountModal = defineComponent({
         accountName: accountName,
         password: pass,
       };
-      await this.$store.dispatch("Accounts/saveAccount", input);
+      await this.saveAccount(input);
 
       this.isLoading = false;
       this.onsuccess();
     },
     onsuccess() {
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         title: "Account Saved",
         message: "Your keys are now stored under a new local account.",
         type: "info",

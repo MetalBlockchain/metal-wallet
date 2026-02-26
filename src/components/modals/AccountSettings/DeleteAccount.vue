@@ -21,8 +21,18 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export default defineComponent({
+  setup() {
+    const accountsStore = useAccountsStore();
+    const notificationsStore = useNotificationsStore();
+    return {
+      accountsStore,
+      notificationsStore,
+    };
+  },
   data() {
     return {
       pass: "",
@@ -38,17 +48,15 @@ export default defineComponent({
   methods: {
     async submit() {
       this.error = "";
-      await this.$store
-        .dispatch("Accounts/deleteAccount", this.pass)
-        .then(() => {
-          this.$store.dispatch("Notifications/add", {
-            title: "Account Deleted",
-            message: "Your wallet is no longer stored on this browser.",
-          });
-        })
-        .catch((error) => {
-          this.error = error;
+      try {
+        await this.accountsStore.deleteAccount(this.pass);
+        this.notificationsStore.add({
+          title: "Account Deleted",
+          message: "Your wallet is no longer stored on this browser.",
         });
+      } catch (error) {
+        this.error = (error as Error).message;
+      }
     },
   },
 });

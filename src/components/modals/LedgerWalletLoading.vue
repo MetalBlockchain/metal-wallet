@@ -7,16 +7,18 @@
   </modal>
 </template>
 <script lang="ts">
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useLedgerStore } from "@/stores/pinia/ledger";
 
 export default defineComponent({
   components: { Spinner, Modal },
   computed: {
-    isActive() {
-      return this.$store.state.Ledger.isWalletLoading;
-    },
+    ...mapState(useLedgerStore, {
+      isActive: "isWalletLoading",
+    }),
   },
   watch: {
     isActive: [{ immediate: true, handler: "onActive" }],

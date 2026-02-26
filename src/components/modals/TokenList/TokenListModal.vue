@@ -42,8 +42,10 @@
 </template>
 <script lang="ts">
 import type { TokenList } from "@/stores/types/assets";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const TokenListModal = defineComponent({
   components: {
@@ -56,28 +58,32 @@ export const TokenListModal = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, {
+      lists: "tokenLists",
+    }),
     canAdd() {
       if (this.urlIn.length < 4) {
         return false;
       }
       return true;
     },
-    lists(): TokenList[] {
-      return this.$store.state.Assets.tokenLists;
-    },
   },
   methods: {
+    ...mapActions(useAssetsStore, [
+      "addTokenListUrl",
+      "updateERC20Balances",
+      "removeTokenList",
+    ]),
     beforeClose() {
       this.urlIn = "";
       this.err = "";
     },
     async addTokenList() {
       this.err = "";
-      this.$store
-        .dispatch("Assets/addTokenListUrl", {
-          url: this.urlIn,
-          readonly: false,
-        })
+      this.addTokenListUrl({
+        url: this.urlIn,
+        readonly: false,
+      })
         .then(() => {
           this.onSuccess();
         })
@@ -87,10 +93,10 @@ export const TokenListModal = defineComponent({
     },
     onSuccess() {
       this.urlIn = "";
-      this.$store.dispatch("Assets/updateERC20Balances");
+      this.updateERC20Balances();
     },
     async removeList(list: TokenList) {
-      this.$store.dispatch("Assets/removeTokenList", list);
+      this.removeTokenList(list);
     },
     onError(err: any) {
       this.err = err;

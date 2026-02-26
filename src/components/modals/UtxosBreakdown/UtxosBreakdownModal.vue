@@ -59,12 +59,13 @@ import type {
   StakeableLockOut,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 
-import type { WalletType } from "@/js/wallets/types";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import UTXORow from "@/components/modals/UtxosBreakdown/AVMUTXORow.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const UtxosBreakdownModal = defineComponent({
   components: { UTXORow, Modal },
@@ -74,9 +75,9 @@ export const UtxosBreakdownModal = defineComponent({
     };
   },
   computed: {
-    wallet(): WalletType | null {
-      return this.$store.state.activeWallet;
-    },
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+    }),
     avmUTXOs(): AVMUTXO[] {
       if (!this.wallet) return [];
       const utxos = this.wallet.getUTXOSet().getAllUTXOs();

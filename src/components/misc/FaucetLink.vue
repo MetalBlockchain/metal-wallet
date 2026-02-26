@@ -12,7 +12,9 @@
   </div>
 </template>
 <script lang="ts">
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const FaucetLink = defineComponent({
   computed: {
@@ -21,9 +23,9 @@ export const FaucetLink = defineComponent({
       if (link) return link;
       return null;
     },
-    selectedAddress() {
-      return this.$store.state.address;
-    },
+    ...mapState(useRootStore, {
+      selectedAddress: "address",
+    }),
   },
 });
 

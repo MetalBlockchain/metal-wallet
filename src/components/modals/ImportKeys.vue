@@ -38,11 +38,13 @@
 </template>
 
 <script lang="ts">
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import AddKeyFile from "@/components/wallet/manage/AddKeyFile.vue";
 import AddKeyString from "@/components/wallet/manage/AddKeyString.vue";
 import AddMnemonic from "@/components/wallet/manage/AddMnemonic.vue";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export default defineComponent({
   components: {
@@ -61,6 +63,9 @@ export default defineComponent({
     this.title = this.$t("keys.import_key_title") as string;
   },
   methods: {
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     open() {
       (this.$refs.modal as typeof Modal).open();
       this.selectedTab = "private"; // explicitly set v-model value for modal
@@ -72,7 +77,7 @@ export default defineComponent({
     },
     handleImportSuccess() {
       (this.$refs.modal as typeof Modal).close();
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         title: this.$t("keys.import_key_success_title"),
         message: this.$t("keys.import_key_success_msg"),
       });

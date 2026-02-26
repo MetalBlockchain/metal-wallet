@@ -47,13 +47,15 @@
   </modal>
 </template>
 <script lang="ts">
-import type { iUserAccountEncrypted } from "@/stores/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import ChangePassword from "@/components/modals/AccountSettings/ChangePassword.vue";
 import DeleteAccount from "@/components/modals/AccountSettings/DeleteAccount.vue";
 import SaveKeys from "@/components/modals/AccountSettings/SaveKeys.vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const AccountSettingsModal = defineComponent({
   components: {
@@ -69,12 +71,10 @@ export const AccountSettingsModal = defineComponent({
     };
   },
   computed: {
-    account(): iUserAccountEncrypted | undefined {
-      return this.$store.getters["Accounts/account"];
-    },
-    hasVolatile() {
-      return this.$store.state.volatileWallets.length > 0;
-    },
+    ...mapState(useAccountsStore, ["account"]),
+    ...mapState(useRootStore, {
+      hasVolatile: (store) => store.volatileWallets.length > 0,
+    }),
   },
   methods: {
     open() {

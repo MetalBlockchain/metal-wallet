@@ -36,11 +36,13 @@
 </template>
 
 <script lang="ts">
-import type Erc20Token from "@/js/Erc20Token";
 import type { TokenListToken } from "@/stores/types/assets";
 import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { web3 } from "@/misc/evm";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 import Modal from "./Modal.vue";
 
 export const AddERC20TokenModal = defineComponent({
@@ -57,6 +59,9 @@ export const AddERC20TokenModal = defineComponent({
       err: "",
     };
   },
+  computed: {
+    ...mapState(useAssetsStore, ["evmChainId"]),
+  },
   watch: {
     tokenAddress: [
       {
@@ -65,14 +70,17 @@ export const AddERC20TokenModal = defineComponent({
     ],
   },
   methods: {
+    ...mapActions(useAssetsStore, ["addCustomErc20Token"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     async validateAddress(val: string) {
       if (val === "") {
         this.err = "";
         return false;
       }
       try {
-        //@ts-ignore
-        const tokenInst = new web3.eth.Contract(ERC20Abi.abi, val);
+        const tokenInst = new web3.eth.Contract(ERC20Abi.abi as any, val);
         const name = await tokenInst.methods.name().call();
         const symbol = await tokenInst.methods.symbol().call();
         const decimals = await tokenInst.methods.decimals().call();
@@ -107,19 +115,17 @@ export const AddERC20TokenModal = defineComponent({
           name: this.name,
           symbol: this.symbol,
           decimals: this.denomination,
-          chainId: this.$store.state.Assets.evmChainId,
+          chainId: this.evmChainId,
           logoURI: "",
         };
 
-        const token: Erc20Token = await this.$store.dispatch(
-          "Assets/addCustomErc20Token",
-          data,
-        );
-
-        this.$store.dispatch("Notifications/add", {
-          title: "ERC20 Token Added",
-          message: token.data.name,
-        });
+        const token = this.addCustomErc20Token(data);
+        if (token) {
+          this.addNotification({
+            title: "ERC20 Token Added",
+            message: token.data.name,
+          });
+        }
         this.close();
       } catch (error: any) {
         this.err = error.message;
@@ -130,12 +136,10 @@ export const AddERC20TokenModal = defineComponent({
       this.clear();
     },
     open() {
-      // @ts-ignore
-      this.$refs.modal.open();
+      (this.$refs.modal as any).open();
     },
     close() {
-      // @ts-ignore
-      this.$refs.modal.close();
+      (this.$refs.modal as any).close();
     },
     async onAddressChange(val: string) {
       this.err = "";

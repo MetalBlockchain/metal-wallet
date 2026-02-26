@@ -90,7 +90,7 @@ export const useAccountsStore = defineStore("accounts", {
         }
 
         // No more volatile wallets
-        rootStore.volatileWallets = [];
+        rootStore.resetVolatileWallets();
         this.loadAccounts();
         this.accountIndex = this.accounts.length - 1;
       } catch {

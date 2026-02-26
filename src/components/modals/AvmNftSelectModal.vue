@@ -16,10 +16,11 @@
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { NftFamilyDict } from "@/stores/types/assets";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import CollectibleFamily from "@/components/misc/BalancePopup/CollectibleFamily.vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const AvmNftSelectModal = defineComponent({
   components: { CollectibleFamily, Modal },
@@ -28,13 +29,10 @@ export const AvmNftSelectModal = defineComponent({
   },
   emits: ["select"],
   computed: {
-    isEmpty(): boolean {
-      // return this.$store.getters.walletNftUTXOs.length === 0
-      return this.$store.state.Assets.nftUTXOs.length === 0;
-    },
-    nftFamsDict(): NftFamilyDict {
-      return this.$store.state.Assets.nftFamsDict;
-    },
+    ...mapState(useAssetsStore, {
+      isEmpty: (store) => store.nftUTXOs.length === 0,
+      nftFamsDict: (store) => store.nftFamsDict,
+    }),
   },
   methods: {
     open() {
@@ -54,8 +52,10 @@ export const AvmNftSelectModal = defineComponent({
 });
 export default AvmNftSelectModal;
 </script>
+
 <style scoped lang="scss">
 @use "@/styles/abstracts/mixins";
+
 .nft_sel_body {
   width: 650px;
   max-width: 100%;

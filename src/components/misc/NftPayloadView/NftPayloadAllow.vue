@@ -11,7 +11,9 @@
   </div>
 </template>
 <script lang="ts">
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export default defineComponent({
   props: {
@@ -23,8 +25,9 @@ export default defineComponent({
   },
   emits: ["update:modelValue"],
   methods: {
+    ...mapActions(useAssetsStore, ["whitelistNFT"]),
     show() {
-      this.$store.commit("Assets/whitelistNFT", this.nftID);
+      this.whitelistNFT(this.nftID);
       this.$emit("update:modelValue", true);
     },
   },

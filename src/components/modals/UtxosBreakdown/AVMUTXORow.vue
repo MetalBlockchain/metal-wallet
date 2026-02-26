@@ -37,9 +37,12 @@ import type { AvaNetwork } from "@/js/AvaNetwork";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
 import { ava, bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
 export const UTXORow = defineComponent({
   props: {
@@ -49,6 +52,8 @@ export const UTXORow = defineComponent({
     isX: { default: true, type: Boolean },
   },
   computed: {
+    ...mapState(useAssetsStore, ["assetsDict", "nftFamsDict"]),
+    ...mapState(useNetworkStore, ["selectedNetwork"]),
     out() {
       return this.utxo?.getOutput();
     },
@@ -73,13 +78,12 @@ export const UTXORow = defineComponent({
       }
       const idClean = bintools.cb58Encode(assetID);
 
-      const asset =
-        this.$store.state.Assets.assetsDict[idClean] ||
-        this.$store.state.Assets.nftFamsDict[idClean];
+      const asset = this.assetsDict[idClean] || this.nftFamsDict[idClean];
       return asset;
     },
     explorerLink() {
-      const net: AvaNetwork = this.$store.state.Network.selectedNetwork;
+      const net = this.selectedNetwork;
+      if (!net) return null;
       const explorer = net.explorerSiteUrl;
       if (!explorer || !this.utxo) return null;
       return explorer + "/tx/" + bintools.cb58Encode(this.utxo.getTxID());

@@ -26,10 +26,11 @@ import type {
 import type { PropType } from "vue";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
 
-import type { IWalletNftDict } from "@/stores/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const CollectibleFamily = defineComponent({
   components: {
@@ -41,14 +42,12 @@ export const CollectibleFamily = defineComponent({
     },
     disabledIds: { default: () => [], type: Array as PropType<string[]> },
   },
+  emits: ["select"],
   computed: {
-    nftFamilies() {
-      return this.$store.getters["Assets/nftFamilies"];
-    },
-    nftDict(): IWalletNftDict {
-      // return this.$store.getters.walletNftDict
-      return this.$store.getters["Assets/walletNftDict"];
-    },
+    ...mapState(useAssetsStore, {
+      nftFamilies: "nftFamilies",
+      nftDict: "walletNftDict",
+    }),
     utxos() {
       const id = this.family?.id;
       return (id && this.nftDict[id]) || [];

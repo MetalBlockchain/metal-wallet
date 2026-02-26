@@ -509,8 +509,10 @@ export const useAssetsStore = defineStore("assets", {
       localStorage.setItem("token_lists", lists);
     },
 
-    whitelistNFT(id: string) {
-      this.nftWhitelist.push(id);
+    whitelistNFT(id?: string) {
+      if (id) {
+        this.nftWhitelist.push(id);
+      }
     },
   },
   getters: {

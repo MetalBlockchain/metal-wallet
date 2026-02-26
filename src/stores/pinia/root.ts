@@ -153,7 +153,7 @@ export const useRootStore = defineStore("root", {
       }
 
       this.wallets = [];
-      this.volatileWallets = [];
+      this.resetVolatileWallets();
     },
 
     // Add a HD wallet from mnemonic string
@@ -315,7 +315,7 @@ export const useRootStore = defineStore("root", {
       if (version !== KEYSTORE_VERSION) {
         this.warnUpdateKeyfile = true;
       }
-      this.volatileWallets = [];
+      this.resetVolatileWallets();
 
       return {
         success: true,
@@ -342,6 +342,9 @@ export const useRootStore = defineStore("root", {
       } else {
         this.address = null;
       }
+    },
+    resetVolatileWallets() {
+      this.volatileWallets = [];
     },
   },
   getters: {

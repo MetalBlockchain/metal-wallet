@@ -31,9 +31,10 @@
 <script lang="ts">
 import type { Big } from "@metalblockchain/metal-wallet-sdk";
 import type { BN } from "@metalblockchain/metaljs";
-import type { priceDict } from "@/stores/types";
 import { bnToBig } from "@metalblockchain/metal-wallet-sdk";
+import { mapState } from "pinia";
 import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const AvaxInput = defineComponent({
   components: {
@@ -55,15 +56,14 @@ export const AvaxInput = defineComponent({
   },
   emits: ["change", "update:modelValue"],
   computed: {
+    ...mapState(useRootStore, {
+      priceDict: "prices",
+    }),
     amountUSD(): Big {
       const usdPrice = this.priceDict.usd;
       const amount = bnToBig(this.modelValue, 9);
       const usdBig = amount.times(usdPrice);
       return usdBig;
-    },
-
-    priceDict(): priceDict {
-      return this.$store.state.prices;
     },
   },
   methods: {

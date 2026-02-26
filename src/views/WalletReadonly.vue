@@ -39,7 +39,6 @@ import type {
   UTXOSet as PlatformUTXOSet,
   TransferableOutput,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { Network } from "@metalblockchain/metaljs/dist/utils";
 import {
   BN,
   createCsvNormal,
@@ -48,9 +47,12 @@ import {
   getTransactionSummary,
   isHistoryStakingTx,
 } from "@metalblockchain/metal-wallet-sdk";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import { getPriceAtUnixTime } from "@/helpers/price_helper";
+import { useNetworkStore } from "@/stores/pinia/networks";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 import { downloadCSVFile } from "@/stores/utils/history_utils";
 import Balances from "@/views/wallet_readonly/Balances.vue";
 
@@ -91,19 +93,21 @@ export const WalletReadonly = defineComponent({
     };
   },
   computed: {
+    ...mapState(useNetworkStore, {
+      network: "selectedNetwork",
+    }),
     wallet(): PublicMnemonicWallet {
-      //@ts-ignore
-      return this.$route.params.wallet;
+      // TODO: Looks like this is wrong. wallet cannot be this kind of object
+      return this.$route.params.wallet as unknown as PublicMnemonicWallet;
     },
     evmAddress(): string {
-      //@ts-ignore
+      if (!this.$route.params.evmAddress) return "";
+      if (Array.isArray(this.$route.params.evmAddress))
+        return this.$route.params.evmAddress[0] ?? "";
       return this.$route.params.evmAddress;
     },
     isLoading() {
       return this.isWalletLoading || this.isBalanceLoading;
-    },
-    network(): Network | null {
-      return this.$store.state.Network.selectedNetwork;
     },
   },
   watch: {
@@ -125,6 +129,9 @@ export const WalletReadonly = defineComponent({
     this.wallet.destroy();
   },
   methods: {
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     updateAddresses() {
       this.addressX = this.wallet.getAddressX();
       this.addressP = this.wallet.getAddressP();
@@ -195,7 +202,7 @@ export const WalletReadonly = defineComponent({
         downloadCSVFile(encoding + csvContent, fileName);
       } catch (error) {
         this.isStakeDownloading = false;
-        this.$store.dispatch("Notifications/add", {
+        this.addNotification({
           type: "error",
           title: "Request Failed",
           message: "Failed to download rewards history.",
