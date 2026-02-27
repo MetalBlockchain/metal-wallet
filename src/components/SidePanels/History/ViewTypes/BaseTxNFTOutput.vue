@@ -1,6 +1,5 @@
 <template>
   <div class="nft_output">
-    <!--        <p class="fam_title">{{ assetDetail.name }}</p>-->
     <div class="fam_row">
       <tx-history-nft-family-group
         v-for="(utxos, groupNum) in groupDict"
@@ -14,8 +13,6 @@
 </template>
 <script lang="ts">
 import type { PropType } from "vue";
-
-import type AvaAsset from "@/js/AvaAsset";
 import type { UTXO } from "@/stores/types/history";
 import { defineComponent } from "vue";
 import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
@@ -42,12 +39,6 @@ export const BaseTxNFTOutput = defineComponent({
     };
   },
   computed: {
-    assetDetail(): AvaAsset | null {
-      if (!this.assetID) {
-        return null;
-      }
-      return this.$store.state.Assets.nftFamsDict[this.assetID];
-    },
     groups(): number[] {
       const gNums: number[] = [];
       if (this.summary) {

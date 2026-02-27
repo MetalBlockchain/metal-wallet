@@ -17,8 +17,10 @@ import type { UTXO } from "@/stores/types/history";
 import { Buffer } from "@metalblockchain/metaljs";
 
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 const payloadtypes = PayloadTypes.getInstance();
 
@@ -33,9 +35,7 @@ export const TxHistoryNftFamilyGroup = defineComponent({
     },
   },
   computed: {
-    nftFamsDict() {
-      return this.$store.state.Assets.nftFamsDict;
-    },
+    ...mapState(useAssetsStore, ["nftFamsDict"]),
     quantity() {
       return this.utxos?.length;
     },
@@ -54,10 +54,11 @@ export const TxHistoryNftFamilyGroup = defineComponent({
   },
   created() {
     if (this.assetID && !this.nftFamsDict[this.assetID]) {
-      this.$store.dispatch("Assets/addUnknownNftFamily", this.assetID);
+      this.addUnknownNftFamily(this.assetID);
     }
   },
   methods: {
+    ...mapActions(useAssetsStore, ["addUnknownNftFamily"]),
     parsePayload(rawPayload: string): PayloadBase {
       let payload = Buffer.from(rawPayload, "base64");
       payload = Buffer.concat([Buffer.alloc(4).fill(payload.length), payload]);

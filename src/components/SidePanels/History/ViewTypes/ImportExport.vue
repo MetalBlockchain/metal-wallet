@@ -19,14 +19,15 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { TransactionType, XChainTransaction } from "@/js/Glacier/models";
-// import { getExportBalances } from "@/components/SidePanels/History/ViewTypes/getExportBalances";
-import type { WalletType } from "@/js/wallets/types";
 import { BN } from "@metalblockchain/metaljs";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 import { isTransactionP } from "@/js/Glacier/models";
 import { avm, cChain, pChain } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 function idToAlias(chainId: string | undefined) {
   switch (chainId) {
@@ -51,6 +52,13 @@ export const ImportExport = defineComponent({
     },
   },
   computed: {
+    ...mapState(useRootStore, {
+      addresses: (store) => {
+        if (!store.activeWallet) return [];
+        return store.activeWallet.getHistoryAddresses();
+      },
+    }),
+    ...mapState(useAssetsStore, ["assetsDict"]),
     isExport() {
       return this.transaction?.txType === "ExportTx";
     },
@@ -75,11 +83,6 @@ export const ImportExport = defineComponent({
         : this.destinationChainId;
       return idToAlias(chainId);
     },
-    addresses() {
-      const wallet: WalletType | null = this.$store.state.activeWallet;
-      if (!wallet) return [];
-      return wallet.getHistoryAddresses();
-    },
     ownedInputs() {
       const tx = this.transaction;
 
@@ -99,9 +102,6 @@ export const ImportExport = defineComponent({
     },
     sourceChainAlias() {
       return idToAlias(this.sourceChainId);
-    },
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
     },
     balances() {
       return [];
@@ -124,7 +124,7 @@ export const ImportExport = defineComponent({
       return bnToBig(val, decimals).toLocaleString();
     },
     getAssetFromID(id: string) {
-      return this.$store.state.Assets.assetsDict[id];
+      return this.assetsDict[id];
     },
   },
 });

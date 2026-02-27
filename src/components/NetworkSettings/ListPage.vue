@@ -14,7 +14,9 @@
 </template>
 <script lang="ts">
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useNetworkStore } from "@/stores/pinia/networks";
 import NetworkRow from "./NetworkRow.vue";
 
 export const ListPage = defineComponent({
@@ -23,9 +25,9 @@ export const ListPage = defineComponent({
   },
   emits: ["edit"],
   computed: {
-    networks(): AvaNetwork[] {
-      return this.$store.getters["Network/allNetworks"];
-    },
+    ...mapState(useNetworkStore, {
+      networks: "allNetworks",
+    }),
   },
   methods: {
     onEdit(net: AvaNetwork) {

@@ -69,12 +69,13 @@ import type {
   PChainUtxo,
 } from "@metalblockchain/glacier-sdk";
 import type { PropType } from "vue";
-import type { WalletType } from "@/js/wallets/types";
 import { RewardType } from "@metalblockchain/glacier-sdk";
 import { BN } from "@metalblockchain/metaljs";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
+import { useRootStore } from "@/stores/pinia/root";
 import { filterOwnedAddresses } from "./filterOwnedAddresses";
 
 export const StakingTx = defineComponent({
@@ -89,6 +90,15 @@ export const StakingTx = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      pAddrsClean: (store) => {
+        const pAddrs = store.activeWallet?.getAllAddressesP() ?? [];
+        return pAddrs
+          .map((addr) => addr.split("-")[1])
+          .filter((v) => v !== undefined);
+      },
+    }),
+
     startTime() {
       return this.transaction?.startTimestamp || 0;
     },
@@ -122,15 +132,6 @@ export const StakingTx = defineComponent({
         return out.staked ? acc.add(new BN(out.amount)) : acc;
       }, new BN(0));
       return tot;
-    },
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
-    },
-    pAddrsClean(): string[] {
-      const pAddrs = this.wallet.getAllAddressesP();
-      return pAddrs
-        .map((addr) => addr.split("-")[1])
-        .filter((v) => v !== undefined);
     },
     amtText() {
       const big = bnToBig(this.stakeAmt, 9);

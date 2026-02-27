@@ -37,7 +37,6 @@ import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import type { PropType } from "vue";
 
 import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
-import type { AssetsDict, NftFamilyDict } from "@/stores/types/assets";
 import moment from "moment";
 import { defineComponent } from "vue";
 import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";
@@ -119,12 +118,6 @@ export const TxRow = defineComponent({
           return BaseTx;
         }
       }
-    },
-    assets(): AssetsDict {
-      return this.$store.state.Assets.assetsDict;
-    },
-    nftFams(): NftFamilyDict {
-      return this.$store.state.Assets.nftFamsDict;
     },
     mom() {
       return moment(this.timestamp);

@@ -85,7 +85,7 @@ import type {
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
-import type { WalletType } from "@/js/wallets/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 // import TxHistoryValueFunctional from "@/components/SidePanels/History/TxHistoryValueFunctional.vue";
 // import BaseTxNFTOutput from "@/components/SidePanels/History/ViewTypes/BaseTxNFTOutput.vue";
@@ -94,6 +94,7 @@ import BaseTxUtxo from "@/components/SidePanels/History/ViewTypes/BaseTxUtxo.vue
 // import TxHistoryNftFamilyGroup from "@/components/SidePanels/TxHistoryNftFamilyGroup.vue";
 // import TxHistoryValue from "@/components/SidePanels/TxHistoryValue.vue";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const BaseTx = defineComponent({
   components: {
@@ -110,6 +111,12 @@ export const BaseTx = defineComponent({
     },
   },
   computed: {
+    ...mapState(useRootStore, {
+      addresses: (store) => {
+        if (!store.activeWallet) return [];
+        return store.activeWallet.getHistoryAddresses();
+      },
+    }),
     inputUTXOs() {
       return this.transaction?.consumedUtxos ?? [];
     },
@@ -143,11 +150,6 @@ export const BaseTx = defineComponent({
       return this.transaction.emittedUtxos.some((utxo) => {
         return isOwnedUTXO(utxo, this.addresses);
       });
-    },
-    addresses() {
-      const wallet: WalletType | null = this.$store.state.activeWallet;
-      if (!wallet) return [];
-      return wallet.getHistoryAddresses();
     },
     addrsRaw() {
       const addrs: string[] = this.addresses;

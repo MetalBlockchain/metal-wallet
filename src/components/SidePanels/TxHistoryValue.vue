@@ -14,9 +14,12 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type { TransactionType } from "@/stores/types/history";
 import Big from "big.js";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const TxHistoryValue = defineComponent({
   props: {
@@ -34,12 +37,15 @@ export const TxHistoryValue = defineComponent({
     },
   },
   computed: {
-    asset() {
-      if (!this.assetId) return null;
-      return (
-        this.$store.state.Assets.assetsDict[this.assetId] ||
-        this.$store.state.Assets.nftFamsDict[this.assetId]
-      );
+    ...mapState(useAssetsStore, {
+      ava_asset: "AssetAVA",
+      assetsDict: "assetsDict",
+      nftFamsDict: "nftFamsDict",
+    }),
+    asset(): AvaAsset | AvaNftFamily | undefined {
+      if (!this.assetId) return undefined;
+
+      return this.assetsDict[this.assetId] || this.nftFamsDict[this.assetId];
     },
     color(): string {
       // if (this.type === 'operation') return this.operationColor
@@ -101,7 +107,14 @@ export const TxHistoryValue = defineComponent({
       if (!asset) return this.amount.toString();
 
       try {
-        const val = Big(this.amount).div(Math.pow(10, asset.denomination));
+        let denomination = 0;
+        if (
+          this.asset &&
+          Object.prototype.hasOwnProperty.call(this.asset, denomination)
+        ) {
+          denomination = (this.asset as AvaAsset).denomination;
+        }
+        const val = Big(this.amount).div(Math.pow(10, denomination));
         return val.toLocaleString();
       } catch {
         return "";
@@ -115,15 +128,14 @@ export const TxHistoryValue = defineComponent({
 
       return asset.symbol;
     },
-    ava_asset(): AvaAsset | null {
-      const ava = this.$store.getters["Assets/AssetAVA"];
-      return ava;
-    },
   },
   created() {
-    if (this.type === "base" && !this.asset) {
-      this.$store.dispatch("Assets/addUnknownAsset", this.assetId);
+    if (this.type === "base" && !this.asset && this.assetId) {
+      this.addUnknownAsset(this.assetId);
     }
+  },
+  methods: {
+    ...mapActions(useAssetsStore, ["addUnknownAsset"]),
   },
 });
 export default TxHistoryValue;

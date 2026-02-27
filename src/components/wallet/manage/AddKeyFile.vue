@@ -30,9 +30,11 @@
 <script lang="ts">
 import type { AllKeyFileTypes } from "@/js/IKeystore";
 import type { ImportKeyfileInput } from "@/stores/types";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import FileInput from "@/components/misc/FileInput.vue";
 import { KEYSTORE_VERSION } from "@/js/Keystore";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const AddKeyFile = defineComponent({
   components: {
@@ -69,6 +71,7 @@ export const AddKeyFile = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useRootStore, { importKeyfileRoot: "importKeyfile" }),
     onfile(val: File) {
       this.keyfile = val;
 
@@ -100,15 +103,14 @@ export const AddKeyFile = defineComponent({
 
       this.isLoading = true;
 
-      setTimeout(async () => {
+      setTimeout(() => {
         const input: ImportKeyfileInput = {
           password: this.pass,
           data: fileData,
         };
 
         try {
-          await this.$store.dispatch("importKeyfile", input);
-          // @ts-ignore
+          this.importKeyfileRoot(input);
           this.$emit("success");
           this.clear();
         } catch (error) {
@@ -117,12 +119,6 @@ export const AddKeyFile = defineComponent({
             error === "INVALID_PASS"
               ? "Invalid password."
               : "Failed to read keystore file.";
-
-          // this.$store.dispatch("Notifications/add", {
-          //     type: "error",
-          //     title: "Import Failed",
-          //     message: err.message
-          // });
         }
       }, 200);
     },

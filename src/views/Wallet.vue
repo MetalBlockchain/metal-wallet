@@ -30,11 +30,13 @@
 </template>
 
 <script lang="ts">
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import UpdateKeystoreModal from "@/components/modals/UpdateKeystore/UpdateKeystoreModal.vue";
 import MainPanel from "@/components/SidePanels/MainPanel.vue";
 import Sidebar from "@/components/wallet/Sidebar.vue";
 import TopInfo from "@/components/wallet/TopInfo.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 const TIMEOUT_DURATION = 60 * 15; // in seconds
 const TIMEOUT_DUR_MS = TIMEOUT_DURATION * 1000;
@@ -60,15 +62,17 @@ export default defineComponent({
     };
   },
   computed: {
-    isManageWarning(): boolean {
-      if (this.$store.state.warnUpdateKeyfile) {
-        return true;
-      }
-      return false;
-    },
-    hasVolatileWallets() {
-      return this.$store.state.volatileWallets.length > 0;
-    },
+    ...mapState(useRootStore, {
+      isManageWarning: (store) => {
+        if (store.warnUpdateKeyfile) {
+          return true;
+        }
+        return false;
+      },
+      hasVolatileWallets: (store) => {
+        return store.volatileWallets.length > 0;
+      },
+    }),
   },
   created() {
     this.resetTimer();
@@ -97,6 +101,7 @@ export default defineComponent({
     clearInterval(this.intervalId!);
   },
   methods: {
+    ...mapActions(useRootStore, ["timeoutLogout"]),
     resetTimer() {
       this.logoutTimestamp = Date.now() + TIMEOUT_DUR_MS;
     },
@@ -106,7 +111,7 @@ export default defineComponent({
       // Logout if current time is passed the logout timestamp
       if (now >= this.logoutTimestamp && !this.isLogOut) {
         this.isLogOut = true;
-        this.$store.dispatch("timeoutLogout");
+        this.timeoutLogout();
       }
     },
     unload(event: BeforeUnloadEvent) {

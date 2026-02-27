@@ -31,7 +31,6 @@ export const MainPanel = defineComponent({
   },
   methods: {
     logout() {
-      // this.$store.dispatch('logout');
       (this.$refs.logout as typeof ConfirmLogout).open();
     },
   },

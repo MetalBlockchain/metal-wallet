@@ -214,11 +214,18 @@ export const useNetworkStore = defineStore("network", {
         return true;
       } catch (error) {
         console.log(error);
-        this.status = "disconnected";
+        this.disconnect();
       }
     },
     addNetwork(net: AvaNetwork) {
       this.networks.push(net);
+    },
+    resetNetwork() {
+      this.selectedNetwork = null;
+      this.disconnect();
+    },
+    disconnect() {
+      this.status = "disconnected";
     },
   },
   getters: {

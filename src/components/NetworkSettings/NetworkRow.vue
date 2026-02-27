@@ -28,7 +28,10 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useNetworkStore } from "@/stores/pinia/networks";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export default defineComponent({
   props: {
@@ -38,6 +41,10 @@ export default defineComponent({
   },
   emits: ["edit"],
   computed: {
+    ...mapState(useNetworkStore, {
+      networkStatus: "status",
+      selectedNetwork: "selectedNetwork",
+    }),
     endpoint() {
       const net = this.network;
       if (!net) {
@@ -50,13 +57,9 @@ export default defineComponent({
 
       return `${net.protocol}://${net.ip}${portText}`;
     },
-    networkStatus() {
-      return this.$store.state.Network.status;
-    },
     isConnected() {
-      const state = this.$store.state.Network;
       if (
-        this.network === state.selectedNetwork &&
+        this.network === this.selectedNetwork &&
         this.networkStatus === "connected"
       ) {
         return true;
@@ -64,57 +67,53 @@ export default defineComponent({
       return false;
     },
     isSelected() {
-      const state = this.$store.state.Network;
-      if (this.network === state.selectedNetwork) {
+      if (this.network === this.selectedNetwork) {
         return true;
       }
       return false;
     },
   },
   methods: {
+    ...mapActions(useNetworkStore, {
+      networkRemove: "removeCustomNetwork",
+      networkSet: "setNetwork",
+      networkReset: "resetNetwork",
+    }),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     edit() {
       this.$emit("edit");
     },
     deleteNet() {
-      this.$store.dispatch("Network/removeCustomNetwork", this.network);
-      this.$store.dispatch(
-        "Notifications/add",
-        {
+      if (this.network) {
+        this.networkRemove(this.network);
+        this.addNotification({
           title: "Network Removed",
           message: "Removed custom network.",
-        },
-        { root: true },
-      );
+        });
+      }
     },
     async select() {
       const net = this.network;
       if (net) {
         try {
-          await this.$store.dispatch("Network/setNetwork", net);
+          await this.networkSet(net);
 
-          this.$store.dispatch(
-            "Notifications/add",
-            {
-              title: "Network Connected",
-              message: "Connected to " + net.name,
-              type: "success",
-            },
-            { root: true },
-          );
+          this.addNotification({
+            title: "Network Connected",
+            message: "Connected to " + net.name,
+            type: "success",
+          });
           // @ts-ignore
           this.$parent.$parent.isActive = false;
         } catch {
-          this.$store.state.Network.selectedNetwork = null;
-          this.$store.state.Network.status = "disconnected";
-          this.$store.dispatch(
-            "Notifications/add",
-            {
-              title: "Connection Failed",
-              message: `Failed to connect ${net.name}`,
-              type: "error",
-            },
-            { root: true },
-          );
+          this.networkReset();
+          this.addNotification({
+            title: "Connection Failed",
+            message: `Failed to connect ${net.name}`,
+            type: "error",
+          });
         }
       }
     },

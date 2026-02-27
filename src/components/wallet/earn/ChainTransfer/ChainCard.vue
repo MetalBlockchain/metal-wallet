@@ -20,13 +20,13 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { ChainIdType } from "@/constants";
-import type AvaAsset from "@/js/AvaAsset";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletType } from "@/js/wallets/types";
 
 import { BN } from "@metalblockchain/metaljs";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 const chainNames = {
   X: "Exchange Chain",
@@ -43,27 +43,23 @@ export const ChainCard = defineComponent({
   },
   emits: ["change"],
   computed: {
+    ...mapState(useRootStore, {
+      evmUnlocked: (store) => {
+        const balRaw = store.activeWallet?.ethBalance;
+        return balRaw ? balRaw.div(new BN(Math.pow(10, 9))) : new BN(0);
+      },
+    }),
+    ...mapState(useAssetsStore, {
+      platformUnlocked: (store) => {
+        return store.walletPlatformBalance.available;
+      },
+      avmUnlocked: (store) => {
+        if (!store.AssetAVA) return new BN(0);
+        return store.AssetAVA.amount;
+      },
+    }),
     chainNames() {
       return chainNames;
-    },
-    ava_asset(): AvaAsset | null {
-      const ava = this.$store.getters["Assets/AssetAVA"];
-      return ava;
-    },
-    wallet(): WalletType {
-      const wallet: MnemonicWallet = this.$store.state.activeWallet;
-      return wallet;
-    },
-    platformUnlocked(): BN {
-      return this.$store.getters["Assets/walletPlatformBalance"].available;
-    },
-    avmUnlocked(): BN {
-      if (!this.ava_asset) return new BN(0);
-      return this.ava_asset.amount;
-    },
-    evmUnlocked(): BN {
-      const balRaw = this.wallet.ethBalance;
-      return balRaw.div(new BN(Math.pow(10, 9)));
     },
     balance() {
       if (this.chain === "X") {
