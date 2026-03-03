@@ -23,17 +23,25 @@
 </template>
 <script lang="ts">
 import type { WalletType } from "@/js/wallets/types";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import KeyRow from "@/components/wallet/manage/KeyRow.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const MyKeys = defineComponent({
   components: {
     KeyRow,
   },
   computed: {
-    account() {
-      return this.$store.getters["Accounts/account"];
-    },
+    ...mapState(useRootStore, {
+      activeWallet: (store): WalletType | null =>
+        store.activeWallet as WalletType,
+      wallets: "wallets",
+    }),
+    ...mapState(useAccountsStore, ["account"]),
     inactiveWallets(): WalletType[] {
       const wallets = this.wallets;
 
@@ -42,28 +50,32 @@ export const MyKeys = defineComponent({
         return true;
       });
 
-      return res;
-    },
-    wallets(): WalletType[] {
-      return this.$store.state.wallets;
-    },
-    activeWallet(): WalletType {
-      return this.$store.state.activeWallet;
+      return res as WalletType[];
     },
   },
   methods: {
+    ...mapActions(useRootStore, {
+      walletActivate: "activateWallet",
+      walletRemove: "removeWallet",
+    }),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useAccountsStore, ["deleteKey"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
+
     selectWallet(wallet: WalletType) {
-      this.$store.dispatch("activateWallet", wallet);
-      this.$store.dispatch("History/updateTransactionHistory");
+      this.walletActivate(wallet);
+      this.updateTransactionHistory();
     },
     async removeWallet(wallet: WalletType) {
       const msg = this.$t("keys.del_check") as string;
       const isConfirm = confirm(msg);
 
       if (isConfirm) {
-        await this.$store.dispatch("Accounts/deleteKey", wallet);
-        await this.$store.dispatch("removeWallet", wallet);
-        this.$store.dispatch("Notifications/add", {
+        this.deleteKey(wallet);
+        await this.walletRemove(wallet);
+        this.addNotification({
           title: this.$t("keys.remove_success_title"),
           message: this.$t("keys.remove_success_msg"),
         });

@@ -16,7 +16,9 @@
 </template>
 <script lang="ts">
 import type { ChainIdType } from "@/constants";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ChainInput = defineComponent({
   props: {
@@ -25,12 +27,11 @@ export const ChainInput = defineComponent({
   },
   emits: ["update:modelValue"],
   computed: {
-    wallet() {
-      return this.$store.state.activeWallet;
-    },
-    isEVMSupported() {
-      return this.wallet.ethAddress;
-    },
+    ...mapState(useRootStore, {
+      isEVMSupported: (store) => {
+        return store.activeWallet?.ethAddress;
+      },
+    }),
   },
   methods: {
     set(val: ChainIdType) {

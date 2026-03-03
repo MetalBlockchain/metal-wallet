@@ -85,9 +85,8 @@ import { createVuetify } from "vuetify";
 import { aliases, fa } from "vuetify/iconsets/fa-svg";
 
 import router from "@/router";
-import { pinia } from '@/stores/pinia';
+import { pinia } from "@/stores/pinia";
 
-import vuex from "@/stores/vuex";
 import i18n from "./i18n";
 import { posthogPlugin } from "./posthog";
 import "vuetify/styles";
@@ -198,7 +197,6 @@ export function registerPlugins(app: App) {
     .use(vuetify)
     .use(i18n)
     .use(router)
-    .use(vuex)
     .use(pinia)
     .use(
       createHead({

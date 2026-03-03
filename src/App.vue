@@ -25,7 +25,6 @@
 <script lang="ts" setup>
 import { useHead } from "@unhead/vue";
 import { onMounted, useTemplateRef } from "vue";
-import { useStore } from "vuex";
 import AnalyticsCmp from "@/components/Analytics/Analytics.vue";
 import NetworkLoadingBlock from "@/components/misc/NetworkLoadingBlock.vue";
 import UrlBanner from "@/components/misc/UrlBanner.vue";
@@ -39,15 +38,25 @@ import Notifications from "@/components/Notifications.vue";
 
 import TestNetBanner from "@/components/TestNetBanner.vue";
 import { themeKey } from "@/constants/injection_tokens";
-import { manageLocalization } from './composables/manage-localizations';
+import { manageLocalization } from "./composables/manage-localizations";
+import { useAccountsStore } from "./stores/pinia/accounts";
+import { useAssetsStore } from "./stores/pinia/assets";
+import { useErc721Store } from "./stores/pinia/erc721";
+import { useNetworkStore } from "./stores/pinia/networks";
+import { useRootStore } from "./stores/pinia/root";
 
 const mainCols = useTemplateRef("main-cols");
 
 // const i18n = useI18n();
 const router = useRouter();
 const route = useRoute();
-const store = useStore();
-const { loadLocalization } = manageLocalization()
+const networkStore = useNetworkStore();
+const accountsStore = useAccountsStore();
+const assetsStore = useAssetsStore();
+const ERC721Store = useErc721Store();
+const rootStore = useRootStore();
+
+const { loadLocalization } = manageLocalization();
 
 // Init language preference
 const locale = localStorage.getItem("lang");
@@ -85,15 +94,15 @@ useHead({
 });
 
 async function onCreated() {
-  await store.dispatch("Network/init");
-  store.commit("Accounts/loadAccounts");
-  store.dispatch("Assets/initErc20List");
-  store.dispatch("Assets/ERC721/init");
-  store.dispatch("updateAvaxPrice");
-  store.dispatch("loadValidatorMetaData");
+  await networkStore.init();
+  accountsStore.loadAccounts();
+  assetsStore.initErc20List();
+  ERC721Store.init();
+  rootStore.updateAvaxPrice();
+  rootStore.loadValidatorMetaData();
 
   if (
-    store.state.Accounts.accounts.length > 0 && // Do not route for legal pages
+    accountsStore.accounts.length > 0 && // Do not route for legal pages
     route.name !== "legal"
   ) {
     router.push("/access");

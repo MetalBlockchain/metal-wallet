@@ -29,107 +29,96 @@
   </div>
 </template>
 
-<script lang="ts">
-import { mapActions, mapState } from "pinia";
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import UpdateKeystoreModal from "@/components/modals/UpdateKeystore/UpdateKeystoreModal.vue";
 import MainPanel from "@/components/SidePanels/MainPanel.vue";
 import Sidebar from "@/components/wallet/Sidebar.vue";
 import TopInfo from "@/components/wallet/TopInfo.vue";
+import { usePosthog } from "@/plugins/posthog";
 import { useRootStore } from "@/stores/pinia/root";
 
 const TIMEOUT_DURATION = 60 * 15; // in seconds
 const TIMEOUT_DUR_MS = TIMEOUT_DURATION * 1000;
 
-export default defineComponent({
-  components: {
-    Sidebar,
-    MainPanel,
-    TopInfo,
-    UpdateKeystoreModal,
-  },
-  data(): {
-    intervalId: ReturnType<typeof setTimeout> | null;
-    logoutTimestamp: number;
-    isLogOut: boolean;
-  } {
-    const intervalId: ReturnType<typeof setTimeout> | null = null;
+const rootStore = useRootStore();
+const posthog = usePosthog();
+const router = useRouter();
 
-    return {
-      intervalId,
-      logoutTimestamp: Date.now() + TIMEOUT_DUR_MS,
-      isLogOut: false,
-    };
-  },
-  computed: {
-    ...mapState(useRootStore, {
-      isManageWarning: (store) => {
-        if (store.warnUpdateKeyfile) {
-          return true;
-        }
-        return false;
-      },
-      hasVolatileWallets: (store) => {
-        return store.volatileWallets.length > 0;
-      },
-    }),
-  },
-  created() {
-    this.resetTimer();
-    this.intervalId = setInterval(() => {
-      this.checkLogout();
-    }, 1000);
-  },
-  mounted() {
-    const view = this.$refs.wallet_view as HTMLDivElement;
+const intervalId = ref<ReturnType<typeof setTimeout> | null>(null);
+const logoutTimestamp = ref<number>(0);
+const isLogOut = ref(false);
+const wallet_view = useTemplateRef<HTMLDivElement>("wallet_view");
 
-    this.$posthog.capture("UserLoggedIn");
-
-    view.addEventListener("mousemove", this.resetTimer);
-    view.addEventListener("mousedown", this.resetTimer);
-
-    window.addEventListener("beforeunload", this.unload);
-  },
-  beforeUnmount() {
-    const view = this.$refs.wallet_view as HTMLDivElement;
-    // Remove Event Listeners
-    view.removeEventListener("mousemove", this.resetTimer);
-    view.removeEventListener("mousedown", this.resetTimer);
-    window.removeEventListener("beforeunload", this.unload);
-  },
-  unmounted() {
-    clearInterval(this.intervalId!);
-  },
-  methods: {
-    ...mapActions(useRootStore, ["timeoutLogout"]),
-    resetTimer() {
-      this.logoutTimestamp = Date.now() + TIMEOUT_DUR_MS;
-    },
-    checkLogout() {
-      const now = Date.now();
-
-      // Logout if current time is passed the logout timestamp
-      if (now >= this.logoutTimestamp && !this.isLogOut) {
-        this.isLogOut = true;
-        this.timeoutLogout();
-      }
-    },
-    unload(event: BeforeUnloadEvent) {
-      // user has no wallet saved
-      if (
-        !localStorage.getItem("w") &&
-        this.hasVolatileWallets &&
-        this.isLogOut
-      ) {
-        event.preventDefault();
-        this.isLogOut = false;
-        event.returnValue = "";
-        this.$router.push("/wallet/keys");
-        this.resetTimer();
-      }
-    },
-  },
+const isManageWarning = computed(() => {
+  if (rootStore.warnUpdateKeyfile) {
+    return true;
+  }
+  return false;
 });
+
+const hasVolatileWallets = computed(() => rootStore.volatileWallets.length > 0);
+
+function resetTimer() {
+  logoutTimestamp.value = Date.now() + TIMEOUT_DUR_MS;
+}
+
+function checkLogout() {
+  const now = Date.now();
+
+  // Logout if current time is passed the logout timestamp
+  if (now >= logoutTimestamp.value && !isLogOut.value) {
+    isLogOut.value = true;
+    rootStore.timeoutLogout();
+  }
+}
+
+function unload(event: BeforeUnloadEvent) {
+  // user has no wallet saved
+  if (
+    !localStorage.getItem("w") &&
+    hasVolatileWallets.value &&
+    isLogOut.value
+  ) {
+    event.preventDefault();
+    isLogOut.value = false;
+    router.push("/wallet/keys");
+    resetTimer();
+  }
+}
+
+onMounted(() => {
+  posthog?.capture("UserLoggedIn");
+
+  const view = wallet_view.value;
+  if (view) {
+    view.addEventListener("mousemove", resetTimer);
+    view.addEventListener("mousedown", resetTimer);
+
+    window.addEventListener("beforeunload", unload);
+  }
+});
+
+onBeforeUnmount(() => {
+  const view = wallet_view.value;
+  if (view) {
+    // Remove Event Listeners
+    view.removeEventListener("mousemove", resetTimer);
+    view.removeEventListener("mousedown", resetTimer);
+    window.removeEventListener("beforeunload", unload);
+  }
+});
+
+onUnmounted(() => {
+  if (intervalId.value) {
+    clearInterval(intervalId.value);
+  }
+});
+
+resetTimer();
+
+intervalId.value = setInterval(() => {
+  checkLogout();
+}, 1000);
 </script>
 
 <style lang="scss" scoped>

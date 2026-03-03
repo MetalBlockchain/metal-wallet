@@ -31,7 +31,9 @@
 </template>
 <script lang="ts">
 import * as bip39 from "bip39";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export default defineComponent({
   data() {
@@ -45,6 +47,7 @@ export default defineComponent({
     (this.$refs.mnemonic_in as HTMLInputElement).value = "";
   },
   methods: {
+    ...mapActions(useRootStore, ["accessWallet"]),
     errCheck() {
       const phrase = this.getMnemonic();
 
@@ -90,7 +93,7 @@ export default defineComponent({
 
       setTimeout(async () => {
         try {
-          await this.$store.dispatch("accessWallet", phrase);
+          this.accessWallet(phrase);
           this.isLoading = false;
         } catch {
           this.isLoading = false;

@@ -23,6 +23,7 @@ import MnemonicWallet from "@/js/wallets/MnemonicWallet";
 
 import { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import { bintools } from "@/misc/AVA";
+import router from "@/router";
 import { downloadFile } from "@/utils/downloadFile";
 import { useAssetsStore } from "./assets";
 import { useHistoryStore } from "./history";
@@ -106,7 +107,7 @@ export const useRootStore = defineStore("root", {
 
     onAccess() {
       this.isAuth = true;
-      const router = useRouter();
+
       const assetsStore = useAssetsStore();
 
       assetsStore.updateAvaAsset();
@@ -352,9 +353,6 @@ export const useRootStore = defineStore("root", {
       const wallet = this.activeWallet;
       if (!wallet) return [];
       return wallet.getDerivedAddresses();
-    },
-    validatorMetaData(): ValidatorMetaData {
-      return this.validatorMetaData;
     },
   },
 });

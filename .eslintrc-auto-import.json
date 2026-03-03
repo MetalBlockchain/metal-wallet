@@ -20,7 +20,6 @@
     "WritableComputedRef": true,
     "computed": true,
     "createApp": true,
-    "createStore": true,
     "customRef": true,
     "defineAsyncComponent": true,
     "defineComponent": true,

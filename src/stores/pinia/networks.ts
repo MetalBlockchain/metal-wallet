@@ -10,6 +10,7 @@ import { ava, avm, cChain, infoApi, pChain } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
 import { explorer_api } from "@/misc/explorer_api";
 import { setSocketNetwork } from "@/providers";
+import router from "@/router";
 import { MainnetConfig, TestnetConfig } from "@/stores/constants/network";
 import { useAssetsStore } from "@/stores/pinia/assets";
 import { useHistoryStore } from "@/stores/pinia/history";
@@ -99,8 +100,7 @@ export const useNetworkStore = defineStore("network", {
           const newCustom = new AvaNetwork(
             n.name,
             n.url,
-            //@ts-ignore
-            Number.parseInt(n.networkId),
+            Number.parseInt(n.networkId as unknown as string),
             n.explorerUrl,
             n.explorerSiteUrl,
             n.readonly,
@@ -110,7 +110,6 @@ export const useNetworkStore = defineStore("network", {
       }
     },
     async setNetwork(net: AvaNetwork) {
-      const router = useRouter();
       const rootStore = useRootStore();
       const historyStore = useHistoryStore();
       const assetsStore = useAssetsStore();

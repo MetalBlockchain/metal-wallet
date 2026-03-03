@@ -46,8 +46,7 @@
     "vue-i18n": "^11.1.12",
     "vue-router": "^4.5.1",
     "vue-virtual-scroller": "^2.0.0-beta.8",
-    "vuetify": "^3.10.1",
-    "vuex": "^4.0.2"
+    "vuetify": "^3.10.1"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",

@@ -85,11 +85,14 @@
 <script lang="ts">
 import type { BN } from "@metalblockchain/metaljs/dist";
 import type Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent, markRaw } from "vue";
 import AddDelegator from "@/components/wallet/earn/Delegate/AddDelegator.vue";
 import UserRewards from "@/components/wallet/earn/UserRewards.vue";
 import AddValidator from "@/components/wallet/earn/Validate/AddValidator.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { usePlatformStore } from "@/stores/pinia/platform";
 
 export const Earn = defineComponent({
   name: "Earn",
@@ -109,12 +112,11 @@ export const Earn = defineComponent({
     };
   },
   computed: {
-    platformUnlocked(): BN {
-      return this.$store.getters["Assets/walletPlatformBalance"].available;
-    },
-    platformLockedStakeable(): BN {
-      return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
-    },
+    ...mapState(useAssetsStore, {
+      platformLockedStakeable: "walletPlatformBalanceLockedStakeable",
+      platformUnlocked: (store) => store.walletPlatformBalance.available,
+    }),
+    ...mapState(usePlatformStore, ["minStakeDelegation", "minStake"]),
     totBal(): BN {
       return this.platformUnlocked.add(this.platformLockedStakeable);
     },
@@ -122,25 +124,25 @@ export const Earn = defineComponent({
       return this.platformUnlocked.add(this.platformLockedStakeable).isZero();
     },
     canDelegate(): boolean {
-      const bn = this.$store.state.Platform.minStakeDelegation;
+      const bn = this.minStakeDelegation;
       if (this.totBal.lt(bn)) {
         return false;
       }
       return true;
     },
     canValidate(): boolean {
-      const bn = this.$store.state.Platform.minStake;
+      const bn = this.minStake;
       if (this.totBal.lt(bn)) {
         return false;
       }
       return true;
     },
     minStakeAmt(): Big {
-      const bn = this.$store.state.Platform.minStake;
+      const bn = this.minStake;
       return bnToBig(bn, 9);
     },
     minDelegationAmt(): Big {
-      const bn = this.$store.state.Platform.minStakeDelegation;
+      const bn = this.minStakeDelegation;
       return bnToBig(bn, 9);
     },
   },

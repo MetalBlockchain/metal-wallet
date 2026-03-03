@@ -20,12 +20,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { WalletType } from "@/js/wallets/types";
-import type { iUserAccountEncrypted } from "@/stores/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
 import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const AccountMenu = defineComponent({
   components: {
@@ -34,17 +35,15 @@ export const AccountMenu = defineComponent({
     Identicon,
   },
   computed: {
-    account(): iUserAccountEncrypted | null {
-      return this.$store.getters["Accounts/account"];
-    },
-    wallet(): WalletType | null {
-      return this.$store.state.activeWallet;
-    },
-    isLedger() {
-      const w = this.wallet;
-      if (!w) return false;
-      return w.type === "ledger";
-    },
+    ...mapState(useAccountsStore, ["account"]),
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+      isLedger: (store) => {
+        const w = store.activeWallet;
+        if (!w) return false;
+        return w.type === "ledger";
+      },
+    }),
   },
   methods: {
     openSettings() {
@@ -57,6 +56,7 @@ export const AccountMenu = defineComponent({
 });
 export default AccountMenu;
 </script>
+
 <style scoped lang="scss">
 .account_but {
   color: var(--primary-color);

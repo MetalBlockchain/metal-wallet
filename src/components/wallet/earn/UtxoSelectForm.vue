@@ -41,13 +41,14 @@ import type {
   AmountOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { WalletType } from "@/js/wallets/types";
 
 import { BN } from "@metalblockchain/metaljs";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
+import { mapState } from "pinia";
 import { defineComponent, ref } from "vue";
 import UtxoSelectModal from "@/components/modals/UtxoSelect/UtxoSelectModal.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const UtxoSelectForm = defineComponent({
   components: {
@@ -67,20 +68,22 @@ export const UtxoSelectForm = defineComponent({
     };
   },
   computed: {
-    platformUtxos(): UTXO[] {
-      const wallet: WalletType | null = this.$store.state.activeWallet;
-      if (!wallet) return [];
-      const utxos = wallet.getPlatformUTXOSet().getAllUTXOs();
-      const now = UnixNow();
-      return utxos.filter((utxo) => {
-        // Filter out locked and multisig utxos
-        const locktime = utxo.getOutput().getLocktime();
-        const threshold = utxo.getOutput().getThreshold();
-        if (locktime.gt(now)) return false;
-        if (threshold > 1) return false;
-        return true;
-      });
-    },
+    ...mapState(useRootStore, {
+      platformUtxos: (store) => {
+        const wallet = store.activeWallet;
+        if (!wallet) return [];
+        const utxos = wallet.getPlatformUTXOSet().getAllUTXOs();
+        const now = UnixNow();
+        return utxos.filter((utxo) => {
+          // Filter out locked and multisig utxos
+          const locktime = utxo.getOutput().getLocktime();
+          const threshold = utxo.getOutput().getThreshold();
+          if (locktime.gt(now)) return false;
+          if (threshold > 1) return false;
+          return true;
+        });
+      },
+    }),
     selectedBalance(): BN {
       return this.formType === "all"
         ? this.platformUtxos.reduce((acc, val: UTXO) => {

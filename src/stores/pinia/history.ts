@@ -72,12 +72,14 @@ export const useHistoryStore = defineStore("history", {
     async updateAllTransactionHistory() {
       this.isError = false;
       const rootStore = useRootStore();
+      const networkStore = useNetworkStore();
       const wallet = rootStore.activeWallet;
       if (!wallet) return;
 
       // If wallet is still loading delay
-      // @ts-ignore
-      const network = rootState.Network.selectedNetwork;
+
+      const network = networkStore.selectedNetwork;
+      if (!network) return;
 
       if (!wallet.isInit) {
         setTimeout(() => {

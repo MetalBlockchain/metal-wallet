@@ -31,13 +31,15 @@ import type {
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { IWalletNftDict } from "@/stores/types";
-import type { ERC721WalletBalance } from "@/stores/types/erc721";
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useErc721Store } from "@/stores/pinia/erc721";
+import { useRootStore } from "@/stores/pinia/root";
 
 const NFT_COUNT = 15;
 
@@ -49,14 +51,19 @@ export const NftCol = defineComponent({
     NftPayloadView,
   },
   computed: {
+    ...mapState(useAssetsStore, ["nftUTXOs", "nftFams"]),
+    ...mapState(useErc721Store, {
+      erc721Balance: "walletBalance",
+      erc721Find: "find",
+      erc721TotalOwned: "totalOwned",
+      erc721TotalCollectionsOwned: "totalCollectionsOwned",
+    }),
+    ...mapState(useRootStore, ["activeWallet"]),
     isEmpty(): boolean {
       return this.nftArray.length + this.erc721BalanceArray.length === 0;
     },
-    nftDict(): IWalletNftDict {
-      return this.$store.getters["Assets/walletNftDict"];
-    },
     nftArray(): UTXO[] {
-      let utxos: UTXO[] = this.$store.state.Assets.nftUTXOs;
+      let utxos = this.nftUTXOs as UTXO[];
 
       const ids: string[] = [];
       // Filter same groups
@@ -88,25 +95,23 @@ export const NftCol = defineComponent({
         return payloadbase;
       });
     },
-    erc721Balance(): ERC721WalletBalance {
-      return this.$store.state.Assets.ERC721.walletBalance;
-    },
     erc721BalanceArray() {
       // TODO: Remove after ledger support
-      if (this.$store.state.activeWallet.type === "ledger") return [];
+      if (this.activeWallet?.type === "ledger") return [];
 
       const res = [];
       for (const tokenAddr in this.erc721Balance) {
-        const erc721Token =
-          this.$store.getters["Assets/ERC721/find"](tokenAddr);
-        const tokenIds = this.erc721Balance[tokenAddr] ?? [];
-        const tokens = tokenIds.map((id) => {
-          return {
-            token: erc721Token,
-            id: id,
-          };
-        });
-        res.push(...tokens);
+        const erc721Token = this.erc721Find(tokenAddr);
+        if (erc721Token) {
+          const tokenIds = this.erc721Balance[tokenAddr] ?? [];
+          const tokens = tokenIds.map((id) => {
+            return {
+              token: erc721Token,
+              id: id,
+            };
+          });
+          res.push(...tokens);
+        }
       }
       return res.slice(0, NFT_COUNT - this.nftArray.length);
     },
@@ -116,14 +121,13 @@ export const NftCol = defineComponent({
       );
     },
     collectedAmt(): number {
-      const avmAmt = this.$store.state.Assets.nftUTXOs.length;
-      const evmAmt = this.$store.getters["Assets/ERC721/totalOwned"];
+      const avmAmt = this.nftUTXOs.length;
+      const evmAmt = this.erc721TotalOwned;
       return avmAmt + evmAmt;
     },
     collectionAmt(): number {
-      const avmFamsAmt = this.$store.state.Assets.nftFams.length;
-      const evmFamsAmt =
-        this.$store.getters["Assets/ERC721/totalCollectionsOwned"];
+      const avmFamsAmt = this.nftFams.length;
+      const evmFamsAmt = this.erc721TotalCollectionsOwned;
       return avmFamsAmt + evmFamsAmt;
     },
     statusText(): string {

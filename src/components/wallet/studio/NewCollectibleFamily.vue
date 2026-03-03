@@ -81,9 +81,14 @@
 </template>
 <script lang="ts">
 import type Big from "big.js";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
 import { pChain } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const NewCollectibleFamily = defineComponent({
   emits: ["cancel"],
@@ -99,12 +104,9 @@ export const NewCollectibleFamily = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, ["activeWallet"]),
     txFee(): Big {
       return bnToBig(pChain.getCreationTxFee(), 9);
-    },
-    mintUtxos() {
-      // return this.$store.getters.walletNftMintUTXOs
-      return this.$store.state.Assets.nftMintUTXOs;
     },
   },
   watch: {
@@ -115,6 +117,11 @@ export const NewCollectibleFamily = defineComponent({
     ],
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     validate(): boolean {
       if (this.symbol.length === 0) {
         this.error = "You must provide a symbol.";
@@ -132,7 +139,7 @@ export const NewCollectibleFamily = defineComponent({
       if (!this.validate()) {
         return;
       }
-      const wallet = this.$store.state.activeWallet;
+      const wallet = this.activeWallet;
       if (!wallet) return;
 
       this.error = "";
@@ -166,15 +173,15 @@ export const NewCollectibleFamily = defineComponent({
       this.isSuccess = true;
       this.txId = txId;
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "success",
         title: "Success",
         message: "Collectible family created.",
       });
 
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
       }, 3000);
     },
     onSymbolChange(val: string) {

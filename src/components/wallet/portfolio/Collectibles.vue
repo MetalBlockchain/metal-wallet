@@ -31,15 +31,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type ERC721Token from "@/js/ERC721Token";
-
-import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/types";
-import type { NftFamilyDict } from "@/stores/types/assets";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AddERC721TokenModal from "@/components/modals/AddERC721TokenModal.vue";
 import CollectibleFamilyRow from "@/components/wallet/portfolio/CollectibleFamilyRow.vue";
 import ERC721FamilyRow from "@/components/wallet/portfolio/ERC721FamilyRow.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useErc721Store } from "@/stores/pinia/erc721";
 
 // const payloadTypes = PayloadTypes.getInstance();
 export const Collectibles = defineComponent({
@@ -59,26 +57,23 @@ export const Collectibles = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, {
+      nftUTXOs: "nftUTXOs",
+      nftMintUTXOs: "nftMintUTXOs",
+      nftFams: "nftFams",
+    }),
+    ...mapState(useErc721Store, {
+      totalOwned: "totalOwned",
+      erc721s: "networkContracts",
+    }),
     isEmpty(): boolean {
-      // let nftUtxos = this.$store.getters.walletNftUTXOs.length
-      // let mintUTxos = this.$store.getters.walletNftMintUTXOs.length
-      const nftUtxos = this.$store.state.Assets.nftUTXOs.length;
-      const mintUTxos = this.$store.state.Assets.nftMintUTXOs.length;
-      const erc721Bal = this.$store.getters["Assets/ERC721/totalOwned"];
+      const nftUtxos = this.nftUTXOs.length;
+      const mintUTxos = this.nftMintUTXOs.length;
+      const erc721Bal = this.totalOwned;
       return nftUtxos + mintUTxos + erc721Bal === 0;
     },
-    nftDict(): IWalletNftDict {
-      // return this.$store.getters.walletNftDict
-      const dict = this.$store.getters["Assets/walletNftDict"];
-      return dict;
-    },
-    nftMintDict(): IWalletNftMintDict {
-      // let dict = this.$store.getters.walletNftMintDict
-      const dict = this.$store.getters["Assets/nftMintDict"];
-      return dict;
-    },
     nftFamsArray() {
-      let fams: AvaNftFamily[] = this.$store.state.Assets.nftFams;
+      let fams = this.nftFams;
 
       // If search query
       if (this.search) {
@@ -108,13 +103,6 @@ export const Collectibles = defineComponent({
       });
 
       return fams;
-    },
-    nftFamsDict(): NftFamilyDict {
-      const dict = this.$store.state.Assets.nftFamsDict;
-      return dict;
-    },
-    erc721s(): ERC721Token[] {
-      return this.$store.getters["Assets/ERC721/networkContracts"];
     },
   },
   methods: {

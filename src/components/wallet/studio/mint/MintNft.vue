@@ -18,12 +18,15 @@
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type Big from "big.js";
-import { defineComponent } from "vue";
+import { mapState } from "pinia";
 
+import { defineComponent } from "vue";
 import MintForm from "@/components/wallet/studio/mint/MintForm.vue";
 import SelectMintUTXO from "@/components/wallet/studio/mint/SelectMintUtxo/SelectMintUTXO.vue";
 import { bnToBig } from "@/helpers/helper";
 import { pChain } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const MintNft = defineComponent({
   components: {
@@ -41,12 +44,10 @@ export const MintNft = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, ["nftMintUTXOs"]),
+    ...mapState(useRootStore, ["activeWallet"]),
     txFee(): Big {
       return bnToBig(pChain.getTxFee(), 9);
-    },
-    mintUtxos() {
-      // return this.$store.getters.walletNftMintUTXOs
-      return this.$store.state.Assets.nftMintUTXOs;
     },
   },
   mounted() {
@@ -54,20 +55,20 @@ export const MintNft = defineComponent({
 
     // Select the utxo in the query if possible
     if (utxoId) {
-      const utxos: UTXO[] = this.mintUtxos;
+      const utxos = this.nftMintUTXOs;
 
       for (const utxo of utxos) {
         const id = utxo.getUTXOID();
 
         if (id === utxoId) {
-          this.setUtxo(utxo);
+          this.setUtxo(utxo as UTXO);
         }
       }
     }
   },
   methods: {
     async submit() {
-      const wallet = this.$store.state.activeWallet;
+      const wallet = this.activeWallet;
       if (!wallet) return;
 
       this.isLoading = true;

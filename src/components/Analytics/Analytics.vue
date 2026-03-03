@@ -19,33 +19,28 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { usePosthog } from "@/plugins/posthog";
 
-export const Analytics = defineComponent({
-  data() {
-    return {
-      showConsentModal: localStorage.getItem("consentsToAnalytics") === null,
-    };
-  },
-  methods: {
-    onAccept() {
-      localStorage.setItem("consentsToAnalytics", "true");
-      this.$posthog.opt_in_capturing();
-      this.showConsentModal = false;
+const posthog = usePosthog();
+const showConsentModal = ref(
+  localStorage.getItem("consentsToAnalytics") === null,
+);
 
-      return;
-    },
-    onReject() {
-      localStorage.setItem("consentsToAnalytics", "false");
-      this.$posthog.opt_out_capturing();
-      this.showConsentModal = false;
+function onAccept() {
+  localStorage.setItem("consentsToAnalytics", "true");
+  posthog?.opt_in_capturing();
+  showConsentModal.value = false;
 
-      return;
-    },
-  },
-});
-export default Analytics;
+  return;
+}
+function onReject() {
+  localStorage.setItem("consentsToAnalytics", "false");
+  posthog?.opt_out_capturing();
+  showConsentModal.value = false;
+
+  return;
+}
 </script>
 <style scoped>
 .analytics {

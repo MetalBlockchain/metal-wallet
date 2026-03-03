@@ -11,7 +11,7 @@
       :phrase="mnemonicPhrase"
     ></MnemonicPhraseModal>
     <HdDerivationListModal
-      v-if="isHDWallet"
+      v-if="isHDWallet && mnemonicWallet"
       ref="modal_hd"
       :wallet="mnemonicWallet"
     ></HdDerivationListModal>
@@ -118,17 +118,17 @@
 <script lang="ts">
 import type { AmountOutput } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { SingletonWallet } from "../../../js/wallets/SingletonWallet";
 import type { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletNameType, WalletType } from "@/js/wallets/types";
-import type { AssetsDict } from "@/stores/types/assets";
 
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Tooltip from "@/components/misc/Tooltip.vue";
-import ExportKeys from "@/components/modals/ExportKeys.vue";
 
+import ExportKeys from "@/components/modals/ExportKeys.vue";
 import HdDerivationListModal from "@/components/modals/HdDerivationList/HdDerivationListModal.vue";
 import MnemonicPhraseModal from "@/components/modals/MnemonicPhraseModal.vue";
 import PrivateKey from "@/components/modals/PrivateKey.vue";
@@ -136,6 +136,8 @@ import XpubModal from "@/components/modals/XpubModal.vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
 import AvaAsset from "@/js/AvaAsset";
 import { bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 export interface IKeyBalanceDict {
   [key: string]: AvaAsset;
@@ -164,18 +166,21 @@ export const KeyRow = defineComponent({
     };
   },
   computed: {
-    mnemonicWallet(): MnemonicWallet | undefined {
-      return this.wallet as MnemonicWallet;
-    },
-    isVolatile() {
-      return this.$store.state.volatileWallets.includes(this.wallet);
-    },
-    walletTitle() {
-      return this.wallet?.getBaseAddress();
-    },
-    assetsDict(): AssetsDict {
-      return this.$store.state.Assets.assetsDict;
-    },
+    ...mapState(useRootStore, {
+      mnemonicWallet: (store): MnemonicWallet | null =>
+        store.activeWallet as MnemonicWallet,
+      isVolatile: (store) => {
+        if (!store.activeWallet) return false;
+        return store.volatileWallets.includes(store.activeWallet);
+      },
+      walletTitle: (store) => {
+        return store.activeWallet?.getBaseAddress();
+      },
+      walletType: (store): WalletNameType => {
+        return store.activeWallet?.type ?? "mnemonic";
+      },
+    }),
+    ...mapState(useAssetsStore, ["assetsDict"]),
     balances(): IKeyBalanceDict {
       if (!this.wallet?.getUTXOSet()) return {};
 
@@ -225,9 +230,7 @@ export const KeyRow = defineComponent({
 
       return res;
     },
-    walletType(): WalletNameType {
-      return this.wallet?.type ?? "mnemonic";
-    },
+
     isHDWallet() {
       return ["mnemonic", "ledger"].includes(this.walletType);
     },

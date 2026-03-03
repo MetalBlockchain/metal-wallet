@@ -46,12 +46,13 @@
 </template>
 <script lang="ts">
 import type { PropType } from "vue";
-import type { AvaNetwork } from "@/js/AvaNetwork";
 import type { ValidatorListItem } from "@/stores/types/platform";
 import Big from "big.js";
 import BN from "bn.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
 export const NodeCard = defineComponent({
   props: {
@@ -60,6 +61,7 @@ export const NodeCard = defineComponent({
     },
   },
   computed: {
+    ...mapState(useNetworkStore, ["selectedNetwork"]),
     uptimeText(): string {
       return ((this.node?.uptime ?? 0) * 100).toFixed(2) + "%";
     },
@@ -78,7 +80,8 @@ export const NodeCard = defineComponent({
     },
     avascanURL() {
       if (!this.node) return "";
-      const activeNet: AvaNetwork = this.$store.state.Network.selectedNetwork;
+      const activeNet = this.selectedNetwork;
+      if (!activeNet) return "";
 
       return activeNet.networkId === 1
         ? `https://avascan.info/staking/validator/${this.node.nodeID}`

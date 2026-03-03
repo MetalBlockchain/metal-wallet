@@ -35,7 +35,6 @@ export default defineConfig({
         {
           "vue-router": ["useRoute", "useRouter"],
           pinia: ["defineStore", "storeToRefs"],
-          vuex: ["createStore"],
         },
       ],
       dts: "src/auto-imports.d.ts",
@@ -90,7 +89,7 @@ export default defineConfig({
               return "vendor_web3";
             }
 
-            if(id.includes('@ledgerhq')) {
+            if (id.includes("@ledgerhq")) {
               return "vendor_ledger";
             }
             if (id.includes("@metalblockchain/glacier-sdk")) {
@@ -113,44 +112,43 @@ export default defineConfig({
               return "vendor_fortawesome";
             }
 
-            if(id.includes('@zxing')) {
+            if (id.includes("@zxing")) {
               return "vendor_zxing";
             }
 
-            if(id.includes('bitcoinjs-lib')) {
+            if (id.includes("bitcoinjs-lib")) {
               return "vendor_bitcoinjs_lib";
             }
 
-            if(id.includes('@ethereumjs')) {
+            if (id.includes("@ethereumjs")) {
               return "vendor_ethereumjs";
             }
 
-            if(id.includes('@avalabs')) {
+            if (id.includes("@avalabs")) {
               return "vendor_avalabs";
             }
-            if(id.includes('date-fns')) {
+            if (id.includes("date-fns")) {
               return "vendor_date_fns";
             }
 
-
-            if(id.includes('moment')) {
+            if (id.includes("moment")) {
               return "vendor_moment";
             }
 
-            if(id.includes('qrcode')) {
+            if (id.includes("qrcode")) {
               return "vendor_qrcode";
             }
 
-            if(
-              id.includes('posthog-js') ||
-              id.includes('@opentelemetry') ||
-              id.includes('@posthog') ||
-              id.includes('preact') ||
-              id.includes('query-selector-shadow-dom') ||
-              id.includes('core-js') ||
-              id.includes('dompurify') ||
-              id.includes('fflate') ||
-              id.includes('web-vitals')
+            if (
+              id.includes("posthog-js") ||
+              id.includes("@opentelemetry") ||
+              id.includes("@posthog") ||
+              id.includes("preact") ||
+              id.includes("query-selector-shadow-dom") ||
+              id.includes("core-js") ||
+              id.includes("dompurify") ||
+              id.includes("fflate") ||
+              id.includes("web-vitals")
             ) {
               return "vendor_posthog";
             }

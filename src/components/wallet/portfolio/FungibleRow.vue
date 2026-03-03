@@ -28,14 +28,15 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
-import type { WalletType } from "@/js/wallets/types";
-import type { priceDict } from "@/stores/types";
 import { BN } from "@metalblockchain/metaljs";
 import Big from "big.js";
-import { defineComponent } from "vue";
+import { mapState } from "pinia";
 
+import { defineComponent } from "vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const FungibleRow = defineComponent({
   props: {
@@ -50,6 +51,13 @@ export const FungibleRow = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      priceDict: "prices",
+      activeWallet: "activeWallet",
+    }),
+    ...mapState(useAssetsStore, {
+      avaxToken: "AssetAVA",
+    }),
     iconUrl(): string | null {
       if (!this.asset) return null;
 
@@ -73,18 +81,14 @@ export const FungibleRow = defineComponent({
       const usdBig = bigAmt.times(usdPrice);
       return usdBig;
     },
-    priceDict(): priceDict {
-      return this.$store.state.prices;
-    },
     sendLink(): string {
       if (!this.asset) return `/wallet/transfer`;
       return `/wallet/transfer?asset=${this.asset.id}&chain=X`;
     },
-    avaxToken(): AvaAsset {
-      return this.$store.getters["Assets/AssetAVA"];
-    },
+
     isAvaxToken(): boolean {
       if (!this.asset) return false;
+      if (!this.avaxToken) return false;
 
       return this.avaxToken.id === this.asset.id ? true : false;
     },
@@ -110,7 +114,7 @@ export const FungibleRow = defineComponent({
       return bnToBig(this.amount, this.asset?.denomination);
     },
     evmAvaxBalance(): BN {
-      const wallet: WalletType | null = this.$store.state.activeWallet;
+      const wallet = this.activeWallet;
 
       if (!this.isAvaxToken || !wallet) {
         return new BN(0);

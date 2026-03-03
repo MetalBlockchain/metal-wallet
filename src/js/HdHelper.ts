@@ -19,7 +19,7 @@ import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
 import { avmGetAllUTXOs, platformGetAllUTXOs } from "@/helpers/utxo_helper";
 import { listChainsForAddresses } from "@/js/Glacier/listChainsForAddresses";
 import { ava, avm, bintools, pChain } from "@/misc/AVA";
-import store from "@/stores/vuex";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
 const INDEX_RANGE = 20; // a gap of at least 20 indexes is needed to claim an index unused
 
@@ -120,8 +120,10 @@ class HdHelper {
   async findHdIndex() {
     // Check if explorer is available
 
-    const network: AvaNetwork = (store.state as any).Network.selectedNetwork;
-    const explorerUrl = network.explorerUrl;
+    const networkStore = useNetworkStore();
+
+    const network: AvaNetwork | null = networkStore.selectedNetwork;
+    const explorerUrl = network?.explorerUrl;
 
     this.hdIndex = await (explorerUrl
       ? this.findAvailableIndexExplorer()
@@ -176,7 +178,6 @@ class HdHelper {
   // Updates the helper keychain to contain keys upto the HD Index
   updateKeychain(): AVMKeyChain | PlatformVMKeyChain {
     const hrp = getPreferredHRP(ava.getNetworkID());
-    
 
     const keychain =
       this.chainId === "X"

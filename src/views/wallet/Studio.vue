@@ -53,10 +53,11 @@
 </template>
 
 <script lang="ts">
-import type { IWalletNftMintDict } from "@/stores/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import MintNft from "@/components/wallet/studio/mint/MintNft.vue";
 import NewCollectibleFamily from "@/components/wallet/studio/NewCollectibleFamily.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const Studio = defineComponent({
   name: "Studio",
@@ -72,14 +73,13 @@ export const Studio = defineComponent({
     };
   },
   computed: {
-    nftMintDict(): IWalletNftMintDict {
-      return this.$store.getters["Assets/nftMintDict"];
-    },
-    canMint(): boolean {
-      const keys = Object.keys(this.nftMintDict);
-      if (keys.length > 0) return true;
-      return false;
-    },
+    ...mapState(useAssetsStore, {
+      canMint: (store) => {
+        const keys = Object.keys(store.nftMintDict);
+        if (keys.length > 0) return true;
+        return false;
+      },
+    }),
   },
   activated() {
     const utxoId = this.$route.query.utxo;

@@ -42,11 +42,14 @@
 <script lang="ts">
 import type AvaAsset from "@/js/AvaAsset";
 import type Erc20Token from "@/js/Erc20Token";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AddERC20TokenModal from "@/components/modals/AddERC20TokenModal.vue";
 import TokenListModal from "@/components/modals/TokenList/TokenListModal.vue";
 import ERC20Row from "@/components/wallet/portfolio/ERC20Row.vue";
 import FungibleRow from "@/components/wallet/portfolio/FungibleRow.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
 export const Fungibles = defineComponent({
   components: {
@@ -61,15 +64,18 @@ export const Fungibles = defineComponent({
     },
   },
   computed: {
-    networkStatus(): string {
-      const stat = this.$store.state.Network.status;
-      return stat;
-    },
-    walletBalancesSorted(): AvaAsset[] {
-      // let balance: AvaAsset[] = this.$store.getters['walletAssetsArray']
-      const balance: AvaAsset[] =
-        this.$store.getters["Assets/walletAssetsArray"];
+    ...mapState(useNetworkStore, {
+      networkStatus: "status",
+    }),
+    ...mapState(useAssetsStore, {
+      walletAssetsArray: "walletAssetsArray",
+      avaxToken: "AssetAVA",
+      networkErc20Tokens: "networkErc20Tokens",
+    }),
 
+    walletBalancesSorted(): AvaAsset[] {
+      const balance: AvaAsset[] = this.walletAssetsArray;
+      const avaxTokenId = this.avaxToken?.id ?? "";
       // Sort by balance, then name
       balance.sort((a, b) => {
         const symbolA = a.symbol.toUpperCase();
@@ -80,9 +86,9 @@ export const Fungibles = defineComponent({
         const idB = b.id;
 
         // AVA always on top
-        if (idA === this.avaxToken.id) {
+        if (idA === avaxTokenId) {
           return -1;
-        } else if (idB === this.avaxToken.id) {
+        } else if (idB === avaxTokenId) {
           return 1;
         }
 
@@ -102,12 +108,9 @@ export const Fungibles = defineComponent({
 
       return balance;
     },
-    avaxToken(): AvaAsset {
-      return this.$store.getters["Assets/AssetAVA"];
-    },
+
     erc20Balances(): Erc20Token[] {
-      const tokens: Erc20Token[] =
-        this.$store.getters["Assets/networkErc20Tokens"];
+      const tokens: Erc20Token[] = this.networkErc20Tokens;
       const filt = tokens.filter((token) => {
         if (token.balanceBN.isZero()) return false;
         return true;

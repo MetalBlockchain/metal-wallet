@@ -97,9 +97,9 @@
   </div>
 </template>
 <script lang="ts">
-import type { AvaNetwork } from "@/js/AvaNetwork";
 import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { DynamicScroller } from "vue-virtual-scroller";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
@@ -107,6 +107,8 @@ import Spinner from "@/components/misc/Spinner.vue";
 import ExportGlacierHistoryModal from "@/components/modals/ExportGlacierHistoryModal.vue";
 import TxRow from "@/components/wallet/activity/TxRow.vue";
 import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNetworkStore } from "@/stores/pinia/networks";
 import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
 import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
@@ -182,15 +184,24 @@ export const Activity = defineComponent({
     };
   },
   computed: {
+    ...mapState(useNetworkStore, {
+      activeNetwork: "selectedNetwork",
+    }),
+    ...mapState(useHistoryStore, {
+      isUpdatingAll: "isUpdatingAll",
+      isError: "isError",
+      allTxs: (store) => {
+        return store.allTransactions.filter((tx: TransactionType) => {
+          return supportedTypes.has(tx.txType);
+        });
+      },
+    }),
     isCsvDisabled() {
       return !this.hasExplorer || this.isFuji;
     },
     showList(): boolean {
       if (this.isUpdatingAll || this.isLoading || this.isError) return false;
       return true;
-    },
-    isUpdatingAll(): boolean {
-      return this.$store.state.History.isUpdatingAll;
     },
     isNextPage() {
       const now = new Date();
@@ -207,9 +218,7 @@ export const Activity = defineComponent({
     monthNowName() {
       return this.$t(`activity.months.${this.monthNow}`);
     },
-    activeNetwork(): AvaNetwork | null {
-      return this.$store.state.Network.selectedNetwork;
-    },
+
     isMainnet() {
       return (
         this.activeNetwork && isMainnetNetworkID(this.activeNetwork.networkId)
@@ -224,9 +233,7 @@ export const Activity = defineComponent({
       if (!this.activeNetwork) return false;
       return this.isMainnet || this.isFuji;
     },
-    isError() {
-      return this.$store.state.History.isError;
-    },
+
     monthGroups(): any {
       const res: any = {};
       const txs = this.txs;
@@ -245,13 +252,7 @@ export const Activity = defineComponent({
       }
       return res;
     },
-    allTxs(): TransactionType[] {
-      return this.$store.state.History.allTransactions.filter(
-        (tx: TransactionType) => {
-          return supportedTypes.has(tx.txType);
-        },
-      );
-    },
+
     txs(): TransactionType[] {
       let txs;
       switch (this.mode) {
@@ -348,11 +349,11 @@ export const Activity = defineComponent({
     this.setScrollHeight();
   },
   methods: {
+    ...mapActions(useHistoryStore, {
+      updateHistory: "updateAllTransactionHistory",
+    }),
     openGlacierCsvModal() {
       (this.$refs.glacier_csv_modal as typeof ExportGlacierHistoryModal).open();
-    },
-    async updateHistory() {
-      this.$store.dispatch("History/updateAllTransactionHistory");
     },
     getTxTimestamp(tx: TransactionType) {
       return isTransactionX(tx) || isTransactionC(tx)

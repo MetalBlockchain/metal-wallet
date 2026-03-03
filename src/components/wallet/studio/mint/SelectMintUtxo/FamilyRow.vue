@@ -28,9 +28,10 @@ import type {
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { IWalletNftMintDict } from "@/stores/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import NftFamilyCardsPreview from "@/components/misc/NftFamilyCardsPreview.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const FamilyRow = defineComponent({
   components: { NftFamilyCardsPreview },
@@ -47,16 +48,12 @@ export const FamilyRow = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, {
+      nftMintDict: "nftMintDict",
+      nftUtxoDict: "walletNftDict",
+    }),
     mintUtxos() {
       return this.nftMintDict[this.family?.id ?? 0];
-    },
-    nftMintDict(): IWalletNftMintDict {
-      // return this.$store.getters.walletNftMintDict
-      return this.$store.getters["Assets/nftMintDict"];
-    },
-    nftUtxoDict(): IWalletNftMintDict {
-      // return this.$store.getters.walletNftDict
-      return this.$store.getters["Assets/walletNftDict"];
     },
     nftUtxos(): UTXO[] {
       const id = this.family?.id;

@@ -60,11 +60,12 @@ import type Big from "big.js";
 import type { PropType } from "vue";
 import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
 import type { ChainIdType } from "@/constants";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import { BN } from "@metalblockchain/metaljs";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AvaxInput from "@/components/misc/AvaxInput.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useRootStore } from "@/stores/pinia/root";
 
 const chainTypes: ChainIdType[] = ["X", "P", "C"];
 const chainNames = {
@@ -105,6 +106,14 @@ export const Form = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      isEVMSupported: (store) => {
+        if (store.activeWallet) {
+          return !!store.activeWallet.ethAddress;
+        }
+        return false;
+      },
+    }),
     chainNames() {
       return chainNames;
     },
@@ -125,13 +134,6 @@ export const Form = defineComponent({
         P: ["X", "C"],
         C: ["X", "P"],
       }[this.sourceChain] as ChainIdType[];
-    },
-    wallet() {
-      const wallet: MnemonicWallet = this.$store.state.activeWallet;
-      return wallet;
-    },
-    isEVMSupported() {
-      return this.wallet.ethAddress;
     },
   },
   watch: {
