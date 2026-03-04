@@ -71,6 +71,11 @@ export default defineConfig({
           },
         ],
       },
+      custom: {
+        families: [],
+        preload: false,
+        prefetch: true,
+      },
     }),
   ],
   build: {
