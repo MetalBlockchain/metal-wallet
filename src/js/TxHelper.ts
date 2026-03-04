@@ -5,7 +5,6 @@ import type {
   NFTMintOutput,
   TransferableInput,
   TransferableOutput,
-  UTXO,
   UTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
@@ -27,13 +26,10 @@ import {
   MinterSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 
-import {
-  EVMConstants,
-  UnsignedTx as EVMUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/evm";
+import { EVMConstants } from "@metalblockchain/metaljs/dist/apis/evm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { OutputOwners } from "@metalblockchain/metaljs/dist/common";
-import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
+import { ava, avm, bintools } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
 
 export async function buildUnsignedTransaction(

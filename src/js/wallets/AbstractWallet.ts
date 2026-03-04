@@ -401,7 +401,6 @@ abstract class AbstractWallet {
       .getAddresses()
       .map((addr) => bintools.addressToString(hrp, "P", addr));
 
-    const fromAddrs = utxoAddrs;
     const ownerAddrs = utxoAddrs;
 
     const unsignedTx = await pChain.buildImportTx(
@@ -531,9 +530,9 @@ abstract class AbstractWallet {
    * Excluding EVM for now.
    */
   async startTxExportJob(
-    startDate: Date,
-    endDate: Date,
-    chains: BlockchainId[],
+    _startDate: Date,
+    _endDate: Date,
+    _chains: BlockchainId[],
   ) {
     /*const addresses = this.getHistoryAddresses()
         const stripped = addresses.map((addr) => addr.split('-')[1] || addr)

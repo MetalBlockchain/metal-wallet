@@ -3,6 +3,7 @@ import { sumUtxos } from "@/helpers/utxoSelection/sumUtxos";
 import { bintools } from "@/misc/AVA";
 import { MAX_TX_SIZE_P } from "./constants";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function parseAddresses(addrs: string[]) {
   return addrs.map((addr) => bintools.stringToAddress(addr));
 }

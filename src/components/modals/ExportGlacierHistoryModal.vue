@@ -82,7 +82,6 @@
   </modal>
 </template>
 <script lang="ts">
-import type { WalletType } from "@/js/wallets/types";
 import { BlockchainId, OperationStatus } from "@metalblockchain/glacier-sdk";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

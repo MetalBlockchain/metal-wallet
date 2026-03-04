@@ -45,13 +45,13 @@ abstract class AbstractHdWallet extends AbstractWallet {
     this.platformHelper = new HdHelper("m/0", accountHdKey, "P", isPublic);
     this.accountNodeXP = accountHdKey;
 
-    this.externalHelper.oninit().then((res) => {
+    this.externalHelper.oninit().then(() => {
       this.updateInitState();
     });
-    this.internalHelper.oninit().then((res) => {
+    this.internalHelper.oninit().then(() => {
       this.updateInitState();
     });
-    this.platformHelper.oninit().then((res) => {
+    this.platformHelper.oninit().then(() => {
       this.updateInitState();
     });
   }
@@ -106,19 +106,19 @@ abstract class AbstractHdWallet extends AbstractWallet {
   }
 
   async updateUTXOsExternal() {
-    const res = await this.externalHelper.updateUtxos();
+    const _ = await this.externalHelper.updateUtxos();
     this.updateFetchState();
     this.updateAvmUTXOSet();
   }
 
   async updateUTXOsInternal() {
-    const utxoSet = await this.internalHelper.updateUtxos();
+    const _ = await this.internalHelper.updateUtxos();
     this.updateFetchState();
     this.updateAvmUTXOSet();
   }
 
   async updateUTXOsP() {
-    const utxoSet = await this.platformHelper.updateUtxos();
+    const _ = await this.platformHelper.updateUtxos();
     this.updateFetchState();
   }
 

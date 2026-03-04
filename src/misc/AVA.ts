@@ -26,7 +26,7 @@ const keyChain: AVMKeyChain = avm.keyChain();
 
 function isValidAddress(addr: string) {
   try {
-    const res = bintools.stringToAddress(addr);
+    bintools.stringToAddress(addr);
     return true;
   } catch {
     return false;

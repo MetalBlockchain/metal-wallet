@@ -29,6 +29,7 @@ export function getOwnedOutputs(outs: UTXO[], myAddrs: string[]) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getAddresses(outs: UTXO[]): string[] {
   const allAddrs: string[] = [];
 
@@ -48,10 +49,12 @@ function getAddresses(outs: UTXO[]): string[] {
  * @param outs
  * @param assetID
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getAssetOutputs(outs: UTXO[], assetID: string) {
   return outs.filter((out) => out.assetID === assetID);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getNotOwnedOutputs(outs: UTXO[], myAddrs: string[]) {
   return outs.filter((out) => {
     const outAddrs = out.addresses;
@@ -118,6 +121,7 @@ export function stakingDataToCsvRow(rowData: CsvRowStakingData): string[] {
   ];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function avaxTransferDataToCsvRow(rowData: CsvRowAvaxTransferData): string[] {
   const memo = rowData.memo ? `"${rowData.memo}"` : "-";
 
@@ -164,6 +168,7 @@ export function downloadCSVFile(content: string, fileName: string) {
  * Parses the raw memo field to a human readable string.
  * @param memoRaw The base64 encoded memo string
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function parseMemo(memoRaw: string): string {
   const memoText = Buffer.from(memoRaw, "base64").toString("utf8");
   // Bug that sets memo to empty string (AAAAAA==) for some tx types

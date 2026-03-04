@@ -97,7 +97,8 @@ export default class MnemonicWallet
 
     // Update EVM values
     this.ethKeyChain = new EVMKeyChain(ava.getHRP(), "C");
-    const cKeypair = this.ethKeyChain.importKey(this.ethKeyBech);
+    // ? I'm not sure is importKey doesn't have side effects, so the following line is not removed for now
+    const _ = this.ethKeyChain.importKey(this.ethKeyBech);
     this.ethBalance = new BN(0);
   }
 

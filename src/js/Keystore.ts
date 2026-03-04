@@ -43,8 +43,6 @@ const KEYSTORE_VERSION = "6.0";
 const ITERATIONS_V2 = 100_000;
 const ITERATIONS_V3 = 200_000; // and any version above
 
-const SUPPORTED_VERSION = ["2.0", "3.0", "4.0", "5.0", "6.0"];
-
 interface IHash {
   salt: Buffer;
   hash: Buffer;

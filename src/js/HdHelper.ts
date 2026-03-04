@@ -353,7 +353,7 @@ class HdHelper {
   // TODO: Public wallet should never be using this
   getKeyForIndex(
     index: number,
-    isPrivate = true,
+    _isPrivate = true,
   ): AVMKeyPair | PlatformVMKeyPair {
     // If key is cached return that
     const cacheExternal =
@@ -413,7 +413,6 @@ class HdHelper {
     const chainId = this.chainId;
 
     // No need for PlatformKeypair because addressToString uses chainID to decode
-    const keypair = new AVMKeyPair(hrp, chainId);
     const addrBuf = AVMKeyPair.addressFromPublicKey(pkBuff);
     const addr = bintools.addressToString(hrp, chainId, addrBuf);
 

@@ -33,7 +33,6 @@ import type {
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
-import type { AvaNetwork } from "@/js/AvaNetwork";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
