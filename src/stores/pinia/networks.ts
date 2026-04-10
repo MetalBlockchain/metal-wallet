@@ -52,7 +52,7 @@ export const useNetworkStore = defineStore("network", {
           }
         }
       }
-      this.networksCustom.push(net);
+      this.networksCustom.push(markRaw(net));
       this.save();
     },
 
@@ -217,7 +217,7 @@ export const useNetworkStore = defineStore("network", {
       }
     },
     addNetwork(net: AvaNetwork) {
-      this.networks.push(net);
+      this.networks.push(markRaw(net));
     },
     resetNetwork() {
       this.selectedNetwork = null;

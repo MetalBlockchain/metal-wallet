@@ -176,8 +176,8 @@ export const useRootStore = defineStore("root", {
 
       const wallet = new MnemonicWallet(mnemonic);
 
-      this.wallets.push(wallet);
-      this.volatileWallets.push(wallet);
+      this.wallets.push(markRaw(wallet));
+      this.volatileWallets.push(markRaw(wallet));
 
       return wallet;
     },
@@ -205,8 +205,8 @@ export const useRootStore = defineStore("root", {
 
       const wallet = new SingletonWallet(pk);
 
-      this.wallets.push(wallet);
-      this.volatileWallets.push(wallet);
+      this.wallets.push(markRaw(wallet));
+      this.volatileWallets.push(markRaw(wallet));
 
       return wallet;
     },

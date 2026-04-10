@@ -48,7 +48,7 @@ export const useErc721Store = defineStore("erc721", {
       }
 
       const t = new ERC721Token(data);
-      this.erc721TokensCustom.push(t);
+      this.erc721TokensCustom.push(markRaw(t));
 
       this.saveCustomContracts();
       setTimeout(() => {
@@ -63,7 +63,7 @@ export const useErc721Store = defineStore("erc721", {
 
       for (const token of erc721Tokens) {
         if (token) {
-          this.erc721Tokens.push(new ERC721Token(token));
+          this.erc721Tokens.push(markRaw(new ERC721Token(token)));
         }
       }
       this.loadCustomContracts();
@@ -105,7 +105,7 @@ export const useErc721Store = defineStore("erc721", {
       const tokens: TokenListToken[] = JSON.parse(tokensRaw);
       for (const token of tokens) {
         if (token) {
-          this.erc721TokensCustom.push(new ERC721Token(token));
+          this.erc721TokensCustom.push(markRaw(new ERC721Token(token)));
         }
       }
     },
