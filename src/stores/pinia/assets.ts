@@ -131,9 +131,9 @@ export const useAssetsStore = defineStore("assets", {
         const outId = utxo.getOutput().getOutputID();
 
         if (outId === 11) {
-          nftUtxos.push(markRaw(utxo));
+          nftUtxos.push(utxo);
         } else if (outId === 10) {
-          nftMintUtxos.push(markRaw(utxo));
+          nftMintUtxos.push(utxo);
         }
       }
 
@@ -167,7 +167,7 @@ export const useAssetsStore = defineStore("assets", {
       }
 
       const t = new Erc20Token(token);
-      this.erc20Tokens.push(markRaw(t));
+      this.erc20Tokens.push(t);
     },
 
     addCustomErc20Token(token: TokenListToken) {
@@ -189,7 +189,7 @@ export const useAssetsStore = defineStore("assets", {
 
       const t = new Erc20Token(token);
       // Save token state to storage
-      this.erc20TokensCustom.push(markRaw(t));
+      this.erc20TokensCustom.push(t);
 
       const w = rootStore.activeWallet;
       if (w) {
@@ -466,15 +466,15 @@ export const useAssetsStore = defineStore("assets", {
       if (this.assetsDict[asset.id]) {
         return;
       }
-      this.assets.push(markRaw(asset));
-      this.assetsDict[asset.id] = markRaw(asset);
+      this.assets.push(asset);
+      this.assetsDict[asset.id] = asset;
     },
     addNftFamily(family: AvaNftFamily) {
       if (this.nftFamsDict[family.id]) {
         return;
       }
-      this.nftFams.push(markRaw(family));
-      this.nftFamsDict[family.id] = markRaw(family);
+      this.nftFams.push(family);
+      this.nftFamsDict[family.id] = family;
     },
     removeAllAssets() {
       this.assets = [];
@@ -499,7 +499,7 @@ export const useAssetsStore = defineStore("assets", {
       const tokens: TokenListToken[] = JSON.parse(tokensRaw);
       for (const token of tokens) {
         if (token) {
-          this.erc20TokensCustom.push(markRaw(new Erc20Token(token)));
+          this.erc20TokensCustom.push(new Erc20Token(token));
         }
       }
     },
