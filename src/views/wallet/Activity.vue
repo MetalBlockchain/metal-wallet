@@ -64,13 +64,22 @@
         <DynamicScroller
           v-show="txs.length > 0"
           ref="vlist"
-          v-slot="{ item, index }"
           :items="txsProcessed"
           :key-field="'txHash'"
-          :min-item-size="24"
-          :style="{ height: `${listH}px`, overflowY: 'auto' }"
+          :min-item-size="70"
+          :style="{ height: '100%' }"
         >
-          <TxRow :index="index" :source="item"></TxRow>
+          <template #default="{ item, index, active }">
+            <DynamicScrollerItem
+              :active="active"
+              :data-index="index"
+              :emit-resize="true"
+              :item="item"
+              :size-dependencies="['isDayChange']"
+            >
+              <TxRow :index="index" :source="item"></TxRow>
+            </DynamicScrollerItem>
+          </template>
         </DynamicScroller>
         <div v-if="txs.length === 0" class="empty">
           <p>{{ $t("activity.empty") }}</p>
@@ -101,7 +110,7 @@ import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 
 import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
-import { DynamicScroller } from "vue-virtual-scroller";
+import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import ExportGlacierHistoryModal from "@/components/modals/ExportGlacierHistoryModal.vue";
@@ -152,6 +161,7 @@ export const Activity = defineComponent({
     Spinner,
     RadioButtons,
     DynamicScroller,
+    DynamicScrollerItem
   },
   data(): {
     mode: ModeKeyType;
