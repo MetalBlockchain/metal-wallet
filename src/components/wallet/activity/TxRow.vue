@@ -1,5 +1,5 @@
 <template>
-  <div class="tx_row" :day_change="source?.isDayChange">
+  <div class="tx_row" :data-day-change="source?.isDayChange">
     <div class="tx_cols">
       <div class="explorer_col">
         <a
@@ -153,14 +153,24 @@ export default TxRow;
   //grid-template-columns: 1fr 1fr;
   padding: 1px 0px;
   font-size: 13px;
+  box-sizing: border-box;
+  position: relative;
   //display: grid;
   //grid-template-columns: 1fr 1fr;
   //margin-bottom: 22px;
 
-  &[day_change] {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--bg-light);
+  &[data-day-change="true"] {
+    padding-top: 27px;
+
+    &:before {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background-color: var(--bg-light);
+    }
   }
 }
 .tx_cols {
@@ -170,6 +180,7 @@ export default TxRow;
   background-color: var(--bg-light);
   padding: 8px 14px;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .date {

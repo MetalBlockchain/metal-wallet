@@ -1,20 +1,19 @@
 <template>
-  <div></div>
-  <!-- <div class="import_row" :export="isExport && !isExportReceiver">
+  <div class="import_row" :data-export="isExport && !isExportReceiver">
     <p class="actionTitle">{{ actionTitle }} ({{ chainAlias }})</p>
     <div class="flex-column">
       <p v-if="isExportReceiver" class="amt">
         {{ toLocaleString(outputReceivedBalances, 9) }} AVAX
       </p>
       <template v-else>
-        <p class="amt" v-for="(bal, key) in balances" :key="key">
+        <p v-for="(bal, key) in balances" :key="key" class="amt">
           {{ isExport ? "-" : ""
           }}{{ toLocaleString(bal.amount, bal.decimals) }}
           {{ bal.symbol }}
         </p>
       </template>
     </div>
-  </div> -->
+  </div>
 </template>
 <script lang="ts">
 import type { PropType } from "vue";
@@ -27,6 +26,7 @@ import { bnToBig } from "@/helpers/helper";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 import { isTransactionP } from "@/js/Glacier/models";
 import { avm, cChain, pChain } from "@/misc/AVA";
+import { getExportBalances } from './getExportBalances';
 
 function idToAlias(chainId: string | undefined) {
   switch (chainId) {
@@ -104,6 +104,13 @@ export const ImportExport = defineComponent({
       return this.$store.state.activeWallet;
     },
     balances() {
+      if (this.transaction) {
+        return getExportBalances(
+          this.transaction,
+          this.destinationChainId,
+          this.getAssetFromID,
+        );
+      }
       return [];
     },
     isExportReceiver() {
@@ -139,7 +146,7 @@ export default ImportExport;
   font-size: 12px;
   color: var(--primary-color-light);
 
-  &[export] {
+  &[data-export="true"] {
     .amt {
       color: #992005;
     }
