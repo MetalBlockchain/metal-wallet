@@ -22,7 +22,6 @@ import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type Erc20Token from "@/js/Erc20Token";
 import type { IAvaHdWallet, WalletNameType } from "@/js/wallets/types";
-
 import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
 import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 import { KeyChain as EVMKeyChain } from "@metalblockchain/metaljs/dist/apis/evm";
@@ -83,6 +82,7 @@ export default class MnemonicWallet
 
     const cKeyChain = new EVMKeyChain(ava.getHRP(), "C");
     this.ethKeyChain = cKeyChain;
+    cKeyChain.importKey(this.ethKeyBech);
 
     this.type = "mnemonic";
     this.seed = seed.toString("hex");
@@ -97,8 +97,7 @@ export default class MnemonicWallet
 
     // Update EVM values
     this.ethKeyChain = new EVMKeyChain(ava.getHRP(), "C");
-    // ? I'm not sure is importKey doesn't have side effects, so the following line is not removed for now
-    const _ = this.ethKeyChain.importKey(this.ethKeyBech);
+    this.ethKeyChain.importKey(this.ethKeyBech);
     this.ethBalance = new BN(0);
   }
 
