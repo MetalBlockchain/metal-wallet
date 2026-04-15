@@ -1,6 +1,5 @@
 import { fileURLToPath, URL } from "node:url";
 import Vue from "@vitejs/plugin-vue";
-
 // Plugins
 import AutoImport from "unplugin-auto-import/vite";
 import Fonts from "unplugin-fonts/vite";
@@ -79,6 +78,7 @@ export default defineConfig({
     }),
   ],
   build: {
+    target: ["chrome111", "edge111", "firefox114", "safari16.4"],
     commonjsOptions: {
       transformMixedEsModules: true,
     },
