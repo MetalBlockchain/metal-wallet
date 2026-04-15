@@ -80,9 +80,8 @@ export default class MnemonicWallet
       `PrivateKey-` + bintools.cb58Encode(BufferAvalanche.from(ethPrivateKey));
     this.ethKeyBech = cPrivKey;
 
-    const cKeyChain = new EVMKeyChain(ava.getHRP(), "C");
-    this.ethKeyChain = cKeyChain;
-    cKeyChain.importKey(this.ethKeyBech);
+    this.ethKeyChain = new EVMKeyChain(ava.getHRP(), "C");
+    this.ethKeyChain.importKey(this.ethKeyBech);
 
     this.type = "mnemonic";
     this.seed = seed.toString("hex");
