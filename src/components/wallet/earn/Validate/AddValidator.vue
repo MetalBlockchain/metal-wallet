@@ -2,7 +2,7 @@
   <div>
     <div class="cols">
       <form @submit.prevent="">
-        <transition-group mode="out-in" name="fade">
+        <TransitionGroup name="fade">
           <div v-show="!isConfirm" key="form" class="ins_col">
             <div style="margin-bottom: 30px">
               <h4>{{ $t("earn.validate.label_1") }}</h4>
@@ -130,7 +130,7 @@
             :reward-address="rewardIn"
             :reward-destination="rewardDestination"
           ></ConfirmPage>
-        </transition-group>
+        </TransitionGroup>
         <div>
           <div v-if="!isSuccess" class="summary">
             <CurrencySelect v-model="currency_type"></CurrencySelect>

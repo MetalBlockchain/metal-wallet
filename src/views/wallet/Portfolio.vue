@@ -35,7 +35,7 @@
       </div>
     </div>
     <div class="pages">
-      <transition-group mode="out-in" name="fade">
+      <TransitionGroup name="fade">
         <fungibles
           v-show="tab === `fungibles`"
           key="fungibles"
@@ -46,7 +46,7 @@
           key="collectibles"
           :search="search"
         ></collectibles>
-      </transition-group>
+      </TransitionGroup>
     </div>
   </div>
 </template>

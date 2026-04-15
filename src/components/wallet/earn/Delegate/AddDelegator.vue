@@ -13,7 +13,7 @@
         </button>
         <NodeCard :node="selected"></NodeCard>
       </div>
-      <transition-group mode="out-in" name="fade">
+      <TransitionGroup name="fade">
         <div v-show="!isConfirm" key="form" class="ins_col">
           <div style="margin-bottom: 30px">
             <h4>{{ $t("earn.delegate.form.period.label") }}</h4>
@@ -99,7 +99,7 @@
           :reward-address="formRewardAddr"
           :reward-destination="rewardDestination"
         ></ConfirmPage>
-      </transition-group>
+      </TransitionGroup>
       <div>
         <div v-if="!isSuccess" class="summary">
           <CurrencySelect

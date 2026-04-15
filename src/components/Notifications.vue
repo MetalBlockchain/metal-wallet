@@ -1,6 +1,6 @@
 <template>
   <div class="notifications">
-    <transition-group name="list">
+    <TransitionGroup name="list">
       <div v-for="notif in items" :key="notif.id" class="notif_item">
         <p
           class="notif_title"
@@ -12,7 +12,7 @@
         </p>
         <p class="notif_msg">{{ notif.message }}</p>
       </div>
-    </transition-group>
+    </TransitionGroup>
   </div>
 </template>
 <script lang="ts" setup>

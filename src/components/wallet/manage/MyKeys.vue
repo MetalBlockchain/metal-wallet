@@ -9,7 +9,7 @@
     ></key-row>
     <hr v-if="inactiveWallets.length > 0" />
     <p v-if="inactiveWallets.length > 0" class="label">Other Keys</p>
-    <transition-group name="fade">
+    <TransitionGroup name="fade">
       <key-row
         v-for="wallet in inactiveWallets"
         :key="wallet.id"
@@ -18,7 +18,7 @@
         @remove="removeWallet(wallet)"
         @select="selectWallet"
       ></key-row>
-    </transition-group>
+    </TransitionGroup>
   </div>
 </template>
 <script lang="ts">
