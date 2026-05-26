@@ -118,8 +118,12 @@ export default class ChainImport extends Vue {
             }, 0)
 
             const gas = GasHelper.estimateImportGasFeeFromMockTx(numIns, numSigs)
+            let totFee = baseFee.mul(new BN(gas))
 
-            const totFee = baseFee.mul(new BN(gas))
+            if (totFee.lt(new BN("1000000000"))) {
+                totFee = new BN("1000000000");
+            }
+
             let txId = await this.wallet.importToCChain(source, avaxCtoX(totFee))
             this.onSuccess(txId)
         } catch (e: any) {
