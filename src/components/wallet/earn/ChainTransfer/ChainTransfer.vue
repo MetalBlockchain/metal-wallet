@@ -375,7 +375,12 @@ export const ChainTransfer = defineComponent({
             )
           : GasHelper.estimateImportGasFeeFromMockTx(1, 1);
 
-        const totFeeWei = this.baseFee.mul(new BN(fee));
+        let totFeeWei = this.baseFee.mul(new BN(fee));
+
+        if (totFeeWei.lt(new BN("1000000000"))) {
+          totFeeWei = new BN("1000000000");
+        }
+
         return bnToBigAvaxC(totFeeWei);
       }
     },
@@ -650,16 +655,15 @@ export const ChainTransfer = defineComponent({
         const pChangeAddr = this.wallet.getCurrentAddressPlatform();
 
         TxHelper.calculatePlatformExportFee(
-            utxos,
-            fromAddrs,
-            destinationAddr,
-            this.amt,
-            pChangeAddr,
-            this.targetChain as ExportChainsP,
-          )
-          .then((fee: any) => {
-            this.exportFee = bnToBig(fee, 9);
-          });
+          utxos,
+          fromAddrs,
+          destinationAddr,
+          this.amt,
+          pChangeAddr,
+          this.targetChain as ExportChainsP,
+        ).then((fee: any) => {
+          this.exportFee = bnToBig(fee, 9);
+        });
       } else {
         this.exportFee = this.getFee(this.sourceChain, true);
       }
