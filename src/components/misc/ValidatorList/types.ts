@@ -2,7 +2,7 @@ export interface ValidatorRaw {
     connection: boolean
     endTime: string
     nodeID: string
-    stakeAmount: string
+    weight: string
     startTime: string
     uptime: string
     delegatorWeight: string

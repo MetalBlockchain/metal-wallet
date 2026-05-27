@@ -103,7 +103,7 @@ const platform_module: Module<PlatformState, RootState> = {
                 const endTime = new Date(parseInt(v.endTime) * 1000)
 
                 const delegatedStake = delegatedAmt.add(delegatedPendingAmt)
-                const validatorStake = new BN(v.stakeAmount)
+                const validatorStake = new BN(v.weight)
                 // Calculate remaining stake
                 const absMaxStake = ONEAVAX.mul(new BN(3000000))
                 const relativeMaxStake = validatorStake.mul(new BN(5))
