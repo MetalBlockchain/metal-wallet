@@ -1,4 +1,4 @@
-import type { ERC721TokenInput } from "@/stores/vuex/modules/assets/modules/types";
+import type { ERC721TokenInput } from "@/stores/types/erc721";
 import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721Enumerable.json";
 import axios from "axios";
 import { web3 } from "@/misc/evm";

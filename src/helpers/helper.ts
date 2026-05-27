@@ -3,10 +3,8 @@ import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import { BN, Buffer } from "@metalblockchain/metaljs";
-
 import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 import {
   Defaults,
@@ -15,7 +13,6 @@ import {
   PayloadTypes,
 } from "@metalblockchain/metaljs/dist/utils";
 import Big from "big.js";
-
 import createHash from "create-hash";
 import { ava } from "@/misc/AVA";
 

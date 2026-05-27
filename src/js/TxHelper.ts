@@ -1,23 +1,20 @@
 /* eslint-disable @typescript-eslint/prefer-literal-enum-member */
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type ERC721Token from "@/js/ERC721Token";
 import type { Buffer } from "@metalblockchain/metaljs";
 import type {
   UTXO as AVMUTXO,
   NFTMintOutput,
   TransferableInput,
   TransferableOutput,
-  UTXO,
   UTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-
-import type Erc20Token from "@/js/Erc20Token";
-import type ERC721Token from "@/js/ERC721Token";
 
 import EthereumjsCommon from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import { BN } from "@metalblockchain/metaljs";
-
 import {
   AssetAmountDestination,
   AVMConstants,
@@ -26,14 +23,10 @@ import {
   BaseTx,
   MinterSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
-import {
-  EVMConstants,
-  UnsignedTx as EVMUnsignedTx,
-} from "@metalblockchain/metaljs/dist/apis/evm";
+import { EVMConstants } from "@metalblockchain/metaljs/dist/apis/evm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { OutputOwners } from "@metalblockchain/metaljs/dist/common";
-import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
+import { ava, avm, bintools } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
 
 export async function buildUnsignedTransaction(
@@ -97,7 +90,9 @@ export async function buildUnsignedTransaction(
 
   const success: Error = utxoset.getMinimumSpendable(aad);
 
+  // eslint-disable-next-line no-useless-assignment
   let ins: TransferableInput[] = [];
+  // eslint-disable-next-line no-useless-assignment
   let outs: TransferableOutput[] = [];
   if (success === undefined) {
     ins = aad.getInputs();

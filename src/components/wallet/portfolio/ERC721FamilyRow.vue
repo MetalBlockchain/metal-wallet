@@ -20,10 +20,12 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/wallet/portfolio/ERC721Card.vue";
+import { useErc721Store } from "@/stores/pinia/erc721";
 
 export const ERC721FamilyRow = defineComponent({
   components: { ERC721View },
@@ -33,11 +35,12 @@ export const ERC721FamilyRow = defineComponent({
     },
   },
   computed: {
+    ...mapState(useErc721Store, {
+      erc721walletBalance: "walletBalance",
+    }),
     walletBalance(): string[] {
       return this.family
-        ? this.$store.state.Assets.ERC721.walletBalance[
-            this.family.contractAddress
-          ] || []
+        ? this.erc721walletBalance[this.family.contractAddress] || []
         : [];
     },
     hasBalance() {

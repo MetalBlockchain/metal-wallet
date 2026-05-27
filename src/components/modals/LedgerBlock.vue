@@ -20,9 +20,10 @@
 </template>
 
 <script lang="ts">
-import type { ILedgerBlockMessage } from "@/stores/vuex/modules/ledger/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
+import { useLedgerStore } from "@/stores/pinia/ledger";
 import Modal from "./Modal.vue";
 
 export const LedgerBlock = defineComponent({
@@ -38,24 +39,14 @@ export const LedgerBlock = defineComponent({
     };
   },
   computed: {
-    title(): string {
-      return this.$store.state.Ledger.title;
-    },
-    info(): string {
-      return this.$store.state.Ledger.info;
-    },
-    messages(): Array<ILedgerBlockMessage> {
-      return this.$store.state.Ledger.messages;
-    },
-    isActive(): boolean {
-      return this.$store.state.Ledger.isBlock;
-    },
-    isPrompt(): boolean {
-      return this.$store.state.Ledger.isPrompt;
-    },
-    warning() {
-      return this.$store.state.Ledger.warning;
-    },
+    ...mapState(useLedgerStore, {
+      title: "title",
+      info: "info",
+      messages: "messages",
+      isActive: (store) => store.isBlock,
+      isPrompt: "isPrompt",
+      warning: "warning",
+    }),
   },
   watch: {
     isActive: [{ immediate: true, handler: "onActive" }],

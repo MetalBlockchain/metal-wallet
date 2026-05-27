@@ -82,8 +82,9 @@
 </template>
 <script lang="ts">
 import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { NetworkStatus } from "@/stores/vuex/modules/network/types";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useNetworkStore } from "@/stores/pinia/networks";
 import CustomPage from "./CustomPage.vue";
 import EditPage from "./EditPage.vue";
 import ListPage from "./ListPage.vue";
@@ -107,6 +108,11 @@ export const NetworkMenu = defineComponent({
     };
   },
   computed: {
+    ...mapState(useNetworkStore, {
+      status: "status",
+      activeNetwork: "selectedNetwork",
+      networks: "allNetworks",
+    }),
     connectionColor(): string {
       switch (this.status) {
         case "connecting": {
@@ -120,15 +126,6 @@ export const NetworkMenu = defineComponent({
         }
       }
     },
-    status(): NetworkStatus {
-      return this.$store.state.Network.status;
-    },
-    activeNetwork(): null | AvaNetwork {
-      return this.$store.state.Network.selectedNetwork;
-    },
-    networks(): AvaNetwork[] {
-      return this.$store.getters("Network/allNetworks");
-    },
     isTestnet(): boolean {
       const net = this.activeNetwork;
 
@@ -138,6 +135,10 @@ export const NetworkMenu = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useNetworkStore, {
+      networkSave: "save",
+      networkAddCustom: "addCustomNetwork",
+    }),
     viewCustom(): void {
       this.page = "custom";
     },
@@ -152,12 +153,12 @@ export const NetworkMenu = defineComponent({
       this.isActive = !this.isActive;
     },
     addCustomNetwork(data: AvaNetwork): void {
-      this.$store.dispatch("Network/addCustomNetwork", data);
+      this.networkAddCustom(data);
       this.page = "list";
     },
     networkUpdated() {
       this.page = "list";
-      this.$store.dispatch("Network/save");
+      this.networkSave();
     },
     onedit(network: AvaNetwork): void {
       this.editNetwork = network;

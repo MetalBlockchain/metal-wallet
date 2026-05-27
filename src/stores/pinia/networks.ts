@@ -1,46 +1,48 @@
-import type { Module } from "vuex";
-import type { NetworkState } from "@/stores/vuex/modules/network/types";
-import type { RootState } from "@/stores/vuex/types";
-
+import type { NetworkStatus } from "@/stores/types/network";
 import {
   getConfigFromUrl,
   setNetworkAsync,
 } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
+
 import { AvaNetwork } from "@/js/AvaNetwork";
 import { ava, avm, cChain, infoApi, pChain } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
 import { explorer_api } from "@/misc/explorer_api";
 import { setSocketNetwork } from "@/providers";
 import router from "@/router";
-import {
-  MainnetConfig,
-  TestnetConfig,
-} from "@/stores/vuex/modules/network/constants";
+import { MainnetConfig, TestnetConfig } from "@/stores/constants/network";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { usePlatformStore } from "@/stores/pinia/platform";
+import { useRootStore } from "@/stores/pinia/root";
 
-const network_module: Module<NetworkState, RootState> = {
-  namespaced: true,
-  state: {
+export interface INetworkStore {
+  networks: AvaNetwork[];
+  networksCustom: AvaNetwork[];
+  selectedNetwork: null | AvaNetwork;
+  // isConnected: boolean
+  status: NetworkStatus;
+
+  txFee: BN;
+}
+
+function getDefaultState(): INetworkStore {
+  return {
     status: "disconnected", // disconnected | connecting | connected
     networks: [],
     networksCustom: [],
     selectedNetwork: null,
     txFee: new BN(0),
-  },
-  mutations: {
-    addNetwork(state, net: AvaNetwork) {
-      state.networks.push(net);
-    },
-  },
-  getters: {
-    allNetworks(state) {
-      return state.networks.concat(state.networksCustom);
-    },
-  },
+  };
+}
+
+export const useNetworkStore = defineStore("network", {
+  state: () => getDefaultState(),
   actions: {
-    addCustomNetwork({ state, dispatch }, net: AvaNetwork) {
+    addCustomNetwork(net: AvaNetwork) {
       // Check if network alerady exists
-      const networks = state.networksCustom;
+      const networks = this.networksCustom;
       // Do not add if there is a network already with the same url
       for (const network of networks) {
         if (network) {
@@ -50,29 +52,29 @@ const network_module: Module<NetworkState, RootState> = {
           }
         }
       }
-      state.networksCustom.push(net);
-      dispatch("save");
+      this.networksCustom.push(net);
+      this.save();
     },
 
-    async removeCustomNetwork({ state, dispatch }, net: AvaNetwork) {
-      const index = state.networksCustom.indexOf(net);
-      state.networksCustom.splice(index, 1);
-      await dispatch("save");
+    removeCustomNetwork(net: AvaNetwork) {
+      const index = this.networksCustom.indexOf(net);
+      this.networksCustom.splice(index, 1);
+      this.save();
     },
-    saveSelectedNetwork({ state }) {
-      const data = JSON.stringify(state.selectedNetwork?.url);
+    saveSelectedNetwork() {
+      const data = JSON.stringify(this.selectedNetwork?.url);
       localStorage.setItem("network_selected", data);
     },
-    async loadSelectedNetwork({ dispatch, getters }): Promise<boolean> {
+    loadSelectedNetwork(): boolean {
       const data = localStorage.getItem("network_selected");
       if (!data) return false;
       try {
         // let net: AvaNetwork = JSON.parse(data);
-        const nets: AvaNetwork[] = getters.allNetworks;
+        const nets: AvaNetwork[] = this.allNetworks;
 
         for (const net of nets) {
           if (net && JSON.stringify(net.url) === data) {
-            dispatch("setNetwork", net);
+            this.setNetwork(net);
             return true;
           }
         }
@@ -83,12 +85,12 @@ const network_module: Module<NetworkState, RootState> = {
     },
 
     // Save custom networks to local storage
-    save({ state }) {
-      const data = JSON.stringify(state.networksCustom);
+    save() {
+      const data = JSON.stringify(this.networksCustom);
       localStorage.setItem("networks", data);
     },
     // Load custom networks from local storage
-    load({ dispatch }) {
+    load() {
       const data = localStorage.getItem("networks");
 
       if (data) {
@@ -98,18 +100,21 @@ const network_module: Module<NetworkState, RootState> = {
           const newCustom = new AvaNetwork(
             n.name,
             n.url,
-            //@ts-ignore
-            Number.parseInt(n.networkId),
+            Number.parseInt(n.networkId as unknown as string),
             n.explorerUrl,
             n.explorerSiteUrl,
             n.readonly,
           );
-          dispatch("addCustomNetwork", newCustom);
+          this.addCustomNetwork(newCustom);
         }
       }
     },
-    async setNetwork({ state, dispatch, commit, rootState }, net: AvaNetwork) {
-      state.status = "connecting";
+    async setNetwork(net: AvaNetwork) {
+      const rootStore = useRootStore();
+      const historyStore = useHistoryStore();
+      const assetsStore = useAssetsStore();
+      const platformStore = usePlatformStore();
+      this.status = "connecting";
 
       // Chose if the network should use credentials
       await net.updateCredentials();
@@ -118,7 +123,7 @@ const network_module: Module<NetworkState, RootState> = {
       ava.setNetworkID(net.networkId);
 
       // Reset transaction history
-      commit("History/clear", null, { root: true });
+      historyStore.clear();
 
       // Query the network to get network id
       const chainIdX = await infoApi.getBlockchainID("X");
@@ -136,8 +141,8 @@ const network_module: Module<NetworkState, RootState> = {
       pChain.getAVAXAssetID(true);
       cChain.getAVAXAssetID(true);
 
-      state.selectedNetwork = net;
-      dispatch("saveSelectedNetwork");
+      this.selectedNetwork = net;
+      this.saveSelectedNetwork();
 
       // Update explorer api
       explorer_api.defaults.baseURL = net.explorerUrl;
@@ -149,26 +154,26 @@ const network_module: Module<NetworkState, RootState> = {
       // Set socket connections
       setSocketNetwork(net);
 
-      commit("Assets/removeAllAssets", null, { root: true });
-      await dispatch("Assets/updateAvaAsset", null, { root: true });
+      assetsStore.removeAllAssets();
+      await assetsStore.updateAvaAsset();
 
       // If authenticated
-      if (rootState.isAuth) {
+      if (rootStore.isAuth) {
         // Go back to wallet page
         router.replace("/wallet");
-        for (let i = 0; i < rootState.wallets.length; i++) {
-          const w = rootState.wallets[i];
+        for (let i = 0; i < rootStore.wallets.length; i++) {
+          const w = rootStore.wallets[i];
           w?.onnetworkchange();
         }
       }
 
-      await dispatch("Assets/onNetworkChange", net, { root: true });
-      dispatch("Assets/updateUTXOs", null, { root: true });
-      dispatch("Platform/update", null, { root: true });
-      dispatch("Platform/updateMinStakeAmount", null, { root: true });
-      dispatch("updateTxFee");
+      await assetsStore.onNetworkChange();
+      assetsStore.updateUTXOs();
+      platformStore.update();
+      platformStore.updateMinStakeAmount();
+      this.updateTxFee();
       // Update tx history
-      dispatch("History/updateTransactionHistory", null, { root: true });
+      historyStore.updateTransactionHistory();
 
       // Set the SDK Network
       const sdkNetConf = await getConfigFromUrl(net.getFullURL());
@@ -178,39 +183,53 @@ const network_module: Module<NetworkState, RootState> = {
         explorerSiteURL: net.explorerSiteUrl,
       });
       // state.isConnected = true;
-      state.status = "connected";
+      this.status = "connected";
       return true;
     },
 
-    async updateTxFee({ state }) {
+    async updateTxFee() {
       const txFee = await infoApi.getTxFee();
-      state.txFee = txFee.txFee;
+      this.txFee = txFee.txFee;
       avm.setTxFee(txFee.txFee);
     },
 
-    async init({ state, commit, dispatch }) {
+    async init() {
       // Load custom networks if any
       try {
-        await dispatch("load");
+        this.load();
       } catch (error) {
         console.error(error);
       }
 
-      commit("addNetwork", MainnetConfig);
-      commit("addNetwork", TestnetConfig);
+      this.addNetwork(MainnetConfig);
+      this.addNetwork(TestnetConfig);
 
       try {
-        const isSet = await dispatch("loadSelectedNetwork");
-        if (!isSet) {
-          await dispatch("setNetwork", state.networks[0]);
+        const isSet = this.loadSelectedNetwork();
+        const network = this.networks[0];
+        if (!isSet && network) {
+          await this.setNetwork(network);
         }
         return true;
       } catch (error) {
         console.log(error);
-        state.status = "disconnected";
+        this.disconnect();
       }
     },
+    addNetwork(net: AvaNetwork) {
+      this.networks.push(net);
+    },
+    resetNetwork() {
+      this.selectedNetwork = null;
+      this.disconnect();
+    },
+    disconnect() {
+      this.status = "disconnected";
+    },
   },
-};
-
-export default network_module;
+  getters: {
+    allNetworks(): AvaNetwork[] {
+      return this.networks.concat(this.networksCustom);
+    },
+  },
+});

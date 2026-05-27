@@ -39,9 +39,11 @@
 
 <script lang="ts">
 import type { AllKeyFileTypes } from "@/js/IKeystore";
-import type { ImportKeyfileInput } from "@/stores/vuex/types";
+import type { ImportKeyfileInput } from "@/stores/types";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import FileInput from "@/components/misc/FileInput.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const Keystore = defineComponent({
   components: {
@@ -72,6 +74,7 @@ export const Keystore = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useRootStore, ["importKeyfile"]),
     onfile(val: File) {
       this.file = val;
       const reader = new FileReader();
@@ -107,14 +110,9 @@ export const Keystore = defineComponent({
       this.isLoading = true;
 
       setTimeout(() => {
-        this.$store
-          .dispatch("importKeyfile", data)
+        this.importKeyfile(data)
           .then(() => {
             this.isLoading = false;
-
-            // if(rememberPass){
-            //     parent.$store.dispatch('rememberWallets', rememberPass)
-            // }
           })
           .catch((error) => {
             console.log(error);

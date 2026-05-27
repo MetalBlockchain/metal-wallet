@@ -1,7 +1,6 @@
 import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { WalletType } from "@/js/wallets/types";
 import { ethers } from "ethers";
-import store from "@/stores/vuex";
+import { useRootStore } from "@/stores/pinia/root";
 
 const SOCKET_RECONNECT_TIMEOUT = 1000;
 
@@ -12,7 +11,7 @@ export function connectSocketC(network: AvaNetwork) {
     const wsUrl = network.getWsUrlC();
     const wsProvider = new ethers.providers.WebSocketProvider(wsUrl);
     if (socketEVM) {
-      if(reconnectListener) {
+      if (reconnectListener) {
         socketEVM._websocket.removeEventListener("close", reconnectListener);
       }
       socketEVM.destroy();
@@ -64,13 +63,12 @@ function addBlockHeaderListener(provider: ethers.providers.WebSocketProvider) {
 }
 
 function blockHeaderCallback() {
-  console.log("1!");
   updateWalletBalanceC();
-  console.log("2!");
 }
 
 function updateWalletBalanceC() {
-  const wallet: null | WalletType = store.state.activeWallet;
+  const rootStore = useRootStore();
+  const wallet = rootStore.activeWallet;
   if (!wallet) return;
   // Refresh the wallet balance
   wallet.getEthBalance();

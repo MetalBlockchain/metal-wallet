@@ -1,70 +1,77 @@
-import type { Module } from "vuex";
 import type {
   DelegatorPendingRaw,
+  ValidatorPendingRaw,
   ValidatorRaw,
 } from "@/components/misc/ValidatorList/types";
-
 import type {
   GetValidatorsResponse,
-  PlatformState,
   ValidatorDelegatorPendingDict,
   ValidatorListItem,
-} from "@/stores/vuex/modules/platform/types";
-import type { RootState } from "@/stores/vuex/types";
+} from "@/stores/types/platform";
 
 import { BN } from "@metalblockchain/metaljs";
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import { pChain } from "@/misc/AVA";
 
-const MINUTE_MS = 60_000;
-const HOUR_MS = MINUTE_MS * 60;
-const DAY_MS = HOUR_MS * 24;
+export interface IPlatformStore {
+  validators: ValidatorRaw[];
+  validatorsPending: ValidatorPendingRaw[];
+  delegatorsPending: DelegatorPendingRaw[];
+  minStake: BN;
+  minStakeDelegation: BN;
+  currentSupply: BN;
+}
 
-const platform_module: Module<PlatformState, RootState> = {
-  namespaced: true,
-  state: {
+function getDefaultState(): IPlatformStore {
+  return {
     validators: [],
     validatorsPending: [],
     delegatorsPending: [],
     minStake: new BN(0),
     minStakeDelegation: new BN(0),
     currentSupply: new BN(1),
-  },
-  mutations: {
-    setValidators(state, validators: ValidatorRaw[]) {
-      state.validators = validators;
-    },
-  },
+  };
+}
+
+const MINUTE_MS = 60_000;
+const HOUR_MS = MINUTE_MS * 60;
+const DAY_MS = HOUR_MS * 24;
+
+export const usePlatformStore = defineStore("platform", {
+  state: () => getDefaultState(),
   actions: {
-    async updateCurrentSupply({ state }) {
-      state.currentSupply = await pChain.getCurrentSupply();
+    async updateCurrentSupply() {
+      this.currentSupply = await pChain.getCurrentSupply();
     },
 
-    async updateMinStakeAmount({ state }) {
+    async updateMinStakeAmount() {
       const res = await pChain.getMinStake(true);
-      state.minStake = res.minValidatorStake;
-      state.minStakeDelegation = res.minDelegatorStake;
+      this.minStake = res.minValidatorStake;
+      this.minStakeDelegation = res.minDelegatorStake;
     },
 
-    async update({ dispatch }) {
-      dispatch("updateValidators");
-      dispatch("updateCurrentSupply");
+    update() {
+      this.updateValidators();
+      this.updateCurrentSupply();
     },
 
-    async updateValidators({ state, commit }) {
+    async updateValidators() {
       const res =
         (await pChain.getCurrentValidators()) as GetValidatorsResponse;
       const validators = res.validators;
 
-      commit("setValidators", validators);
+      this.setValidators(validators);
+    },
+    setValidators(validators: ValidatorRaw[]) {
+      this.validators = validators;
     },
   },
   getters: {
-    validatorListEarn(state, getters): ValidatorListItem[] {
+    validatorListEarn(): ValidatorListItem[] {
       // Filter validators we do not need
       const now = Date.now();
 
-      let validators = state.validators;
+      let validators = this.validators;
       validators = validators.filter((v) => {
         const endTime = Number.parseInt(v.endTime) * 1000;
         const dif = endTime - now;
@@ -79,12 +86,11 @@ const platform_module: Module<PlatformState, RootState> = {
       });
 
       const delegatorPendingMap: ValidatorDelegatorPendingDict =
-        getters.nodeDelegatorPendingMap;
+        this.nodeDelegatorPendingMap;
 
       let res: ValidatorListItem[] = [];
 
       for (const v of validators) {
-
         if (v) {
           const nodeID = v.nodeID;
 
@@ -136,7 +142,7 @@ const platform_module: Module<PlatformState, RootState> = {
       res = res.filter((v) => {
         if (v.uptime < 80) return false;
         // Remove if remaining space is less than minimum
-        const min = state.minStakeDelegation;
+        const min = this.minStakeDelegation;
         if (v.remainingStake.lt(min)) return false;
         return true;
       });
@@ -144,9 +150,9 @@ const platform_module: Module<PlatformState, RootState> = {
       return res;
     },
 
-    nodeDelegatorPendingMap(state): ValidatorDelegatorPendingDict {
+    nodeDelegatorPendingMap(): ValidatorDelegatorPendingDict {
       const res: ValidatorDelegatorPendingDict = {};
-      const delegators = state.delegatorsPending;
+      const delegators = this.delegatorsPending;
       for (const delegator of delegators) {
         if (delegator) {
           const nodeID = delegator.nodeID;
@@ -163,19 +169,21 @@ const platform_module: Module<PlatformState, RootState> = {
     },
 
     // Given a validator list item, calculate the max stake of this item
-    validatorMaxStake: (state, getters) => (validator: ValidatorListItem) => {
-      const stakeAmt = validator.validatorStake;
+    validatorMaxStake() {
+      return (validator: ValidatorListItem) => {
+        const stakeAmt = validator.validatorStake;
 
-      // 5 times the validator's stake
-      const relativeMaxStake = stakeAmt.mul(new BN(5));
+        // 5 times the validator's stake
+        const relativeMaxStake = stakeAmt.mul(new BN(5));
 
-      // absolute max stake
-      const mult = new BN(10).pow(new BN(6 + 9));
-      const absMaxStake = new BN(3).mul(mult);
+        // absolute max stake
+        const mult = new BN(10).pow(new BN(6 + 9));
+        const absMaxStake = new BN(3).mul(mult);
 
-      return relativeMaxStake.lt(absMaxStake) ? relativeMaxStake : absMaxStake;
+        return relativeMaxStake.lt(absMaxStake)
+          ? relativeMaxStake
+          : absMaxStake;
+      };
     },
   },
-};
-
-export default platform_module;
+});

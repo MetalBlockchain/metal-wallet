@@ -1,9 +1,9 @@
-import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 import type {
   CChainTransaction,
   TransactionType,
   XChainTransaction,
 } from "@/js/Glacier/models";
+import type { PChainTransaction } from "@metalblockchain/glacier-sdk";
 import { SortOrder } from "@metalblockchain/glacier-sdk";
 
 export function sortGlacierTxs(

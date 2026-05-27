@@ -23,9 +23,11 @@
 </template>
 <script lang="ts">
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import ExportWallet from "@/components/wallet/manage/ExportWallet.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const MnemonicPhrase = defineComponent({
   components: {
@@ -41,14 +43,15 @@ export const MnemonicPhrase = defineComponent({
     };
   },
   computed: {
-    allWallets(): MnemonicWallet[] {
-      return this.$store.state.wallets;
-    },
+    ...mapState(useRootStore, {
+      allWallets: (store) => store.wallets as MnemonicWallet[],
+    }),
   },
   mounted() {
     this.open();
   },
   methods: {
+    ...mapActions(useRootStore, ["logout"]),
     open(): void {
       const modal = this.$refs.modal as typeof Modal;
       modal.open();
@@ -56,9 +59,6 @@ export const MnemonicPhrase = defineComponent({
     success() {
       (this.$refs.export as typeof ExportWallet).clear();
       this.isSuccess = true;
-    },
-    logout() {
-      this.$store.dispatch("logout");
     },
   },
 });

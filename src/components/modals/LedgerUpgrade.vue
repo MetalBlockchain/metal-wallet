@@ -36,10 +36,11 @@
   </modal>
 </template>
 <script lang="ts">
-import type { WalletType } from "@/js/wallets/types";
-
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { MIN_LEDGER_V } from "@/js/wallets/constants";
+import { useLedgerStore } from "@/stores/pinia/ledger";
+import { useRootStore } from "@/stores/pinia/root";
 import Modal from "./Modal.vue";
 
 export const LedgerUpgrade = defineComponent({
@@ -47,23 +48,24 @@ export const LedgerUpgrade = defineComponent({
     Modal,
   },
   computed: {
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+    }),
+    ...mapState(useLedgerStore, {
+      isActive: "isUpgradeRequired",
+    }),
     minV() {
       return MIN_LEDGER_V;
-    },
-    isActive() {
-      return this.$store.state.Ledger.isUpgradeRequired;
-    },
-    wallet() {
-      return this.$store.state.activeWallet as WalletType;
     },
   },
   watch: {
     isActive: [{ immediate: true, handler: "onActive" }],
   },
   unmounted() {
-    this.$store.commit("Ledger/setIsUpgradeRequired", false);
+    this.setIsUpgradeRequired(false);
   },
   methods: {
+    ...mapActions(useLedgerStore, ["setIsUpgradeRequired"]),
     open() {
       (this.$refs.modal as typeof Modal).open();
     },
@@ -71,7 +73,7 @@ export const LedgerUpgrade = defineComponent({
       (this.$refs.modal as typeof Modal).close();
     },
     beforeClose() {
-      this.$store.commit("Ledger/setIsUpgradeRequired", false);
+      this.setIsUpgradeRequired(false);
     },
     onActive(val: boolean): void {
       if (!this.$refs.modal) return;

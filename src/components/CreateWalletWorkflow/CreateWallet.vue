@@ -116,12 +116,12 @@ import * as bip39 from "bip39";
 import { defineComponent, ref } from "vue";
 import MnemonicCopied from "@/components/CreateWalletWorkflow/MnemonicCopied.vue";
 import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
-
 import Spinner from "@/components/misc/Spinner.vue";
 import ToS from "@/components/misc/ToS.vue";
 import VerifyMnemonic2 from "@/components/modals/VerifyMnemonic2.vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
 import MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const CreateWallet = defineComponent({
   components: {
@@ -134,9 +134,10 @@ export const CreateWallet = defineComponent({
   setup() {
     const { isDay } = useOwnTheme();
 
+    const rootStore = useRootStore();
     const keyPhrase = ref<MnemonicPhrase>();
 
-    return { isDay, keyPhrase };
+    return { isDay, keyPhrase, rootStore };
   },
   data(): {
     isLoad: boolean;
@@ -178,8 +179,8 @@ export const CreateWallet = defineComponent({
       if (!this.keyPhrase) return;
 
       this.isLoad = true;
-      setTimeout(async () => {
-        await this.$store.dispatch("accessWallet", this.keyPhrase!.getValue());
+      setTimeout(() => {
+        this.rootStore.accessWallet(this.keyPhrase!.getValue());
       }, 500);
     },
   },

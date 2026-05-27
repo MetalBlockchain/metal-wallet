@@ -33,8 +33,11 @@
   </modal>
 </template>
 <script lang="ts">
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ConfirmLogout = defineComponent({
   components: {
@@ -49,6 +52,10 @@ export const ConfirmLogout = defineComponent({
     };
   },
   methods: {
+    ...mapActions(useRootStore, ["logout"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     open(): void {
       const modal = this.$refs.modal as typeof Modal;
       modal.open();
@@ -60,8 +67,8 @@ export const ConfirmLogout = defineComponent({
     async submit() {
       this.isLoading = true;
 
-      await this.$store.dispatch("logout");
-      await this.$store.dispatch("Notifications/add", {
+      this.logout();
+      this.addNotification({
         title: "Logout",
         message: "You have successfully logged out of your wallet.",
       });

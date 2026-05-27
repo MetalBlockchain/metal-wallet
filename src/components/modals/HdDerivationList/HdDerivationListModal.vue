@@ -6,8 +6,8 @@
   </modal>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import HDDerivationList from "@/components/modals/HdDerivationList/HDDerivationList.vue";
 import Modal from "@/components/modals/Modal.vue";

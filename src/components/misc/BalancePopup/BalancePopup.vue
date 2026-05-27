@@ -31,9 +31,9 @@
   </div>
 </template>
 <script lang="ts">
+import type AvaAsset from "@/js/AvaAsset";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type AvaAsset from "@/js/AvaAsset";
 import { defineComponent } from "vue";
 import BalanceRow from "./BalanceRow.vue";
 import CollectibleTab from "./CollectibleTab.vue";

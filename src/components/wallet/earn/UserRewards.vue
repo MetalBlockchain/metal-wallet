@@ -32,12 +32,13 @@
 </template>
 <script lang="ts">
 import type Big from "big.js";
-import type { AvaWalletCore } from "@/js/wallets/types";
-import type { EarnState } from "@/stores/vuex/modules/earn/types";
 import { BN } from "@metalblockchain/metaljs";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import UserRewardRow from "@/components/wallet/earn/UserRewardRow.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useEarnStore } from "@/stores/pinia/earn";
+import { useRootStore } from "@/stores/pinia/root";
 
 const VALIDATOR_ALLOWED_TX_TYPE = new Set([
   "AddValidatorTx",
@@ -64,15 +65,20 @@ export const UserRewards = defineComponent({
     };
   },
   computed: {
-    userAddresses() {
-      const wallet: AvaWalletCore = this.$store.state.activeWallet;
-      if (!wallet) return [];
+    ...mapState(useRootStore, {
+      userAddresses: (store) => {
+        const wallet = store.activeWallet;
+        if (!wallet) return [];
 
-      return wallet.getAllAddressesP();
-    },
-    stakingTxs() {
-      return this.$store.state.Earn.stakingTxs as EarnState["stakingTxs"];
-    },
+        return wallet.getAllAddressesP();
+      },
+    }),
+    ...mapState(useEarnStore, {
+      stakingTxs: (store) => {
+        return store.stakingTxs;
+      },
+    }),
+
     validatorTxs() {
       return this.stakingTxs.filter((tx) =>
         VALIDATOR_ALLOWED_TX_TYPE.has(tx.txType),
@@ -97,12 +103,12 @@ export const UserRewards = defineComponent({
     },
   },
   created() {
-    this.$store.dispatch("Earn/refreshRewards");
+    this.refreshRewards();
 
     // Update every 5 minutes
     this.updateInterval = setInterval(
       () => {
-        this.$store.dispatch("Earn/refreshRewards");
+        this.refreshRewards();
       },
       5 * 60 * 1000,
     );
@@ -110,6 +116,9 @@ export const UserRewards = defineComponent({
   unmounted() {
     // Clear interval if exists
     this.updateInterval && clearInterval(this.updateInterval);
+  },
+  methods: {
+    ...mapActions(useEarnStore, ["refreshRewards"]),
   },
 });
 export default UserRewards;

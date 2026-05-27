@@ -23,11 +23,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { AvaNetwork } from "@/js/AvaNetwork";
-import type { TransactionType } from "@/js/Glacier/models";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import TxHistoryRow from "@/components/SidePanels/TxHistoryRow.vue";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNetworkStore } from "@/stores/pinia/networks";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const TransactionHistoryPanel = defineComponent({
   components: {
@@ -35,36 +37,38 @@ export const TransactionHistoryPanel = defineComponent({
     Spinner,
   },
   computed: {
-    isExplorer(): boolean {
-      const network: AvaNetwork | null =
-        this.$store.state.Network.selectedNetwork;
-      if (!network) return false;
-      if (network.explorerUrl) {
-        return true;
-      }
-      return false;
-    },
+    ...mapState(useRootStore, {
+      explorerUrl: (store) => {
+        const addr = store.address?.split("-")[1] ?? "";
+        return `https://explorer.avax.network/address/${addr}`;
+      },
+    }),
+    ...mapState(useNetworkStore, {
+      isExplorer: (store) => {
+        const network = store.selectedNetwork;
+        if (!network) return false;
+        if (network.explorerUrl) {
+          return true;
+        }
+        return false;
+      },
+    }),
+    ...mapState(useHistoryStore, {
+      isUpdating: "isUpdating",
+      transactions: "recentTransactions",
+    }),
+
     isEmpty(): boolean {
       if (this.transactions.length === 0) {
         return true;
       }
       return false;
     },
-    isUpdating(): boolean {
-      return this.$store.state.History.isUpdating;
-    },
-    transactions(): TransactionType[] {
-      return this.$store.state.History.recentTransactions;
-    },
     isActivityPage() {
       if (this.$route.fullPath.includes("/activity")) {
         return true;
       }
       return false;
-    },
-    explorerUrl(): string {
-      const addr = this.$store.state.address.split("-")[1];
-      return `https://explorer.avax.network/address/${addr}`;
     },
   },
 });

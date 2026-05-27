@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import ExportWallet from "@/components/wallet/manage/ExportWallet.vue";

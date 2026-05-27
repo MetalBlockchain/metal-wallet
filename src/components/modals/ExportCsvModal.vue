@@ -42,12 +42,15 @@ import type {
   CsvRowStakingData,
   CsvRowStakingTxType,
   ITransactionData,
-} from "@/stores/vuex/modules/history/types";
+} from "@/stores/types/history";
 import moment from "moment";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import { bnToBig } from "@/helpers/helper";
 import { getPriceAtUnixTime } from "@/helpers/price_helper";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useRootStore } from "@/stores/pinia/root";
 import {
   createCSVContent,
   downloadCSVFile,
@@ -56,7 +59,7 @@ import {
   getRewardOuts,
   getStakeAmount,
   stakingDataToCsvRow,
-} from "@/stores/vuex/modules/history/history_utils";
+} from "@/stores/utils/history_utils";
 
 export const ExportCsvModal = defineComponent({
   components: {
@@ -73,20 +76,19 @@ export const ExportCsvModal = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+    }),
+    ...mapState(useHistoryStore, {
+      // TODO: Need to review this. Something seems to be wrong with types
+      stakingTxs: (store) => store.stakingTxs as unknown as ITransactionData[],
+      transactions: "allTransactions",
+    }),
     canSubmit() {
       return this.showDelegation || this.showValidation || this.showFees;
     },
-    transactions() {
-      return this.$store.state.History.allTransactions;
-    },
-    stakingTxs(): ITransactionData[] {
-      return this.$store.getters["History/stakingTxs"];
-    },
-    wallet() {
-      return this.$store.state.activeWallet;
-    },
     pAddresses(): string[] {
-      return this.wallet.getAllAddressesP();
+      return this.wallet?.getAllAddressesP() ?? [];
     },
     pAddressesStripped(): string[] {
       return this.pAddresses.map((addr: string) => addr.split("-")[1] ?? "");

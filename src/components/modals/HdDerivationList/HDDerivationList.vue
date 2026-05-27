@@ -37,18 +37,17 @@
   </div>
 </template>
 <script lang="ts">
+import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { BN } from "@metalblockchain/metaljs";
 import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { PropType } from "vue";
-import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
-import type AvaAsset from "@/js/AvaAsset";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import { defineComponent } from "vue";
 import HdChainTable from "@/components/modals/HdDerivationList/HdChainTable.vue";
 import { bnToBig } from "@/helpers/helper";
 import { bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const HDDerivationList = defineComponent({
   components: {
@@ -58,6 +57,12 @@ export const HDDerivationList = defineComponent({
     wallet: {
       type: Object as PropType<MnemonicWallet>,
     },
+  },
+  setup() {
+    const assetsStore = useAssetsStore();
+    return {
+      assetsStore,
+    };
   },
   data() {
     const addrsPlatform: string[] = [];
@@ -83,7 +88,7 @@ export const HDDerivationList = defineComponent({
       return this.wallet?.platformHelper;
     },
     assetsDict() {
-      return this.$store.state.Assets.assetsDict;
+      return this.assetsStore.assetsDict;
     },
     keyBalancesExternal(): DerivationListBalanceDict[] {
       const wallet = this.wallet;
@@ -123,12 +128,12 @@ export const HDDerivationList = defineComponent({
       set: AVMUTXOSet | PlatformUTXOSet,
       addrs: string[],
     ): DerivationListBalanceDict[] {
-      const assets: AvaAsset[] = this.$store.state.Assets.assets;
+      const assets = this.assetsStore.assets;
 
       const denoms: number[] = assets.map((asset) => {
         return asset.denomination;
       });
-      const assetIds: string[] = this.$store.getters["Assets/assetIds"];
+      const assetIds: string[] = this.assetsStore.assetIds;
 
       const res = [];
       for (const addr of addrs) {

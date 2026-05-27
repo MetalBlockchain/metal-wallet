@@ -14,12 +14,15 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { BaseTxAssetSummary } from "@/helpers/history_helper";
 import type AvaAsset from "@/js/AvaAsset";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const BaseTxOutput = defineComponent({
   props: {
@@ -31,12 +34,11 @@ export const BaseTxOutput = defineComponent({
     },
   },
   computed: {
-    assetDetail(): AvaAsset {
-      return (
-        this.assetID &&
-        (this.$store.state.Assets.assetsDict[this.assetID] ||
-          this.$store.state.Assets.nftFamsDict[this.assetID])
-      );
+    ...mapState(useAssetsStore, ["assetsDict", "nftFamsDict"]),
+    assetDetail(): AvaAsset | AvaNftFamily | undefined {
+      if (!this.assetID) return undefined;
+
+      return this.assetsDict[this.assetID] || this.nftFamsDict[this.assetID];
     },
     payload() {
       return this.summary?.payload;
@@ -51,10 +53,15 @@ export const BaseTxOutput = defineComponent({
       return this.isProfit ? "from" : "to";
     },
     amtText() {
-      const big = bnToBig(
-        this.summary?.amount ?? new BN(0),
-        this.assetDetail?.denomination || 0,
-      );
+      let denomination = 0;
+      if (
+        this.assetDetail &&
+        Object.prototype.hasOwnProperty.call(this.assetDetail, denomination)
+      ) {
+        denomination = (this.assetDetail as AvaAsset).denomination;
+      }
+
+      const big = bnToBig(this.summary?.amount ?? new BN(0));
       return big.toLocaleString();
     },
   },

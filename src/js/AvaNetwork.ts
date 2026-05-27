@@ -40,8 +40,8 @@ class AvaNetwork {
     // this.fee = new BN(0);
   }
 
-  async testConnection(credentials = false) {
-    const resp = await axios
+  async testConnection(_credentials = false) {
+    await axios
       .post(
         this.url + "/ext/info",
         {
@@ -53,7 +53,7 @@ class AvaNetwork {
           withCredentials: true,
         },
       )
-      .catch((error) => {
+      .catch(() => {
         return false;
       });
 
@@ -63,7 +63,7 @@ class AvaNetwork {
   // Checks if this network endpoint allows credentials
   async updateCredentials() {
     try {
-      const res = await axios.post(
+      await axios.post(
         this.url + "/ext/info",
         {
           jsonrpc: "2.0",

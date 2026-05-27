@@ -43,7 +43,6 @@ export async function avmGetAllUTXOsForAddresses(
     : avm.getUTXOs(addrs));
 
   const utxoSet = response.utxos;
-  const utxos = utxoSet.getAllUTXOs();
   const nextEndIndex = response.endIndex;
   const len = response.numFetched;
 

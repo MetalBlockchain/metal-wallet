@@ -1,11 +1,10 @@
-import type { BN } from "@metalblockchain/metaljs";
-
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
 import type AvaAsset from "@/js/AvaAsset";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type Erc20Token from "@/js/Erc20Token";
-import type { IWalletBalanceDict } from "@/stores/vuex/types";
+import type { IWalletBalanceDict } from "@/stores/types";
+import type { BN } from "@metalblockchain/metaljs";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
 
 export interface AssetsState {
   // isUpdateBalance: boolean

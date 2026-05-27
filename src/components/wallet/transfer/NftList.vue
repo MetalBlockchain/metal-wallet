@@ -28,21 +28,20 @@
 
 <script lang="ts">
 import type {
-  NFTTransferOutput,
-  UTXO,
-} from "@metalblockchain/metaljs/dist/apis/avm";
-import type {
   IGroupDict,
   IGroupQuantity,
 } from "@/components/wallet/studio/mint/types";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
-
-import type { IWalletNftDict } from "@/stores/vuex/types";
+import type {
+  NFTTransferOutput,
+  UTXO,
+} from "@metalblockchain/metaljs/dist/apis/avm";
+import { mapState } from "pinia";
 import { defineComponent, ref } from "vue";
 import AvmNftSelectModal from "@/components/modals/AvmNftSelectModal.vue";
 import NftListItem from "@/components/wallet/transfer/NftListItem.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";
 import { bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const NftList = defineComponent({
   components: {
@@ -62,25 +61,18 @@ export const NftList = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, {
+      isEmpty: (store) => {
+        return store.nftUTXOs.length === 0;
+      },
+    }),
+
     payloads() {
       return (
         this.addedNfts?.map((utxo) => {
           return getPayloadFromUTXO(utxo);
         }) ?? []
       );
-    },
-    isEmpty(): boolean {
-      return this.nftUTXOs.length === 0;
-    },
-    nftUTXOs(): UTXO[] {
-      return this.$store.state.Assets.nftUTXOs;
-    },
-    nftDict(): IWalletNftDict {
-      // return this.$store.getters.walletNftDict
-      return this.$store.getters["Assets/walletNftDict"];
-    },
-    nftFamsDict(): NftFamilyDict {
-      return this.$store.state.Assets.nftFamsDict;
     },
     usedNftIds() {
       return (

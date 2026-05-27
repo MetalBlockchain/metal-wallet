@@ -1,12 +1,10 @@
-import type { BN, Buffer } from "@metalblockchain/metaljs";
-import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-
-import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type Erc20Token from "@/js/Erc20Token";
 import type ERC721Token from "@/js/ERC721Token";
-
 import type { WalletType } from "@/js/wallets/types";
+import type { BN, Buffer } from "@metalblockchain/metaljs";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import { issueX } from "@/helpers/issueTx";
 import {
   buildCreateNftFamilyTx,

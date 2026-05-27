@@ -41,13 +41,15 @@
 <script lang="ts">
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
-import type ERC721Token from "@/js/ERC721Token";
-import type { WalletType } from "@/js/wallets/types";
 import Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721Row from "@/components/modals/EvmTokenSelect/ERC721Row.vue";
 import Modal from "@/components/modals/Modal.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useErc721Store } from "@/stores/pinia/erc721";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const EVMTokenSelectModal = defineComponent({
   components: {
@@ -56,23 +58,26 @@ export const EVMTokenSelectModal = defineComponent({
   },
   emits: ["select", "select-collectible"],
   computed: {
+    ...mapState(useAssetsStore, {
+      networkErc20Tokens: "networkErc20Tokens",
+    }),
+    ...mapState(useErc721Store, {
+      erc721s: "networkContracts",
+    }),
+    ...mapState(useRootStore, {
+      avaxBalance: (store) => {
+        const w = store.activeWallet;
+        if (!w) return Big(0);
+        const balBN = w.ethBalance;
+        return bnToBig(balBN, 18);
+      },
+    }),
     tokens(): Erc20Token[] {
-      const tokens: Erc20Token[] =
-        this.$store.getters["Assets/networkErc20Tokens"];
-      const filt = tokens.filter((t) => {
+      const tokens: Erc20Token[] = this.networkErc20Tokens;
+      return tokens.filter((t) => {
         if (t.balanceBN.isZero()) return false;
         return true;
       });
-      return filt;
-    },
-    erc721s(): ERC721Token[] {
-      return this.$store.getters["Assets/ERC721/networkContracts"];
-    },
-    avaxBalance(): Big {
-      const w: WalletType | null = this.$store.state.activeWallet;
-      if (!w) return Big(0);
-      const balBN = w.ethBalance;
-      return bnToBig(balBN, 18);
     },
   },
   methods: {

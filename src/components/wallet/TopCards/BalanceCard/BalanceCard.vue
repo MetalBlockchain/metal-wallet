@@ -93,17 +93,17 @@
   </div>
 </template>
 <script lang="ts">
-import type AvaAsset from "@/js/AvaAsset";
-import type { WalletType } from "@/js/wallets/types";
-import type { priceDict } from "@/stores/vuex/types";
 import { BN } from "@metalblockchain/metaljs/dist";
-
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import Big from "big.js";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import UtxosBreakdownModal from "@/components/modals/UtxosBreakdown/UtxosBreakdownModal.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const BalanceCard = defineComponent({
   components: {
@@ -116,10 +116,15 @@ export const BalanceCard = defineComponent({
     };
   },
   computed: {
-    ava_asset(): AvaAsset | null {
-      const ava = this.$store.getters["Assets/AssetAVA"];
-      return ava;
-    },
+    ...mapState(useAssetsStore, {
+      ava_asset: "AssetAVA",
+      platformBalance: "walletPlatformBalance",
+      stakingAmount: "walletStakingBalance",
+    }),
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+      priceDict: "prices",
+    }),
     avmUnlocked(): BN {
       if (!this.ava_asset) return new BN(0);
       return this.ava_asset.amount;
@@ -222,9 +227,7 @@ export const BalanceCard = defineComponent({
         ? new BN(0)
         : this.ava_asset.amountMultisig;
     },
-    platformBalance() {
-      return this.$store.getters["Assets/walletPlatformBalance"];
-    },
+
     platformUnlocked(): BN {
       return this.platformBalance.available;
     },
@@ -268,9 +271,7 @@ export const BalanceCard = defineComponent({
         ? bigBal.toLocaleString(9)
         : bigBal.toLocaleString(3);
     },
-    stakingAmount(): BN {
-      return this.$store.getters["Assets/walletStakingBalance"];
-    },
+
     stakingText() {
       const balance = this.stakingAmount;
       if (!balance) return "0";
@@ -282,16 +283,12 @@ export const BalanceCard = defineComponent({
 
       return bigBal.lt(Big("1")) ? bigBal.toString() : bigBal.toLocaleString();
     },
-    wallet(): WalletType | null {
-      return this.$store.state.activeWallet;
-    },
+
     isUpdateBalance(): boolean {
       if (!this.wallet) return true;
       return this.wallet.isFetchUtxos;
     },
-    priceDict(): priceDict {
-      return this.$store.state.prices;
-    },
+
     hasLocked(): boolean {
       return (
         !this.avmLocked.isZero() ||
@@ -304,9 +301,11 @@ export const BalanceCard = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
     updateBalance(): void {
-      this.$store.dispatch("Assets/updateUTXOs");
-      this.$store.dispatch("History/updateTransactionHistory");
+      this.updateUTXOs();
+      this.updateTransactionHistory();
     },
     showUTXOsModal() {
       (this.$refs.utxos_modal as typeof UtxosBreakdownModal).open();

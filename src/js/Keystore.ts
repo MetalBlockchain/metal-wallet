@@ -1,5 +1,3 @@
-import type { Buffer } from "buffer/";
-
 // Functions to manage import/export of keystore files
 import type {
   AllKeyFileDecryptedTypes,
@@ -28,7 +26,9 @@ import type {
 } from "./IKeystore";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
-import type { AccessWalletMultipleInput } from "@/stores/vuex/types";
+import type { WalletType } from "@/js/wallets/types";
+import type { AccessWalletMultipleInput } from "@/stores/types";
+import type { Buffer } from "buffer/";
 import { Buffer as AjsBuffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
 import { keyToKeypair } from "@/helpers/helper";
@@ -41,8 +41,6 @@ const KEYSTORE_VERSION = "6.0";
 
 const ITERATIONS_V2 = 100_000;
 const ITERATIONS_V3 = 200_000; // and any version above
-
-const SUPPORTED_VERSION = ["2.0", "3.0", "4.0", "5.0", "6.0"];
 
 interface IHash {
   salt: Buffer;
@@ -367,7 +365,7 @@ function extractKeysFromDecryptedFile(
 
 // Given an array of wallets and a password, return an encrypted JSON object that is the keystore file
 async function makeKeyfile(
-  wallets: (MnemonicWallet | SingletonWallet)[],
+  wallets: WalletType[],
   pass: string,
   activeIndex: number,
 ): Promise<KeyFileV6> {

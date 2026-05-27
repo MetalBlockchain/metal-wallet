@@ -10,22 +10,16 @@
 </template>
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
-import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import FamilyRow from "@/components/wallet/studio/mint/SelectMintUtxo/FamilyRow.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const SelectMintUTXO = defineComponent({
   components: { FamilyRow },
   emits: ["change"],
   computed: {
-    nftFamsDict(): NftFamilyDict {
-      return this.$store.state.Assets.nftFamsDict;
-    },
-    nftMintDict(): IWalletNftMintDict {
-      // return this.$store.getters.walletNftMintDict
-      return this.$store.getters["Assets/nftMintDict"];
-    },
+    ...mapState(useAssetsStore, ["nftFamsDict", "nftMintDict"]),
   },
   methods: {
     select(utxo: UTXO) {

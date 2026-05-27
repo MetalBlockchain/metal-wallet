@@ -1,5 +1,5 @@
-import type { BN } from "@metalblockchain/metaljs";
 import type AvaAsset from "@/js/AvaAsset";
+import type { BN } from "@metalblockchain/metaljs";
 
 export interface ITransaction {
   uuid: string;

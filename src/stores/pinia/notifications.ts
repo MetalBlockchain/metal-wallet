@@ -1,26 +1,29 @@
-import type { Module } from "vuex";
 import type {
   Notification,
   NotificationInput,
-  NotifState,
-} from "@/stores/vuex/modules/notifications/types";
-import type { RootState } from "@/stores/vuex/types";
+} from "@/stores/types/notifications";
+
+export interface INotificationsStore {
+  items: Notification[];
+}
+
+function getDefaultState(): INotificationsStore {
+  return {
+    items: [],
+  };
+}
 
 const COLOR_SUCCESS = "#6BC688";
 const COLOR_WARNING = "#c39043";
 const COLOR_ERROR = "#E84970";
-let notif_id = 0;
+let notification_id = 0;
 
-const notifications_module: Module<NotifState, RootState> = {
-  namespaced: true,
-  state: {
-    items: [],
-  },
-  mutations: {},
+export const useNotificationsStore = defineStore("notifications", {
+  state: () => getDefaultState(),
   actions: {
-    add(store, data: NotificationInput) {
-      const id = notif_id++;
-      // let color = data.color || NOTIF_COLOR;
+    add(data: NotificationInput) {
+      const id = notification_id++;
+
       const type = data.type || "success";
       const duration = data.duration || 5000;
       let color = COLOR_SUCCESS;
@@ -49,17 +52,17 @@ const notifications_module: Module<NotifState, RootState> = {
       };
 
       setTimeout(() => {
-        for (let i = 0; i < store.state.items.length; i++) {
-          const item = store.state.items[i];
-          if (item && item.id === id) {
-            store.state.items.splice(i, 1);
-          }
-        }
+        this.remove(id);
       }, duration);
-      store.state.items.push(item);
+
+      this.items.push(item);
+    },
+    remove(id: number) {
+      const idx = this.items.findIndex((_) => _.id === id);
+      if (idx !== -1) {
+        this.items.splice(idx, 1);
+      }
     },
   },
   getters: {},
-};
-
-export default notifications_module;
+});

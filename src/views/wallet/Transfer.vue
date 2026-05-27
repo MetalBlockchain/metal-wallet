@@ -12,12 +12,12 @@
         <div class="lists">
           <ChainInput v-model="formType" :disabled="isConfirm"></ChainInput>
           <div>
-            <tx-list
+            <TxList
               ref="txList"
               class="tx_list"
               :disabled="isConfirm"
               @change="updateTxList"
-            ></tx-list>
+            ></TxList>
             <template v-if="hasNFT">
               <NftList
                 ref="nftList"
@@ -134,18 +134,14 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type Big from "big.js";
+<script lang="ts" setup>
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { ChainIdType } from "@/constants";
-
-import type AvaAsset from "@/js/AvaAsset";
-import type { WalletType } from "@/js/wallets/types";
-import type { IssueBatchTxInput, priceDict } from "@/stores/vuex/types";
+import type { IssueBatchTxInput } from "@/stores/types";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
-import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 import QrInput from "@/components/shared/QrInput.vue";
 import { TxState } from "@/components/wallet/earn/ChainTransfer/types";
 import ChainInput from "@/components/wallet/transfer/ChainInput.vue";
@@ -154,338 +150,306 @@ import NftList from "@/components/wallet/transfer/NftList.vue";
 import TxList from "@/components/wallet/transfer/TxList.vue";
 import { bnToBig } from "@/helpers/helper";
 import { ava, avm, isValidAddress } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNetworkStore } from "@/stores/pinia/networks";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
-export const Transfer = defineComponent({
-  components: {
-    TxList,
-    QrInput,
-    NftList,
-    FormC,
-    ChainInput,
-  },
-  data(): {
-    formType: ChainIdType;
-    showAdvanced: boolean;
-    isAjax: boolean;
-    addressIn: string;
-    memo: string;
-    orders: ITransaction[];
-    nftOrders: UTXO[];
-    formErrors: string[];
-    err: string;
-    formAddress: string;
-    formOrders: ITransaction[];
-    formNftOrders: UTXO[];
-    formMemo: string;
-    isConfirm: boolean;
-    isSuccess: boolean;
-    txId: string;
-    canSendAgain: boolean;
-    txState: TxState | null;
-  } {
-    const txState: TxState | null = null;
-    const formNftOrders: UTXO[] = [];
-    const formOrders: ITransaction[] = [];
-    const formErrors: string[] = [];
-    const nftOrders: UTXO[] = [];
-    const orders: ITransaction[] = [];
-    const formType: ChainIdType = "X";
+const { t } = useI18n();
+const route = useRoute();
 
-    return {
-      formType,
-      showAdvanced: false,
-      isAjax: false,
-      addressIn: "",
-      memo: "",
-      orders,
-      nftOrders,
-      formErrors,
-      err: "",
-      formAddress: "",
-      formOrders,
-      formNftOrders,
-      formMemo: "",
-      isConfirm: false,
-      isSuccess: false,
-      txId: "",
-      canSendAgain: false,
-      txState,
-    };
-  },
-  computed: {
-    networkStatus(): string {
-      const stat = this.$store.state.Network.status;
-      return stat;
-    },
-    hasNFT(): boolean {
-      // return this.$store.getters.walletNftUTXOs.length > 0
-      return this.$store.state.Assets.nftUTXOs.length > 0;
-    },
-    faucetLink() {
-      const link = import.meta.env.VITE_APP_FAUCET_LINK;
-      if (link) return link;
-      return null;
-    },
-    canSend() {
-      if (!this.addressIn) return false;
+const networkStore = useNetworkStore();
+const assetsStore = useAssetsStore();
+const rootStore = useRootStore();
+const historyStore = useHistoryStore();
+const notificationsStore = useNotificationsStore();
 
-      if (
-        this.orders.length > 0 &&
-        this.totalTxSize.eq(new BN(0)) &&
-        this.nftOrders.length === 0
-      ) {
-        return false;
-      }
+const nftList = useTemplateRef("nftList");
+const txList = useTemplateRef("txList");
 
-      if (this.orders.length === 0 && this.nftOrders.length === 0) return false;
+const formType = ref<ChainIdType>("X");
+const isAjax = ref(false);
+const addressIn = ref("");
+const memo = ref("");
+const orders = ref<ITransaction[]>([]);
+const nftOrders = ref<UTXO[]>([]);
+const formErrors = ref<string[]>([]);
+const err = ref("");
+const formAddress = ref("");
+const formOrders = ref<ITransaction[]>([]);
+const formNftOrders = ref<UTXO[]>([]);
+const formMemo = ref("");
+const isConfirm = ref(false);
+const isSuccess = ref(false);
+const txId = ref("");
+const canSendAgain = ref(false);
+const txState = ref<TxState | null>(null);
 
-      return true;
-    },
-    totalTxSize() {
-      let res = new BN(0);
-      for (let i = 0; i < this.orders.length; i++) {
-        const order = this.orders[i];
-        if (order && order.amount) {
-          res = res.add(order.amount);
-        }
-      }
+const avaxAsset = computed(() => assetsStore.AssetAVA);
 
-      return res;
-    },
-    avaxTxSize() {
-      let res = new BN(0);
-      for (let i = 0; i < this.orders.length; i++) {
-        const order = this.orders[i];
-        if (!order || !order.asset) continue;
-        if (order.amount && order.asset.id === this.avaxAsset.id) {
-          res = res.add(order.amount);
-        }
-      }
+const wallet = computed(() => rootStore.activeWallet);
 
-      return res;
-    },
-    avaxAsset(): AvaAsset {
-      return this.$store.getters["Assets/AssetAVA"];
-    },
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
-    },
-    txFee(): Big {
-      const fee = avm.getTxFee();
-      return bnToBig(fee, 9);
-    },
-    totalUSD(): Big {
-      const totalAsset = this.avaxTxSize.add(avm.getTxFee());
-      const bigAmt = bnToBig(totalAsset, 9);
-      const usdPrice = this.priceDict.usd;
-      const usdBig = bigAmt.times(usdPrice);
-      return usdBig;
-    },
-    addresses() {
-      return this.$store.state.addresses;
-    },
-    priceDict(): priceDict {
-      return this.$store.state.prices;
-    },
-    nftUTXOs(): UTXO[] {
-      return this.$store.state.Assets.nftUTXOs;
-    },
-  },
-  activated() {
-    this.clearForm();
-
-    if (this.$route.query.chain) {
-      const chain = this.$route.query.chain as string;
-      this.formType = chain === "X" ? "X" : "C";
-    }
-
-    if (this.$route.query.nft) {
-      const utxoId = this.$route.query.nft as string;
-      const target = this.nftUTXOs.find((el) => {
-        return el.getUTXOID() === utxoId;
-      });
-
-      if (target) {
-        (this.$refs.nftList as typeof NftList).addNft(target);
-      }
-    }
-  },
-  deactivated() {
-    this.startAgain();
-  },
-  methods: {
-    confirm() {
-      const isValid = this.formCheck();
-      if (!isValid) return;
-
-      this.formOrders = [...this.orders];
-      this.formNftOrders = [...this.nftOrders];
-      this.formAddress = this.addressIn;
-      this.formMemo = this.memo;
-
-      this.isConfirm = true;
-    },
-    cancelConfirm() {
-      this.err = "";
-      this.formMemo = "";
-      this.formOrders = [];
-      this.formNftOrders = [];
-      this.formAddress = "";
-      this.isConfirm = false;
-    },
-    updateTxList(data: ITransaction[]) {
-      this.orders = data;
-    },
-    updateNftList(val: UTXO[]) {
-      this.nftOrders = val;
-    },
-    formCheck() {
-      this.formErrors = [];
-      const err = [];
-
-      const addr = this.addressIn;
-
-      const chain = addr.split("-");
-
-      if (chain[0] !== "X") {
-        err.push("Invalid address. You can only send to other X addresses.");
-      }
-
-      if (!isValidAddress(addr)) {
-        err.push("Invalid address.");
-      }
-
-      const memo = this.memo;
-      if (this.memo) {
-        const buff = Buffer.from(memo);
-        const size = buff.length;
-        if (size > 256) {
-          err.push("You can have a maximum of 256 characters in your memo.");
-        }
-
-        // Make sure memo isnt mnemonic
-        const isMnemonic = bip39.validateMnemonic(memo);
-        if (isMnemonic) {
-          err.push("You should not put a mnemonic phrase into the Memo field.");
-        }
-      }
-
-      // Make sure to address matches the bech32 network hrp
-      const hrp = ava.getHRP();
-      if (!addr.includes(hrp)) {
-        err.push("Not a valid address for this network.");
-      }
-
-      this.formErrors = err;
-      return err.length === 0 ? true : false;
-    },
-    startAgain() {
-      this.clearForm();
-
-      this.txId = "";
-      this.isSuccess = false;
-      this.cancelConfirm();
-
-      this.orders = [];
-      this.nftOrders = [];
-      this.formOrders = [];
-      this.formNftOrders = [];
-    },
-    clearForm() {
-      this.addressIn = "";
-      this.memo = "";
-
-      // Clear transactions list
-      if (this.$refs.txList) {
-        (this.$refs.txList as typeof TxList).reset();
-      }
-
-      // Clear NFT list
-      if (this.hasNFT && this.$refs.nftList) {
-        (this.$refs.nftList as typeof NftList).clear();
-      }
-    },
-    async onsuccess(_: string) {
-      this.isAjax = false;
-      this.isSuccess = true;
-
-      this.$store.dispatch("Notifications/add", {
-        title: this.$t("transfer.success_title"),
-        message: this.$t("transfer.success_msg"),
-        type: "success",
-      });
-
-      // Update the user's balance
-      this.$store.dispatch("Assets/updateUTXOs").then(() => {
-        this.updateSendAgainLock();
-      });
-      this.$store.dispatch("History/updateTransactionHistory");
-    },
-    updateSendAgainLock() {
-      if (this.wallet.isFetchUtxos) {
-        setTimeout(() => {
-          this.updateSendAgainLock();
-        }, 1000);
-      } else {
-        this.canSendAgain = true;
-      }
-    },
-    onerror(err: any) {
-      this.err = err;
-      this.isAjax = false;
-      this.$store.dispatch("Notifications/add", {
-        title: this.$t("transfer.error_title"),
-        message: this.$t("transfer.error_msg"),
-        type: "error",
-      });
-    },
-    submit() {
-      this.isAjax = true;
-      this.err = "";
-
-      const sumArray: (ITransaction | UTXO)[] = [
-        ...this.formOrders,
-        ...this.formNftOrders,
-      ] as (ITransaction | UTXO)[];
-
-      const txList: IssueBatchTxInput = {
-        toAddress: this.formAddress,
-        memo: Buffer.from(this.formMemo),
-        orders: sumArray,
-      };
-
-      this.$store
-        .dispatch("issueBatchTx", txList)
-        .then((res) => {
-          this.canSendAgain = false;
-          this.waitTxConfirm(res);
-          this.txId = res;
-        })
-        .catch((error) => {
-          this.onerror(error);
-        });
-    },
-    async waitTxConfirm(txId: string) {
-      const status = await avm.getTxStatus(txId);
-      if (status === "Unknown" || status === "Processing") {
-        // if not confirmed ask again
-        setTimeout(() => {
-          this.waitTxConfirm(txId);
-        }, 500);
-        return false;
-      } else if (status === "Dropped") {
-        // If dropped stop the process
-        this.txState = TxState.failed;
-        return false;
-      } else {
-        // If success display success page
-        this.txState = TxState.success;
-        this.onsuccess(txId);
-      }
-    },
-  },
+const txFee = computed(() => {
+  const fee = avm.getTxFee();
+  return bnToBig(fee, 9);
 });
-export default Transfer;
+
+const priceDict = computed(() => rootStore.prices);
+
+const nftUTXOs = computed(() => assetsStore.nftUTXOs);
+
+const totalTxSize = computed(() => {
+  let res = new BN(0);
+  for (let i = 0; i < orders.value.length; i++) {
+    const order = orders.value[i];
+    if (order && order.amount) {
+      res = res.add(order.amount);
+    }
+  }
+  return res;
+});
+
+const avaxTxSize = computed(() => {
+  let res = new BN(0);
+  for (let i = 0; i < orders.value.length; i++) {
+    const order = orders.value[i];
+    if (!order || !order.asset) continue;
+    if (order.amount && order.asset.id === avaxAsset.value?.id) {
+      res = res.add(order.amount);
+    }
+  }
+
+  return res;
+});
+
+const totalUSD = computed(() => {
+  const totalAsset = avaxTxSize.value.add(avm.getTxFee());
+  const bigAmt = bnToBig(totalAsset, 9);
+  const usdPrice = priceDict.value.usd;
+  const usdBig = bigAmt.times(usdPrice);
+  return usdBig;
+});
+
+const networkStatus = computed(() => networkStore.status);
+
+const hasNFT = computed(() => assetsStore.nftUTXOs.length > 0);
+
+const canSend = computed(() => {
+  if (!addressIn.value) return false;
+
+  if (
+    orders.value.length > 0 &&
+    totalTxSize.value.eq(new BN(0)) &&
+    nftOrders.value.length === 0
+  ) {
+    return false;
+  }
+
+  if (orders.value.length === 0 && nftOrders.value.length === 0) return false;
+
+  return true;
+});
+
+onActivated(() => {
+  clearForm();
+
+  if (route.query.chain) {
+    const chain = route.query.chain as string;
+    formType.value = chain === "X" ? "X" : "C";
+  }
+
+  if (route.query.nft) {
+    const utxoId = route.query.nft as string;
+    const target = nftUTXOs.value.find((el) => {
+      return el.getUTXOID() === utxoId;
+    });
+
+    if (target) {
+      nftList.value?.addNft(target as UTXO);
+    }
+  }
+});
+
+onDeactivated(() => {
+  startAgain();
+});
+
+function confirm() {
+  const isValid = formCheck();
+  if (!isValid) return;
+
+  formOrders.value = [...orders.value];
+  formNftOrders.value = [...nftOrders.value];
+  formAddress.value = addressIn.value;
+  formMemo.value = memo.value;
+
+  isConfirm.value = true;
+}
+
+function cancelConfirm() {
+  err.value = "";
+  formMemo.value = "";
+  formOrders.value = [];
+  formNftOrders.value = [];
+  formAddress.value = "";
+  isConfirm.value = false;
+}
+
+function updateTxList(data: ITransaction[]) {
+  orders.value = data;
+}
+
+function updateNftList(val: UTXO[]) {
+  nftOrders.value = val;
+}
+
+function formCheck() {
+  formErrors.value = [];
+  const err = [];
+
+  const addr = addressIn.value;
+
+  const chain = addr.split("-");
+
+  if (chain[0] !== "X") {
+    err.push("Invalid address. You can only send to other X addresses.");
+  }
+
+  if (!isValidAddress(addr)) {
+    err.push("Invalid address.");
+  }
+
+  const memoValue = memo.value;
+  if (memoValue) {
+    const buff = Buffer.from(memoValue);
+    const size = buff.length;
+    if (size > 256) {
+      err.push("You can have a maximum of 256 characters in your memo.");
+    }
+
+    // Make sure memo isnt mnemonic
+    const isMnemonic = bip39.validateMnemonic(memoValue);
+    if (isMnemonic) {
+      err.push("You should not put a mnemonic phrase into the Memo field.");
+    }
+  }
+
+  // Make sure to address matches the bech32 network hrp
+  const hrp = ava.getHRP();
+  if (!addr.includes(hrp)) {
+    err.push("Not a valid address for this network.");
+  }
+
+  formErrors.value = err;
+  return err.length === 0 ? true : false;
+}
+function startAgain() {
+  clearForm();
+
+  txId.value = "";
+  isSuccess.value = false;
+  cancelConfirm();
+
+  orders.value = [];
+  nftOrders.value = [];
+  formOrders.value = [];
+  formNftOrders.value = [];
+}
+
+function clearForm() {
+  addressIn.value = "";
+  memo.value = "";
+
+  // Clear transactions list
+  if (txList.value) {
+    txList.value.reset();
+  }
+
+  // Clear NFT list
+  if (hasNFT.value && nftList.value) {
+    nftList.value.clear();
+  }
+}
+async function onsuccess(_: string) {
+  isAjax.value = false;
+  isSuccess.value = true;
+
+  notificationsStore.add({
+    title: t("transfer.success_title"),
+    message: t("transfer.success_msg"),
+    type: "success",
+  });
+
+  // Update the user's balance
+  assetsStore.updateUTXOs().then(() => {
+    updateSendAgainLock();
+  });
+  historyStore.updateTransactionHistory();
+}
+function updateSendAgainLock() {
+  if (wallet.value?.isFetchUtxos) {
+    setTimeout(() => {
+      updateSendAgainLock();
+    }, 1000);
+  } else {
+    canSendAgain.value = true;
+  }
+}
+function onerror(e: any) {
+  err.value = e;
+  isAjax.value = false;
+  notificationsStore.add({
+    title: t("transfer.error_title"),
+    message: t("transfer.error_msg"),
+    type: "error",
+  });
+}
+
+function submit() {
+  isAjax.value = true;
+  err.value = "";
+
+  const sumArray: (ITransaction | UTXO)[] = [
+    ...formOrders.value,
+    ...formNftOrders.value,
+  ] as (ITransaction | UTXO)[];
+
+  const txList: IssueBatchTxInput = {
+    toAddress: formAddress.value,
+    memo: Buffer.from(formMemo.value),
+    orders: sumArray,
+  };
+
+  rootStore
+    .issueBatchTx(txList)
+    .then((res) => {
+      canSendAgain.value = false;
+      waitTxConfirm(res);
+      txId.value = res;
+    })
+    .catch((error) => {
+      onerror(error);
+    });
+}
+async function waitTxConfirm(txId: string) {
+  const status = await avm.getTxStatus(txId);
+  if (status === "Unknown" || status === "Processing") {
+    // if not confirmed ask again
+    setTimeout(() => {
+      waitTxConfirm(txId);
+    }, 500);
+    return false;
+  } else if (status === "Dropped") {
+    // If dropped stop the process
+    txState.value = TxState.failed;
+    return false;
+  } else {
+    // If success display success page
+    txState.value = TxState.success;
+    onsuccess(txId);
+  }
+}
 </script>
 
 <style lang="scss">

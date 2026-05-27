@@ -45,7 +45,6 @@
 <script lang="ts">
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-
 import type { PropType } from "vue";
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
 import { defineComponent } from "vue";

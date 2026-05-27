@@ -1,29 +1,27 @@
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type {
+  IWalletAssetsDict,
+  IWalletBalanceDict,
+  IWalletNftDict,
+  IWalletNftMintDict,
+} from "@/stores/types";
+import type {
+  AddTokenListInput,
+  AssetsDict,
+  NftFamilyDict,
+  TokenList,
+  TokenListToken,
+} from "@/stores/types/assets";
+// import ERC721Module from "./modules/erc721";
 import type {
   AmountOutput,
   UTXOSet as AVMUTXOSet,
   NFTMintOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
 import type { StakeableLockOut } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import type { Module } from "vuex";
-import type { AvaNetwork } from "@/js/AvaNetwork";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletType } from "@/js/wallets/types";
-import type {
-  AddTokenListInput,
-  AssetsDict,
-  AssetsState,
-  TokenList,
-  TokenListToken,
-} from "@/stores/vuex/modules/assets/types";
-import type {
-  IWalletAssetsDict,
-  IWalletBalanceDict,
-  IWalletNftDict,
-  IWalletNftMintDict,
-  RootState,
-} from "@/stores/vuex/types";
 import { BN } from "@metalblockchain/metaljs";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
@@ -32,22 +30,35 @@ import cloneDeep from "lodash-es/cloneDeep";
 import { isUrlBanned } from "@/components/misc/NftPayloadView/blacklist";
 import { getPayloadFromUTXO } from "@/helpers/helper";
 import AvaAsset from "@/js/AvaAsset";
-
 import { AvaNftFamily } from "@/js/AvaNftFamily";
 import Erc20Token from "@/js/Erc20Token";
-import { ava, avm, bintools, cChain } from "@/misc/AVA";
+import { ava, avm, bintools } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
-import { fetchTokenList } from "@/stores/vuex/modules/assets/fetchTokenList";
-import ERC721Module from "./modules/erc721";
+import { useErc721Store } from "@/stores/pinia/erc721";
+import { useRootStore } from "@/stores/pinia/root";
+import { fetchTokenList } from "@/stores/utils/fetchTokenList";
 
-const TOKEN_LISTS: string[] = [];
+export interface IAssetsStore {
+  // isUpdateBalance: boolean
+  AVA_ASSET_ID: string | null;
 
-const assets_module: Module<AssetsState, RootState> = {
-  namespaced: true,
-  modules: {
-    ERC721: ERC721Module,
-  },
-  state: {
+  assets: AvaAsset[];
+  assetsDict: AssetsDict;
+  nftFams: AvaNftFamily[];
+  nftFamsDict: NftFamilyDict;
+  balanceDict: IWalletBalanceDict;
+  nftUTXOs: AVMUTXO[];
+  nftMintUTXOs: AVMUTXO[];
+  erc20Tokens: Erc20Token[];
+  erc20TokensCustom: Erc20Token[];
+  evmChainId: number;
+  tokenLists: TokenList[];
+  tokenListUrls: string[];
+  tokenListsCustom: string[];
+  nftWhitelist: string[];
+}
+function getDefaultState(): IAssetsStore {
+  return {
     AVA_ASSET_ID: null,
     // isUpdateBalance: false,
     assets: [],
@@ -64,93 +75,49 @@ const assets_module: Module<AssetsState, RootState> = {
     tokenListUrls: [],
     tokenListsCustom: [],
     nftWhitelist: [],
-  },
-  mutations: {
-    addAsset(state, asset: AvaAsset) {
-      if (state.assetsDict[asset.id]) {
-        return;
-      }
-      state.assets.push(asset);
-      state.assetsDict[asset.id] = asset;
-    },
-    addNftFamily(state, family: AvaNftFamily) {
-      if (state.nftFamsDict[family.id]) {
-        return;
-      }
-      state.nftFams.push(family);
-      state.nftFamsDict[family.id] = family;
-    },
-    removeAllAssets(state) {
-      state.assets = [];
-      state.assetsDict = {};
-      state.nftFams = [];
-      state.nftFamsDict = {};
-      state.nftUTXOs = [];
-      state.nftMintUTXOs = [];
-      state.balanceDict = {};
-      state.AVA_ASSET_ID = null;
-    },
-    saveCustomErc20Tokens(state) {
-      const tokens: Erc20Token[] = state.erc20TokensCustom;
+  };
+}
 
-      const tokenRawData: TokenListToken[] = tokens.map((token) => {
-        return token.data;
-      });
-      localStorage.setItem("erc20_tokens", JSON.stringify(tokenRawData));
-    },
-    loadCustomErc20Tokens(state) {
-      const tokensRaw = localStorage.getItem("erc20_tokens") || "[]";
-      const tokens: TokenListToken[] = JSON.parse(tokensRaw);
-      for (const token of tokens) {
-        if (token) {
-          state.erc20TokensCustom.push(new Erc20Token(token));
-        }
-      }
-    },
+const TOKEN_LISTS: string[] = [];
 
-    saveCustomTokenLists(state) {
-      const lists = JSON.stringify(state.tokenListsCustom);
-      localStorage.setItem("token_lists", lists);
-    },
+export const useAssetsStore = defineStore("assets", {
+  state: () => getDefaultState(),
 
-    whitelistNFT(state, id: string) {
-      state.nftWhitelist.push(id);
-    },
-  },
   actions: {
-    async onNetworkChange({ state }, network: AvaNetwork) {
+    async onNetworkChange() {
       const id = await web3.eth.getChainId();
-      state.evmChainId = id;
+      this.evmChainId = id;
     },
+
     // Called on a logout event
-    onLogout({ state, commit }) {
-      // state.isUpdateBalance = false
-      commit("removeAllAssets");
+    onLogout() {
+      this.removeAllAssets();
     },
 
     // Called when the active wallet finishes fetching utxos
-    async onUtxosUpdated({ state, dispatch, rootState }) {
-      const wallet: WalletType | null = rootState.activeWallet;
+    onUtxosUpdated() {
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       if (!wallet) return;
 
       if (wallet.isFetchUtxos) {
         setTimeout(() => {
-          dispatch("onUtxosUpdated");
+          this.onUtxosUpdated();
         }, 500);
         return;
       }
 
-      await dispatch("updateBalanceDict");
-      await dispatch("updateUtxoArrays");
-      await dispatch("addUnknownAssets");
+      this.updateBalanceDict();
+      this.updateUtxoArrays();
+      this.addUnknownAssets();
     },
 
     /**
      * Updates X-Chain NFT utxos in 2 categories, nftUTXOs
      * and nftMintUTXOs
      */
-    updateUtxoArrays({ state, rootState, getters }) {
-      const utxoSet = getters.walletAvmUtxoSet;
+    updateUtxoArrays() {
+      const utxoSet = this.walletAvmUtxoSet;
       if (utxoSet === null) return {};
 
       const utxos = utxoSet.getAllUTXOs();
@@ -176,13 +143,13 @@ const assets_module: Module<AssetsState, RootState> = {
         return !isUrlBanned(content);
       });
 
-      state.nftUTXOs = nftUtxos;
-      state.nftMintUTXOs = nftMintUtxos;
+      this.nftUTXOs = nftUtxos;
+      this.nftMintUTXOs = nftMintUtxos;
     },
 
-    async addErc20Token({ state, rootState }, token: TokenListToken) {
-      const tokens: Erc20Token[] = state.erc20TokensCustom.concat(
-        state.erc20Tokens,
+    addErc20Token(token: TokenListToken) {
+      const tokens: Erc20Token[] = this.erc20TokensCustom.concat(
+        this.erc20Tokens,
       );
 
       // Make sure its not added before
@@ -198,16 +165,13 @@ const assets_module: Module<AssetsState, RootState> = {
       }
 
       const t = new Erc20Token(token);
-      state.erc20Tokens.push(t);
+      this.erc20Tokens.push(t);
     },
 
-    async addCustomErc20Token(
-      { state, rootState, commit },
-      token: TokenListToken,
-    ) {
-      const tokens: Erc20Token[] = state.erc20TokensCustom.concat(
-        state.erc20Tokens,
-      );
+    addCustomErc20Token(token: TokenListToken) {
+      const rootStore = useRootStore();
+
+      const tokens = this.erc20TokensCustom.concat(this.erc20Tokens);
 
       // Make sure its not added before
       for (const t of tokens) {
@@ -223,44 +187,41 @@ const assets_module: Module<AssetsState, RootState> = {
 
       const t = new Erc20Token(token);
       // Save token state to storage
-      state.erc20TokensCustom.push(t);
+      this.erc20TokensCustom.push(t);
 
-      const w = rootState.activeWallet;
+      const w = rootStore.activeWallet;
       if (w) {
         t.updateBalance(w.ethAddress);
       }
 
-      commit("saveCustomErc20Tokens");
+      this.saveCustomErc20Tokens();
 
       return t;
     },
 
-    async removeTokenList({ state, commit }, list: TokenList) {
+    removeTokenList(list: TokenList) {
       // Remove token list object
-      for (let i = 0; i <= state.tokenLists.length; i++) {
-        const l = state.tokenLists[i];
+      for (let i = 0; i <= this.tokenLists.length; i++) {
+        const l = this.tokenLists[i];
 
         if (l && l.url === list.url) {
-          state.tokenLists.splice(i, 1);
+          this.tokenLists.splice(i, 1);
           break;
         }
       }
 
       // Remove custom Token list urls
-      const index = state.tokenListsCustom.indexOf(list.url);
-      state.tokenListsCustom.splice(index, 1);
+      const index = this.tokenListsCustom.indexOf(list.url);
+      this.tokenListsCustom.splice(index, 1);
 
       // Update local storage
-      commit("saveCustomTokenLists");
+      this.saveCustomTokenLists();
     },
 
-    async addTokenListUrl(
-      { dispatch, state, commit },
-      data: AddTokenListInput,
-    ) {
+    async addTokenListUrl(data: AddTokenListInput) {
       // Make sure URL is not already added
-      if (state.tokenListUrls.includes(data.url)) throw "Already added.";
-      if (state.tokenListsCustom.includes(data.url)) throw "Already added.";
+      if (this.tokenListUrls.includes(data.url)) throw "Already added.";
+      if (this.tokenListsCustom.includes(data.url)) throw "Already added.";
 
       const url = data.url;
       const res = await axios.get(url);
@@ -268,97 +229,102 @@ const assets_module: Module<AssetsState, RootState> = {
       tokenList.url = url;
       tokenList.readonly = data.readonly;
 
-      dispatch("addTokenList", tokenList);
+      this.addTokenList(tokenList);
     },
 
-    async addTokenList({ state, dispatch, commit }, tokenList: TokenList) {
+    addTokenList(tokenList: TokenList) {
       const tokens: TokenListToken[] = tokenList.tokens;
-      state.tokenLists.push(tokenList);
+      this.tokenLists.push(tokenList);
       for (const token of tokens) {
-        dispatch("addErc20Token", token);
+        this.addErc20Token(token);
       }
 
       if (tokenList.readonly) {
-        state.tokenListUrls.push(tokenList.url);
+        this.tokenListUrls.push(tokenList.url);
       } else {
-        state.tokenListsCustom.push(tokenList.url);
-        commit("saveCustomTokenLists");
+        this.tokenListsCustom.push(tokenList.url);
+        this.saveCustomTokenLists();
       }
     },
 
-    loadCustomTokenLists({ state, dispatch }) {
+    loadCustomTokenLists() {
       const listRaw = localStorage.getItem("token_lists");
       if (!listRaw) return;
       const urls: string[] = JSON.parse(listRaw);
 
       for (const url of urls) {
-        dispatch("addTokenListUrl", {
+        this.addTokenListUrl({
           url,
           readonly: false,
         });
       }
     },
 
-    async initErc20List({ state, dispatch, commit }) {
+    async initErc20List() {
       // Load default erc20 token contracts
       const erc20Tokens = await fetchTokenList();
       erc20Tokens.readonly = true;
       erc20Tokens.url = "Default";
-      await dispatch("addTokenList", erc20Tokens);
+      this.addTokenList(erc20Tokens);
 
       for (const TOKEN_LIST of TOKEN_LISTS) {
-        await dispatch("addTokenListUrl", {
+        await this.addTokenListUrl({
           url: TOKEN_LIST,
           readonly: true,
         });
       }
 
-      dispatch("loadCustomTokenLists");
-      commit("loadCustomErc20Tokens");
+      this.loadCustomTokenLists();
+      this.loadCustomErc20Tokens();
     },
 
     // Gets the balances of the active wallet and gets descriptions for unknown asset ids
-    addUnknownAssets({ state, getters, rootGetters, dispatch }) {
-      const balanceDict: IWalletBalanceDict = state.balanceDict;
-      const nftDict: IWalletNftDict = getters.walletNftDict;
-      const nftMintDict: IWalletNftMintDict = getters.nftMintDict;
+    addUnknownAssets() {
+      const balanceDict: IWalletBalanceDict = this.balanceDict;
+      const nftDict: IWalletNftDict = this.walletNftDict;
+      const nftMintDict: IWalletNftMintDict = this.nftMintDict;
 
       for (const id in balanceDict) {
-        if (!state.assetsDict[id]) {
-          dispatch("addUnknownAsset", id);
+        if (!this.assetsDict[id]) {
+          this.addUnknownAsset(id);
         }
       }
 
       for (const nft_id in nftDict) {
-        if (!state.nftFamsDict[nft_id]) {
-          dispatch("addUnknownNftFamily", nft_id);
+        if (!this.nftFamsDict[nft_id]) {
+          this.addUnknownNftFamily(nft_id);
         }
       }
 
       for (const familyId in nftMintDict) {
-        if (!state.nftFamsDict[familyId]) {
-          dispatch("addUnknownNftFamily", familyId);
+        if (!this.nftFamsDict[familyId]) {
+          this.addUnknownNftFamily(familyId);
         }
       }
     },
 
     // Update the utxos for the current active wallet
-    async updateUTXOs({ state, commit, dispatch, rootState }) {
-      const wallet = rootState.activeWallet;
+    async updateUTXOs() {
+      const rootStore = useRootStore();
+      const erc721Store = useErc721Store();
+      const wallet = rootStore.activeWallet;
       if (!wallet) {
         return false;
       }
 
       await wallet.getUTXOs();
-      dispatch("onUtxosUpdated");
-      dispatch("updateERC20Balances");
-      dispatch("ERC721/updateWalletBalance");
-      commit("updateActiveAddress", null, { root: true });
+      this.onUtxosUpdated();
+      this.updateERC20Balances();
+
+      erc721Store.updateWalletBalance();
+
+      rootStore.updateActiveAddress();
     },
 
     // Only updates external utxos of the wallet
-    async updateUTXOsExternal({ commit, dispatch, rootState }) {
-      const wallet = rootState.activeWallet;
+    async updateUTXOsExternal() {
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       if (!wallet) {
         return false;
       }
@@ -367,18 +333,19 @@ const assets_module: Module<AssetsState, RootState> = {
         ? (wallet as MnemonicWallet).updateUTXOsExternal()
         : wallet.updateUTXOsX());
 
-      dispatch("onUtxosUpdated");
-      commit("updateActiveAddress", null, { root: true });
+      this.onUtxosUpdated();
+      rootStore.updateActiveAddress();
     },
 
-    async updateERC20Balances({ state, rootState, getters }) {
-      const wallet: WalletType | null = rootState.activeWallet;
+    updateERC20Balances() {
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       if (!wallet) return;
       // Old ledger wallets do not have an eth address
       if (!wallet.ethAddress) return;
 
-      const networkID = state.evmChainId;
-      const tokens: Erc20Token[] = getters.networkErc20Tokens;
+      const networkID = this.evmChainId;
+      const tokens: Erc20Token[] = this.networkErc20Tokens;
       for (const token of tokens) {
         if (token.data.chainId !== networkID) continue;
         token.updateBalance(wallet!.ethAddress);
@@ -386,20 +353,20 @@ const assets_module: Module<AssetsState, RootState> = {
     },
 
     // What is the AVAX coin in the network
-    async updateAvaAsset({ state, commit }) {
+    async updateAvaAsset() {
       const res = await avm.getAssetDescription("METAL");
       const id = bintools.cb58Encode(res.assetID);
-      state.AVA_ASSET_ID = id;
+      this.AVA_ASSET_ID = id;
       const asset = new AvaAsset(id, res.name, res.symbol, res.denomination);
-      commit("addAsset", asset);
+      this.addAsset(asset);
     },
 
     /**
      * Update the X-Chain asset dictionary, split balances into categories.
      * (locked, available, multisig)
      */
-    updateBalanceDict({ state, rootState, getters }): IWalletBalanceDict {
-      const utxoSet = getters.walletAvmUtxoSet;
+    updateBalanceDict(): IWalletBalanceDict {
+      const utxoSet = this.walletAvmUtxoSet;
       if (utxoSet === null) return {};
 
       const dict: IWalletBalanceDict = {};
@@ -422,8 +389,6 @@ const assets_module: Module<AssetsState, RootState> = {
         const amount = utxoOut.getAmount();
         const assetIdBuff = utxo.getAssetID();
         const assetId = bintools.cb58Encode(assetIdBuff);
-
-        const owners = utxoOut.getAddresses();
 
         // Which category should the utxo fall under
         const isMultisig = threhsold > 1;
@@ -466,14 +431,14 @@ const assets_module: Module<AssetsState, RootState> = {
           }
         }
       }
-      state.balanceDict = dict;
+      this.balanceDict = dict;
       return dict;
     },
 
     /**
      * Adds an unknown asset id to the assets dictionary
      */
-    async addUnknownAsset({ state, commit }, assetId: string) {
+    async addUnknownAsset(assetId: string) {
       // get info about the asset
       const desc = await ava.XChain().getAssetDescription(assetId);
       const newAsset = new AvaAsset(
@@ -483,26 +448,75 @@ const assets_module: Module<AssetsState, RootState> = {
         desc.denomination,
       );
 
-      await commit("addAsset", newAsset);
+      this.addAsset(newAsset);
       return desc;
     },
 
-    async addUnknownNftFamily({ state, commit }, assetId: string) {
+    async addUnknownNftFamily(assetId: string) {
       const desc = await ava.XChain().getAssetDescription(assetId);
       const newFam = new AvaNftFamily(assetId, desc.name, desc.symbol);
 
-      await commit("addNftFamily", newFam);
+      this.addNftFamily(newFam);
       return desc;
+    },
+
+    addAsset(asset: AvaAsset) {
+      if (this.assetsDict[asset.id]) {
+        return;
+      }
+      this.assets.push(asset);
+      this.assetsDict[asset.id] = asset;
+    },
+    addNftFamily(family: AvaNftFamily) {
+      if (this.nftFamsDict[family.id]) {
+        return;
+      }
+      this.nftFams.push(family);
+      this.nftFamsDict[family.id] = family;
+    },
+    removeAllAssets() {
+      this.assets = [];
+      this.assetsDict = {};
+      this.nftFams = [];
+      this.nftFamsDict = {};
+      this.nftUTXOs = [];
+      this.nftMintUTXOs = [];
+      this.balanceDict = {};
+      this.AVA_ASSET_ID = null;
+    },
+    saveCustomErc20Tokens() {
+      const tokens: Erc20Token[] = this.erc20TokensCustom;
+
+      const tokenRawData: TokenListToken[] = tokens.map((token) => {
+        return token.data;
+      });
+      localStorage.setItem("erc20_tokens", JSON.stringify(tokenRawData));
+    },
+    loadCustomErc20Tokens() {
+      const tokensRaw = localStorage.getItem("erc20_tokens") || "[]";
+      const tokens: TokenListToken[] = JSON.parse(tokensRaw);
+      for (const token of tokens) {
+        if (token) {
+          this.erc20TokensCustom.push(new Erc20Token(token));
+        }
+      }
+    },
+
+    saveCustomTokenLists() {
+      const lists = JSON.stringify(this.tokenListsCustom);
+      localStorage.setItem("token_lists", lists);
+    },
+
+    whitelistNFT(id?: string) {
+      if (id) {
+        this.nftWhitelist.push(id);
+      }
     },
   },
   getters: {
-    networkErc20Tokens(
-      state: AssetsState,
-      getters,
-      rootState: RootState,
-    ): Erc20Token[] {
-      const tokens = state.erc20Tokens.concat(state.erc20TokensCustom);
-      const chainId = state.evmChainId;
+    networkErc20Tokens(): Erc20Token[] {
+      const tokens = this.erc20Tokens.concat(this.erc20TokensCustom);
+      const chainId = this.evmChainId;
 
       const filt = tokens.filter((t) => {
         if (t.data.chainId !== chainId) return false;
@@ -511,21 +525,23 @@ const assets_module: Module<AssetsState, RootState> = {
       return filt;
     },
 
-    findErc20: (state) => (contractAddr: string) => {
-      const tokens: Erc20Token[] = state.erc20Tokens.concat(
-        state.erc20TokensCustom,
-      );
-      for (const t of tokens) {
-        if (t && t.data.address === contractAddr) {
-          return t;
+    findErc20() {
+      return (contractAddr: string) => {
+        const tokens: Erc20Token[] = this.erc20Tokens.concat(
+          this.erc20TokensCustom,
+        );
+        for (const t of tokens) {
+          if (t && t.data.address === contractAddr) {
+            return t;
+          }
         }
-      }
-      return null;
+        return null;
+      };
     },
 
     // assset id -> utxos
-    walletNftDict(state, getters, rootState) {
-      const utxos = state.nftUTXOs;
+    walletNftDict() {
+      const utxos = this.nftUTXOs;
       const res: IWalletNftDict = {};
 
       for (const utxo of utxos) {
@@ -535,25 +551,18 @@ const assets_module: Module<AssetsState, RootState> = {
           const assetId = bintools.cb58Encode(assetIdBuff);
 
           if (res[assetId]) {
-            res[assetId].push(utxo);
+            res[assetId].push(utxo as UTXO);
           } else {
-            res[assetId] = [utxo];
+            res[assetId] = [utxo as UTXO];
           }
         }
       }
       return res;
     },
 
-    walletAssetsDict(
-      state,
-      getters,
-      rootState,
-      rootGetters,
-    ): IWalletAssetsDict {
-      //@ts-ignore
-      const balanceDict: IWalletBalanceDict = state.balanceDict;
-      // @ts-ignore
-      const assetsDict: AssetsDict = cloneDeep(state.assetsDict);
+    walletAssetsDict(): IWalletAssetsDict {
+      const balanceDict: IWalletBalanceDict = this.balanceDict;
+      const assetsDict: AssetsDict = cloneDeep(this.assetsDict);
       const res: IWalletAssetsDict = {};
 
       for (const assetId in assetsDict) {
@@ -572,12 +581,12 @@ const assets_module: Module<AssetsState, RootState> = {
         }
 
         // Add extras for AVAX token
-        if (asset && asset.id === state.AVA_ASSET_ID) {
-          asset.addExtra(getters.walletStakingBalance);
-          asset.addExtra(getters.walletPlatformBalance.available);
-          asset.addExtra(getters.walletPlatformBalance.locked);
-          asset.addExtra(getters.walletPlatformBalance.lockedStakeable);
-          asset.addExtra(getters.walletPlatformBalance.multisig);
+        if (asset && asset.id === this.AVA_ASSET_ID) {
+          asset.addExtra(this.walletStakingBalance);
+          asset.addExtra(this.walletPlatformBalance.available);
+          asset.addExtra(this.walletPlatformBalance.locked);
+          asset.addExtra(this.walletPlatformBalance.lockedStakeable);
+          asset.addExtra(this.walletPlatformBalance.multisig);
         }
 
         if (asset) {
@@ -587,8 +596,8 @@ const assets_module: Module<AssetsState, RootState> = {
       return res;
     },
 
-    walletAssetsArray(state, getters): AvaAsset[] {
-      const assetsDict: IWalletAssetsDict = getters.walletAssetsDict;
+    walletAssetsArray(): AvaAsset[] {
+      const assetsDict: IWalletAssetsDict = this.walletAssetsDict;
       const res: AvaAsset[] = [];
 
       for (const id in assetsDict) {
@@ -603,18 +612,20 @@ const assets_module: Module<AssetsState, RootState> = {
     /**
      * Get the X-Chain (AVM) UTXO Set currently loaded in the wallet
      */
-    walletAvmUtxoSet(state, getters, rootState): AVMUTXOSet | null {
-      const wallet = rootState.activeWallet;
+    walletAvmUtxoSet(): AVMUTXOSet | null {
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       if (!wallet) return null;
-      return wallet.utxoset;
+      return wallet.utxoset as AVMUTXOSet;
     },
 
-    nftFamilies(state): AvaNftFamily[] {
-      return state.nftFams;
+    nftFamilies(): AvaNftFamily[] {
+      return this.nftFams;
     },
 
-    walletStakingBalance(state, getters, rootState, rootGetters): BN {
-      const wallet = rootState.activeWallet;
+    walletStakingBalance(): BN {
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       if (!wallet) return new BN(0);
 
       return wallet.stakeAmount;
@@ -626,17 +637,14 @@ const assets_module: Module<AssetsState, RootState> = {
      * @param getters
      * @param rootState
      */
-    walletPlatformBalance(
-      state,
-      getters,
-      rootState,
-    ): {
+    walletPlatformBalance(): {
       available: BN;
       locked: BN;
       lockedStakeable: BN;
       multisig: BN;
     } {
-      const wallet = rootState.activeWallet;
+      const rootStore = useRootStore();
+      const wallet = rootStore.activeWallet;
       const balances = {
         available: new BN(0),
         locked: new BN(0),
@@ -644,7 +652,7 @@ const assets_module: Module<AssetsState, RootState> = {
         multisig: new BN(0),
       };
 
-      if (!wallet || !state.AVA_ASSET_ID) return balances;
+      if (!wallet || !this.AVA_ASSET_ID) return balances;
 
       const utxoSet: PlatformUTXOSet = wallet.getPlatformUTXOSet();
 
@@ -652,7 +660,7 @@ const assets_module: Module<AssetsState, RootState> = {
 
       const utxos = utxoSet.getAllUTXOs();
       // Only use AVAX UTXOs
-      const avaxID = bintools.cb58Decode(state.AVA_ASSET_ID);
+      const avaxID = bintools.cb58Decode(this.AVA_ASSET_ID);
       const avaxUTXOs = utxos.filter((utxo) =>
         utxo.getAssetID().equals(avaxID),
       );
@@ -696,29 +704,29 @@ const assets_module: Module<AssetsState, RootState> = {
       return balances;
     },
 
-    walletPlatformBalanceLocked(state, getters, rootState): BN {
-      return getters.walletPlatformBalance.locked;
+    walletPlatformBalanceLocked(): BN {
+      return this.walletPlatformBalance.locked;
     },
 
-    walletPlatformBalanceLockedStakeable(state, getters, rootState): BN {
-      return getters.walletPlatformBalance.lockedStakeable;
+    walletPlatformBalanceLockedStakeable(): BN {
+      return this.walletPlatformBalance.lockedStakeable;
     },
 
-    nftMintDict(state): IWalletNftMintDict {
+    nftMintDict(): IWalletNftMintDict {
       const res: IWalletNftMintDict = {};
-      const mintUTXOs = state.nftMintUTXOs;
+      const mintUTXOs = this.nftMintUTXOs;
 
       // eslint-disable-next-line unicorn/no-for-loop
       for (let i = 0; i < mintUTXOs.length; i++) {
-        const utxo: UTXO | undefined = mintUTXOs[i];
+        const utxo = mintUTXOs[i];
         if (utxo) {
           const assetId = bintools.cb58Encode(utxo.getAssetID());
 
           const target = res[assetId];
           if (target) {
-            target.push(utxo);
+            target.push(utxo as UTXO);
           } else {
-            res[assetId] = [utxo];
+            res[assetId] = [utxo as UTXO];
           }
         }
       }
@@ -737,20 +745,18 @@ const assets_module: Module<AssetsState, RootState> = {
       return res;
     },
 
-    assetIds(state): string[] {
-      return state.assets.map((asset) => {
+    assetIds(): string[] {
+      return this.assets.map((asset) => {
         return asset.id;
       });
     },
-    AssetAVA(state, getters, rootState, rootGetters): AvaAsset | null {
-      const walletBalanceDict = getters.walletAssetsDict;
-      const AVA_ASSET_ID = state.AVA_ASSET_ID;
+    AssetAVA(): AvaAsset | null {
+      const walletBalanceDict = this.walletAssetsDict;
+      const AVA_ASSET_ID = this.AVA_ASSET_ID;
       if (AVA_ASSET_ID && walletBalanceDict[AVA_ASSET_ID]) {
         return walletBalanceDict[AVA_ASSET_ID];
       }
       return null;
     },
   },
-};
-
-export default assets_module;
+});

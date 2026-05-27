@@ -3,16 +3,16 @@ import type {
   NavigationGuardWithThis,
   RouteRecordRaw,
 } from "vue-router";
-import { useStore } from "vuex";
+import { useRootStore } from "@/stores/pinia/root";
 
 const ifNotAuthenticated: NavigationGuardWithThis<unknown> = (
   _to,
   _from,
   next: NavigationGuardNext,
 ) => {
-  const store = useStore();
+  const rootStore = useRootStore();
 
-  if (!store.state.isAuth) {
+  if (!rootStore.isAuth) {
     next();
     return;
   }
@@ -24,9 +24,9 @@ const ifAuthenticated: NavigationGuardWithThis<unknown> = (
   _from,
   next: NavigationGuardNext,
 ) => {
-  const store = useStore();
+  const rootStore = useRootStore();
 
-  if (store.state.isAuth) {
+  if (rootStore.isAuth) {
     next();
     return;
   }

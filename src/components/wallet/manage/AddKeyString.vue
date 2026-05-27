@@ -22,8 +22,10 @@
   </div>
 </template>
 <script lang="ts">
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import QrInput from "@/components/shared/QrInput.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export default defineComponent({
   components: {
@@ -39,6 +41,7 @@ export default defineComponent({
     };
   },
   methods: {
+    ...mapActions(useRootStore, ["addWalletSingleton"]),
     validateQR(_: string) {
       if (this.privateKeyInput.length > 10) {
         this.canAdd = true;
@@ -53,12 +56,9 @@ export default defineComponent({
       this.isLoading = true;
       this.error = "";
 
-      setTimeout(async () => {
+      setTimeout(() => {
         try {
-          await this.$store.dispatch(
-            "addWalletSingleton",
-            this.privateKeyInput,
-          );
+          this.addWalletSingleton(this.privateKeyInput);
           this.$emit("success");
           this.clear();
         } catch (error: any) {

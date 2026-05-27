@@ -100,6 +100,7 @@ import ConfirmLogout from "@/components/modals/ConfirmLogout.vue";
 import NetworkMenu from "@/components/NetworkSettings/NetworkMenu.vue";
 import AccountMenu from "@/components/wallet/sidebar/AccountMenu.vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const Navbar = defineComponent({
   components: {
@@ -111,8 +112,12 @@ export const Navbar = defineComponent({
   },
   setup() {
     const { isDay } = useOwnTheme();
+    const rootStore = useRootStore();
+    const isAuth = computed(() => rootStore.isAuth);
+
     return {
       isDay,
+      isAuth,
     };
   },
   data() {
@@ -120,11 +125,6 @@ export const Navbar = defineComponent({
       isDrawer: false,
       popupOpen: false,
     };
-  },
-  computed: {
-    isAuth(): boolean {
-      return this.$store.state.isAuth;
-    },
   },
   methods: {
     logout(): void {

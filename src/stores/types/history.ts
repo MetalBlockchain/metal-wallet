@@ -1,6 +1,6 @@
+import type { TransactionType as GlacierTxType } from "@/js/Glacier/models";
 import type Big from "big.js";
 import type moment from "moment";
-import type { TransactionType as GlacierTxType } from "@/js/Glacier/models";
 
 export interface HistoryState {
   recentTransactions: GlacierTxType[];

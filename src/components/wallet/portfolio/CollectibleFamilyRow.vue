@@ -24,18 +24,19 @@
   </div>
 </template>
 <script lang="ts">
+import type { NftGroupDict } from "@/components/wallet/portfolio/types";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type {
   NFTMintOutput,
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { NftGroupDict } from "@/components/wallet/portfolio/types";
-import type { AvaNftFamily } from "@/js/AvaNftFamily";
-import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/vuex/types";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import CollectibleFamilyGroup from "@/components/wallet/portfolio/CollectibleFamilyGroup.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const CollectibleFamilyRow = defineComponent({
   components: {
@@ -47,14 +48,10 @@ export const CollectibleFamilyRow = defineComponent({
     },
   },
   computed: {
-    nftDict(): IWalletNftDict {
-      // return this.$store.getters.walletNftDict
-      return this.$store.getters["Assets/walletNftDict"];
-    },
-    nftMintDict(): IWalletNftMintDict {
-      // return this.$store.getters.walletNftMintDict
-      return this.$store.getters["Assets/nftMintDict"];
-    },
+    ...mapState(useAssetsStore, {
+      nftDict: "walletNftDict",
+      nftMintDict: "nftMintDict",
+    }),
     utxos(): UTXO[] {
       const id = this.family?.id;
       return id && this.nftDict ? (this.nftDict[id] ?? []) : [];

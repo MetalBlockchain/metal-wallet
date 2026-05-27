@@ -22,7 +22,9 @@
 
 <script lang="ts">
 import * as bip39 from "bip39";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export default defineComponent({
   emits: ["success"],
@@ -45,6 +47,7 @@ export default defineComponent({
     },
   },
   methods: {
+    ...mapActions(useRootStore, ["addWalletMnemonic"]),
     errCheck() {
       const phrase = this.phrase.trim();
       const words = phrase.split(" ");
@@ -78,14 +81,14 @@ export default defineComponent({
         return;
       }
 
-      setTimeout(async () => {
+      setTimeout(() => {
         try {
-          await this.$store.dispatch("addWalletMnemonic", phrase);
+          this.addWalletMnemonic(phrase);
           this.isLoading = false;
           this.handleImportSuccess();
-        } catch (error: any) {
+        } catch (error) {
           this.isLoading = false;
-          this.err = error.message.includes("already")
+          this.err = (error as Error).message.includes("already")
             ? (this.$t("keys.import_mnemonic_duplicate_err") as string)
             : (this.$t("keys.import_mnemonic_err") as string);
         }

@@ -29,7 +29,7 @@
   </div>
 </template>
 <script lang="ts">
-import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
+import type { ValidatorListItem } from "@/stores/types/platform";
 import { defineComponent } from "vue";
 import ValidatorsList from "@/components/misc/ValidatorList/ValidatorsList.vue";
 

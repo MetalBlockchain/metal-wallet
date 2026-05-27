@@ -13,8 +13,9 @@
   </div>
 </template>
 <script lang="ts">
-import type { WalletType } from "@/js/wallets/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const HdEmptyAddressRow = defineComponent({
   props: {
@@ -29,12 +30,10 @@ export const HdEmptyAddressRow = defineComponent({
     },
   },
   computed: {
-    wallet() {
-      return this.$store.state.activeWallet as WalletType;
-    },
-    walletType() {
-      return this.wallet.type;
-    },
+    ...mapState(useRootStore, {
+      walletType: (store) =>
+        store.activeWallet ? store.activeWallet.type : null,
+    }),
   },
 });
 export default HdEmptyAddressRow;

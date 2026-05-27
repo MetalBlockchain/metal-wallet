@@ -22,8 +22,8 @@
   </modal>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import { bnToBig } from "@/helpers/helper";

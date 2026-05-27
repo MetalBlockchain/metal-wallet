@@ -13,13 +13,13 @@
 <script lang="ts">
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
-
 import type ERC721Token from "@/js/ERC721Token";
-import type { WalletType } from "@/js/wallets/types";
 import Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import EVMTokenSelectModal from "@/components/modals/EvmTokenSelect/EVMTokenSelectModal.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const EVMAssetDropdown = defineComponent({
   components: { EVMTokenSelectModal },
@@ -42,8 +42,9 @@ export const EVMAssetDropdown = defineComponent({
     symbol() {
       return this.selected === "native" ? "METAL" : this.selected.data.symbol;
     },
+    ...mapState(useRootStore, ["activeWallet"]),
     avaxBalance(): Big {
-      const w: WalletType | null = this.$store.state.activeWallet;
+      const w = this.activeWallet;
       if (!w) return Big(0);
       const balBN = w.ethBalance;
       return bnToBig(balBN, 18);

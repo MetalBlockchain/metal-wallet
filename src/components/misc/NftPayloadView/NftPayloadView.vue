@@ -29,18 +29,18 @@
 </template>
 <script lang="ts">
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-
 import type { PropType } from "vue";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { isUrlBanned } from "@/components/misc/NftPayloadView/blacklist";
 import NftPayloadAllow from "@/components/misc/NftPayloadView/NftPayloadAllow.vue";
-
 import JsonPayloadView from "@/components/misc/NftPayloadView/views/JsonPayloadView.vue";
 import UrlPayloadView from "@/components/misc/NftPayloadView/views/UrlPayloadView.vue";
 import UtfPayloadView from "@/components/misc/NftPayloadView/views/UtfPayloadView.vue";
 import JsonPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/JsonPayloadViewSmall.vue";
 import UrlPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/UrlPayloadViewSmall.vue";
 import UtfPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/UtfPayloadViewSmall.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 import { payloadToHash } from "@/utils/payloadToHash";
 
 export default defineComponent({
@@ -65,9 +65,7 @@ export default defineComponent({
     };
   },
   computed: {
-    nftWhitelist() {
-      return this.$store.state.Assets.nftWhitelist;
-    },
+    ...mapState(useAssetsStore, ["nftWhitelist"]),
     payloadID() {
       const str = this.content;
       return payloadToHash(str);

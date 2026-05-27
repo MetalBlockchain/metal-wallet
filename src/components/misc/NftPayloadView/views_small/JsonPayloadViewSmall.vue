@@ -6,7 +6,6 @@
 </template>
 <script lang="ts">
 import type { JSONPayload } from "@metalblockchain/metaljs/dist/utils";
-
 import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import GenericPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/GenericPayloadViewSmall.vue";

@@ -82,13 +82,14 @@
   </modal>
 </template>
 <script lang="ts">
-import type { WalletType } from "@/js/wallets/types";
 import { BlockchainId, OperationStatus } from "@metalblockchain/glacier-sdk";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import Modal from "@/components/modals/Modal.vue";
 import { setTimeoutInterval } from "@/helpers/setTimeoutInterval";
 import glacier from "@/js/Glacier/Glacier";
+import { useRootStore } from "@/stores/pinia/root";
 import MultiSelect from "../misc/MultiSelect.vue";
 import RadioButtons from "../misc/RadioButtons.vue";
 
@@ -166,14 +167,14 @@ export const ExportGlacierHistoryModal = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+    }),
     initialSelection() {
       return [BlockchainId.X_CHAIN, BlockchainId.P_CHAIN, BlockchainId.C_CHAIN];
     },
     canSubmit() {
       return this.includeChains.length;
-    },
-    wallet() {
-      return this.$store.state.activeWallet;
     },
     startDateMax() {
       return new Date(this.formEndDate.getTime() - DAY).toISOString();
@@ -250,7 +251,7 @@ export const ExportGlacierHistoryModal = defineComponent({
       this.error = error;
     },
     generateCSVData() {
-      const w = this.$store.state.activeWallet as WalletType;
+      const w = this.wallet;
       if (!w) return;
       w.startTxExportJob(
         this.formStartDate,

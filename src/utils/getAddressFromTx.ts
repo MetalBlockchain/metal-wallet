@@ -4,7 +4,6 @@ import type { EVMBaseTx } from "@metalblockchain/metaljs/dist/apis/evm";
 import type { UnsignedTx as PlatformUnsignedTx } from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
 import { BaseTx as AVMBaseTx } from "@metalblockchain/metaljs/dist/apis/avm";
 import { UnsignedTx as EVMUnsignedTx } from "@metalblockchain/metaljs/dist/apis/evm/tx";
-
 import { BaseTx as PlatformBaseTx } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import {
   AddDelegatorTx,

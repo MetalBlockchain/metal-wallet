@@ -1,9 +1,8 @@
-import type { TokenListToken } from "@/stores/vuex/modules/assets/types";
+import type { TokenListToken } from "@/stores/types/assets";
 import { BN } from "@metalblockchain/metaljs";
 import ERC20Abi from "@openzeppelin/contracts/build/contracts/ERC20.json";
 import Big from "big.js";
 import { bnToBig } from "@/helpers/helper";
-
 import { web3 } from "@/misc/evm";
 
 class Erc20Token {
@@ -19,15 +18,16 @@ class Erc20Token {
     this.balanceBN = new BN("0");
     this.balanceBig = Big(0);
 
-    //@ts-ignore
-    const tokenInst = new web3.eth.Contract(ERC20Abi.abi, tokenData.address);
+    const tokenInst = new web3.eth.Contract(
+      ERC20Abi.abi as any,
+      tokenData.address,
+    );
     this.contract = tokenInst;
   }
 
   // Returns a new instance of the token, given only the erc20 address
   static fromAddress(address: string) {
-    //@ts-ignore
-    const tokenInst = new web3.eth.Contract(ERC20Abi.abi, address);
+    const _ = new web3.eth.Contract(ERC20Abi.abi as any, address);
   }
 
   createTransferTx(to: string, amount: BN) {

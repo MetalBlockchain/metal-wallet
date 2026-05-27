@@ -10,8 +10,8 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import { useStore } from "vuex";
 import { useOwnTheme } from "@/composables/use-own-theme";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export const CopyText = defineComponent({
   props: {
@@ -19,7 +19,8 @@ export const CopyText = defineComponent({
   },
   setup() {
     const { isDay } = useOwnTheme();
-    const store = useStore();
+
+    const notificationsStore = useNotificationsStore();
     const copytext = useTemplateRef<HTMLInputElement>("copytext");
 
     const copy = () => {
@@ -28,7 +29,7 @@ export const CopyText = defineComponent({
         copytext.value.setSelectionRange(0, 99_999);
 
         document.execCommand("copy");
-        store.dispatch("Notifications/add", {
+        notificationsStore.add({
           title: " Copied",
           message: "Copied to clipboard.",
         });

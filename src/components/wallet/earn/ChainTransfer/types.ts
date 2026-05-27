@@ -1,5 +1,5 @@
-import type { BN } from "@metalblockchain/metaljs";
 import type { ChainIdType } from "@/constants";
+import type { BN } from "@metalblockchain/metaljs";
 
 export enum TxState {
   failed = -1,

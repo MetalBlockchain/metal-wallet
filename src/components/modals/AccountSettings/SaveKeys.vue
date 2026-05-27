@@ -23,8 +23,18 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 
 export const SaveKeys = defineComponent({
+  setup() {
+    const accountsStore = useAccountsStore();
+    const notificationsStore = useNotificationsStore();
+    return {
+      accountsStore,
+      notificationsStore,
+    };
+  },
   data() {
     return {
       pass: "",
@@ -38,20 +48,18 @@ export const SaveKeys = defineComponent({
     },
   },
   methods: {
-    submit() {
+    async submit() {
       this.error = "";
-      this.$store
-        .dispatch("Accounts/saveKeys", this.pass)
-        .then(() => {
-          this.$store.dispatch("Notifications/add", {
-            title: "Keys Saved",
-            message: "Your account is updated with new keys.",
-          });
-          (this.$parent as any)?.close();
-        })
-        .catch((error) => {
-          this.error = error;
+
+      try {
+        await this.accountsStore.saveKeys(this.pass);
+        this.notificationsStore.add({
+          title: "Keys Saved",
+          message: "Your account is updated with new keys.",
         });
+      } catch (error) {
+        this.error = (error as Error).message;
+      }
     },
   },
 });

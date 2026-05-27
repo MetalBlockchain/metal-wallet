@@ -35,17 +35,18 @@
 </template>
 <script lang="ts">
 import type AvaAsset from "@/js/AvaAsset";
-import type { IWalletAssetsDict, priceDict } from "@/stores/vuex/types";
 
 import { BN } from "@metalblockchain/metaljs";
-
 import Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
-import BalanceDropdown from "@/components/misc/BalancePopup/BalanceDropdown.vue";
 
+import BalanceDropdown from "@/components/misc/BalancePopup/BalanceDropdown.vue";
 import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
 import { bnToBig } from "@/helpers/helper";
 import { avm } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const CurrencyInputDropdown = defineComponent({
   components: {
@@ -122,19 +123,11 @@ export const CurrencyInputDropdown = defineComponent({
       return this.asset_now.denomination;
     },
 
-    walletAssetsArray(): AvaAsset[] {
-      // return this.$store.getters.walletAssetsArray
-      return this.$store.getters["Assets/walletAssetsArray"];
-    },
-
-    walletAssetsDict(): IWalletAssetsDict {
-      // return this.$store.getters['walletAssetsDict']
-      return this.$store.getters["Assets/walletAssetsDict"];
-    },
-
-    avaxAsset(): AvaAsset | null {
-      return this.$store.getters["Assets/AssetAVA"];
-    },
+    ...mapState(useAssetsStore, {
+      walletAssetsArray: "walletAssetsArray",
+      walletAssetsDict: "walletAssetsDict",
+      avaxAsset: "AssetAVA",
+    }),
 
     max_amount(): null | BN {
       if (!this.asset_now) return null;
@@ -164,9 +157,9 @@ export const CurrencyInputDropdown = defineComponent({
       return bnToBig(this.max_amount, this.denomination);
     },
 
-    priceDict(): priceDict {
-      return this.$store.state.prices;
-    },
+    ...mapState(useRootStore, {
+      priceDict: "prices",
+    }),
   },
   watch: {
     asset_now: [

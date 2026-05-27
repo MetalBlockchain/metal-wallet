@@ -17,16 +17,18 @@
   </div>
 </template>
 <script lang="ts">
+import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
 import { getPayloadFromUTXO } from "@/helpers/helper";
 import { bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const NftListItem = defineComponent({
   components: {
@@ -45,6 +47,7 @@ export const NftListItem = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, ["walletNftDict"]),
     assetId() {
       const famId = this.sample?.getAssetID();
       if (!famId) return "";
@@ -63,9 +66,9 @@ export const NftListItem = defineComponent({
     allUtxos() {
       const famId = this.sample?.getAssetID();
       if (!famId) return [];
-      // let utxos: UTXO[] = this.$store.getters.walletNftDict[bintools.cb58Encode(famId)]
-      const utxos: UTXO[] =
-        this.$store.getters["Assets/walletNftDict"][bintools.cb58Encode(famId)];
+      const utxos = this.walletNftDict[bintools.cb58Encode(famId)];
+
+      if (!utxos) return [];
 
       const filtered = utxos.filter((utxo) => {
         const gId = (utxo.getOutput() as NFTTransferOutput).getGroupID();

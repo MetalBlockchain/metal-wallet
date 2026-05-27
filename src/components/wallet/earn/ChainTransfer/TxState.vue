@@ -31,9 +31,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
-
 import type { TxState } from "@/components/wallet/earn/ChainTransfer/types";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
 

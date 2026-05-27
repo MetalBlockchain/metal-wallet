@@ -61,16 +61,16 @@
 <script lang="ts">
 import type { ChainIdType } from "@/constants";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletNameType, WalletType } from "@/js/wallets/types";
+import type { WalletNameType } from "@/js/wallets/types";
+import { mapState } from "pinia";
 import QRCode from "qrcode";
-
 import { defineComponent } from "vue";
 
 import CopyText from "@/components/misc/CopyText.vue";
-
 import PaperWallet from "@/components/modals/PaperWallet/PaperWallet.vue";
 import QRModal from "@/components/modals/QRModal.vue";
 import ChainSelect from "@/components/wallet/TopCards/AddressCard/ChainSelect.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const AddressCard = defineComponent({
   components: {
@@ -95,6 +95,12 @@ export const AddressCard = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      activeWallet: (store) => store.activeWallet || undefined,
+    }),
+    mnemonicWallet(): MnemonicWallet | undefined {
+      return this.activeWallet as MnemonicWallet;
+    },
     addressLabel(): string {
       switch (this.chainNow) {
         default: {
@@ -130,12 +136,7 @@ export const AddressCard = defineComponent({
       if (!wallet) return "mnemonic";
       return wallet.type;
     },
-    activeWallet(): WalletType | undefined {
-      return this.$store.state.activeWallet || undefined;
-    },
-    mnemonicWallet(): MnemonicWallet | undefined {
-      return this.activeWallet as MnemonicWallet;
-    },
+
     address() {
       const wallet = this.activeWallet;
       if (!wallet) {

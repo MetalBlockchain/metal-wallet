@@ -30,7 +30,9 @@
 </template>
 <script lang="ts">
 import { strip0x } from "@metalblockchain/metal-wallet-sdk";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const PrivateKey = defineComponent({
   data() {
@@ -49,6 +51,7 @@ export const PrivateKey = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useRootStore, ["accessWalletSingleton"]),
     async access() {
       if (!this.canSubmit || this.isLoading) return;
       this.error = "";
@@ -56,7 +59,7 @@ export const PrivateKey = defineComponent({
       const key = strip0x(this.privatekey);
 
       try {
-        await this.$store.dispatch("accessWalletSingleton", key);
+        await this.accessWalletSingleton(key);
         this.onsuccess();
       } catch {
         this.onerror("Invalid Private Key.");

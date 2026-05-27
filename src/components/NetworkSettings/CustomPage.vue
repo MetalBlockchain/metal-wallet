@@ -94,7 +94,6 @@ export default defineComponent({
       this.explorer_site = url;
     },
     checkUrl() {
-      const err = "";
       let url = this.url;
       // protect against homograph attack: https://hethical.io/homograph-attack-using-internationalized-domain-name/
 

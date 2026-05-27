@@ -2,7 +2,7 @@
   <div>
     <div class="cols">
       <form @submit.prevent="">
-        <transition-group mode="out-in" name="fade">
+        <TransitionGroup name="fade">
           <div v-show="!isConfirm" key="form" class="ins_col">
             <div style="margin-bottom: 30px">
               <h4>{{ $t("earn.validate.label_1") }}</h4>
@@ -130,7 +130,7 @@
             :reward-address="rewardIn"
             :reward-destination="rewardDestination"
           ></ConfirmPage>
-        </transition-group>
+        </TransitionGroup>
         <div>
           <div v-if="!isSuccess" class="summary">
             <CurrencySelect v-model="currency_type"></CurrencySelect>
@@ -254,14 +254,13 @@ import type {
   AmountOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletType } from "@/js/wallets/types";
 
 import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
 import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import Big from "big.js";
 import moment from "moment";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import AvaxInput from "@/components/misc/AvaxInput.vue";
 import CurrencySelect from "@/components/misc/CurrencySelect/CurrencySelect.vue";
@@ -276,6 +275,11 @@ import { bnToBig, calculateStakingReward } from "@/helpers/helper";
 import { sortUTxoSetP } from "@/helpers/sortUTXOs";
 import { selectMaxUtxoForStaking } from "@/helpers/utxoSelection/selectMaxUtxoForStaking";
 import { bintools, pChain } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { usePlatformStore } from "@/stores/pinia/platform";
+import { useRootStore } from "@/stores/pinia/root";
 
 const MIN_MS = 60_000;
 const HOUR_MS = MIN_MS * 60;
@@ -368,10 +372,22 @@ export const AddValidator = defineComponent({
     };
   },
   computed: {
-    rewardAddressLocal() {
-      const wallet: MnemonicWallet = this.$store.state.activeWallet;
-      return wallet.getPlatformRewardAddress();
-    },
+    ...mapState(useRootStore, {
+      wallet: (store) => store.activeWallet,
+      rewardAddressLocal: (store) =>
+        store.activeWallet?.getPlatformRewardAddress() ?? "",
+      avaxPrice: (store) => Big(store.prices.usd),
+    }),
+    ...mapState(useAssetsStore, {
+      platformUnlocked: (store) => store.walletPlatformBalance.available,
+      platformLockedStakeable: (store) =>
+        store.walletPlatformBalanceLockedStakeable,
+    }),
+    ...mapState(usePlatformStore, {
+      currentSupply: "currentSupply",
+      minStakeAmt: (store) => store.minStake,
+    }),
+
     warnShortDuration(): boolean {
       const dur = this.stakeDuration;
 
@@ -400,12 +416,6 @@ export const AddValidator = defineComponent({
     denomination() {
       return 9;
     },
-    platformUnlocked(): BN {
-      return this.$store.getters["Assets/walletPlatformBalance"].available;
-    },
-    platformLockedStakeable(): BN {
-      return this.$store.getters["Assets/walletPlatformBalanceLockedStakeable"];
-    },
     feeAmt(): BN {
       return pChain.getTxFee();
     },
@@ -431,9 +441,7 @@ export const AddValidator = defineComponent({
       const ZERO = new BN("0");
       return pAmt.gt(ZERO) ? pAmt : ZERO;
     },
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
-    },
+
     showMaxTxSizeWarning() {
       return this.maxTxSizeAmount.lt(this.maxAmt);
     },
@@ -463,19 +471,16 @@ export const AddValidator = defineComponent({
       const res = big.times(this.avaxPrice);
       return res.toLocaleString(2);
     },
-    avaxPrice(): Big {
-      return Big(this.$store.state.prices.usd);
-    },
+
     estimatedReward(): Big {
       const start = new Date(this.startDate);
       const end = new Date(this.endDate);
       const duration = end.getTime() - start.getTime(); // in ms
 
-      const currentSupply = this.$store.state.Platform.currentSupply;
       const estimation = calculateStakingReward(
         this.stakeAmt,
         duration / 1000,
-        currentSupply,
+        this.currentSupply,
       );
       const res = bnToBig(estimation, 9);
 
@@ -499,9 +504,6 @@ export const AddValidator = defineComponent({
 
       return true;
     },
-    minStakeAmt(): BN {
-      return this.$store.state.Platform.minStake;
-    },
   },
   watch: {
     formUtxos: [
@@ -519,6 +521,11 @@ export const AddValidator = defineComponent({
     this.rewardSelect("local");
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     onFeeChange() {
       const num = Number.parseFloat(this.delegationFee);
       if (num < this.minFee) {
@@ -601,7 +608,9 @@ export const AddValidator = defineComponent({
     },
     async submit() {
       if (!this.formCheck()) return;
-      const wallet: WalletType = this.$store.state.activeWallet;
+
+      const wallet = this.wallet;
+      if (!wallet) return;
 
       // Start delegation in 5 minutes
       let startDate = new Date(Date.now() + 5 * MIN_MS);
@@ -640,7 +649,7 @@ export const AddValidator = defineComponent({
       this.updateTxStatus(txId);
     },
     onsuccess() {
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "success",
         title: "Validator Added",
         message: "Your tokens are now locked to stake.",
@@ -648,8 +657,8 @@ export const AddValidator = defineComponent({
 
       // Update History
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
       }, 3000);
     },
     async updateTxStatus(txId: string) {
@@ -697,13 +706,15 @@ export const AddValidator = defineComponent({
         this.err = err.message;
       }
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "error",
         title: "Validation Failed",
         message: "Failed to add validator.",
       });
     },
     onFormUtxosChange() {
+      if (!this.wallet) return;
+
       // Amount of the biggest transaction that can be created with the selected UTXOs
       const set = new UTXOSet();
       set.addArray(this.formUtxos as any);

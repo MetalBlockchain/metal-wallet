@@ -65,7 +65,7 @@
           v-show="txs.length > 0"
           ref="vlist"
           :items="txsProcessed"
-          :key-field="'txHash'"
+          key-field="txHash"
           :min-item-size="70"
           :style="{ height: '100%' }"
         >
@@ -105,23 +105,22 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import type { AvaNetwork } from "@/js/AvaNetwork";
+<script lang="ts" setup>
 import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 
-import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 import { DynamicScroller, DynamicScrollerItem } from "vue-virtual-scroller";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import ExportGlacierHistoryModal from "@/components/modals/ExportGlacierHistoryModal.vue";
 import TxRow from "@/components/wallet/activity/TxRow.vue";
 import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNetworkStore } from "@/stores/pinia/networks";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 type ModeKeyType = "all" | "transfer" | "swap" | "stake";
-
-const PAGE_LIMIT = 100;
 
 const YEAR_MIN = 2020;
 const MONTH_MIN = 8;
@@ -152,253 +151,216 @@ const stakeTypes = new Set<TransactionTypeName>([
   "AddPermissionlessDelegatorTx",
 ]);
 
-export const Activity = defineComponent({
-  name: "Activity",
-  components: {
-    ExportGlacierHistoryModal,
-    Spinner,
-    RadioButtons,
-    DynamicScroller,
-    DynamicScrollerItem
-  },
-  data(): {
-    mode: ModeKeyType;
-    modes: string[];
-    modeKey: ModeKeyType[];
-    isLoading: boolean;
-    pageNow: number;
-    RowComponent: typeof TxRow;
-    monthNow: number;
-    yearNow: number;
-    listH: number;
-  } {
-    const modeKey: ModeKeyType[] = ["all", "transfer", "swap", "stake"];
-    const mode: ModeKeyType = "all";
-    return {
-      mode,
-      modes: [
-        this.$t("activity.mode1"),
-        this.$t("activity.mode2"),
-        this.$t("activity.mode3"),
-        this.$t("activity.mode4"),
-      ],
-      modeKey,
-      isLoading: false,
-      pageNow: 0,
-      RowComponent: TxRow,
-      monthNow: 0,
-      yearNow: 0,
-      listH: 100,
-    };
-  },
-  computed: {
-    isCsvDisabled() {
-      return !this.hasExplorer || this.isFuji;
-    },
-    showList(): boolean {
-      if (this.isUpdatingAll || this.isLoading || this.isError) return false;
+const { t } = useI18n();
+const networkStore = useNetworkStore();
+const historyStore = useHistoryStore();
+
+const tList = useTemplateRef("list");
+const tVList = useTemplateRef("vlist");
+const tGlacier_csv_modal = useTemplateRef("glacier_csv_modal");
+
+const mode = ref<ModeKeyType>("all");
+const modes = ref<string[]>([
+  t("activity.mode1"),
+  t("activity.mode2"),
+  t("activity.mode3"),
+  t("activity.mode4"),
+]);
+const modeKey = ref<ModeKeyType[]>(["all", "transfer", "swap", "stake"]);
+const isLoading = ref(false);
+const monthNow = ref(0);
+const yearNow = ref(0);
+const listH = ref(0);
+
+const activeNetwork = computed(() => networkStore.selectedNetwork);
+const isUpdatingAll = computed(() => historyStore.isUpdatingAll);
+const isError = computed(() => historyStore.isError);
+const allTxs = computed(() => {
+  return historyStore.allTransactions.filter((tx: TransactionType) => {
+    return supportedTypes.has(tx.txType);
+  });
+});
+
+const isCsvDisabled = computed(() => {
+  return !hasExplorer.value || isFuji.value;
+});
+
+const showList = computed(() => {
+  if (isUpdatingAll.value || isLoading.value || isError.value) return false;
+  return true;
+});
+const isNextPage = computed(() => {
+  const now = new Date();
+  if (yearNow.value < now.getFullYear()) return true;
+  if (monthNow.value < now.getMonth()) return true;
+  return false;
+});
+
+const isPrevPage = computed(() => {
+  // if (this.yearNow  now.getFullYear()) return true
+  if (monthNow.value === MONTH_MIN && yearNow.value === YEAR_MIN) return false;
+  return true;
+});
+
+const monthNowName = computed(() => {
+  return t(`activity.months.${monthNow.value}`);
+});
+
+const isMainnet = computed(() => {
+  return (
+    activeNetwork.value && isMainnetNetworkID(activeNetwork.value.networkId)
+  );
+});
+const isFuji = computed(() => {
+  return (
+    activeNetwork.value && isTestnetNetworkID(activeNetwork.value.networkId)
+  );
+});
+
+const hasExplorer = computed(() => {
+  if (!activeNetwork.value) return false;
+  return isMainnet.value || isFuji.value;
+});
+
+const txs = computed<TransactionType[]>(() => {
+  let txsSource;
+  switch (mode.value) {
+    case "transfer": {
+      txsSource = txsTransfer.value;
+      break;
+    }
+    case "swap": {
+      txsSource = txsSwap.value;
+      break;
+    }
+    case "stake": {
+      txsSource = txsStake.value;
+      break;
+    }
+    default: {
+      txsSource = allTxs.value;
+      break;
+    }
+  }
+
+  const filtered = txsSource.filter((tx) => {
+    const date = new Date(getTxTimestamp(tx));
+
+    if (
+      date.getMonth() === monthNow.value &&
+      date.getFullYear() === yearNow.value
+    ) {
       return true;
-    },
-    isUpdatingAll(): boolean {
-      return this.$store.state.History.isUpdatingAll;
-    },
-    isNextPage() {
-      const now = new Date();
-      if (this.yearNow < now.getFullYear()) return true;
-      if (this.monthNow < now.getMonth()) return true;
-      return false;
-    },
-    isPrevPage() {
-      // if (this.yearNow  now.getFullYear()) return true
-      if (this.monthNow === MONTH_MIN && this.yearNow === YEAR_MIN)
-        return false;
-      return true;
-    },
-    monthNowName() {
-      return this.$t(`activity.months.${this.monthNow}`);
-    },
-    activeNetwork(): AvaNetwork | null {
-      return this.$store.state.Network.selectedNetwork;
-    },
-    isMainnet() {
-      return (
-        this.activeNetwork && isMainnetNetworkID(this.activeNetwork.networkId)
-      );
-    },
-    isFuji() {
-      return (
-        this.activeNetwork && isTestnetNetworkID(this.activeNetwork.networkId)
-      );
-    },
-    hasExplorer() {
-      if (!this.activeNetwork) return false;
-      return this.isMainnet || this.isFuji;
-    },
-    isError() {
-      return this.$store.state.History.isError;
-    },
-    monthGroups(): any {
-      const res: any = {};
-      const txs = this.txs;
+    }
+    return false;
+  });
+  return filtered;
+});
 
-      for (const tx of txs) {
-        const date = new Date(this.getTxTimestamp(tx));
-        // let mom = moment(tx.timestamp)
-        const month = date.getMonth();
-        const year = date.getFullYear();
-        const key = `${month}/${year}`;
-        if (res[key]) {
-          res[key].push(tx);
-        } else {
-          res[key] = [tx];
-        }
-      }
-      return res;
-    },
-    allTxs(): TransactionType[] {
-      return this.$store.state.History.allTransactions.filter(
-        (tx: TransactionType) => {
-          return supportedTypes.has(tx.txType);
-        },
-      );
-    },
-    txs(): TransactionType[] {
-      let txs;
-      switch (this.mode) {
-        case "transfer": {
-          txs = this.txsTransfer;
-          break;
-        }
-        case "swap": {
-          txs = this.txsSwap;
-          break;
-        }
-        case "stake": {
-          txs = this.txsStake;
-          break;
-        }
-        default: {
-          txs = this.allTxs;
-          break;
-        }
-      }
+const txsProcessed = computed(() => {
+  const txsSource = txs.value;
 
-      const filtered = txs.filter((tx) => {
-        const date = new Date(this.getTxTimestamp(tx));
+  const res = txsSource.map((tx, index) => {
+    let showMonth = false;
+    let showDay = false;
 
-        if (
-          date.getMonth() === this.monthNow &&
-          date.getFullYear() === this.yearNow
-        ) {
-          return true;
-        }
-        return false;
-      });
-      return filtered;
-    },
-    txsProcessed() {
-      const txs = this.txs;
+    if (index === 0) {
+      showMonth = true;
+      showDay = true;
+    } else {
+      const txBefore = txsSource[index - 1];
+      if (txBefore) {
+        const date = new Date(getTxTimestamp(tx));
+        const dateBefore = new Date(getTxTimestamp(txBefore));
 
-      const res = txs.map((tx, index) => {
-        let showMonth = false;
-        let showDay = false;
-
-        if (index === 0) {
+        if (dateBefore.getMonth() !== date.getMonth()) {
           showMonth = true;
           showDay = true;
-        } else {
-          const txBefore = txs[index - 1];
-          if (txBefore) {
-            const date = new Date(this.getTxTimestamp(tx));
-            const dateBefore = new Date(this.getTxTimestamp(txBefore));
-
-            if (dateBefore.getMonth() !== date.getMonth()) {
-              showMonth = true;
-              showDay = true;
-            } else if (dateBefore.getDay() !== date.getDay()) {
-              showDay = true;
-            }
-          }
+        } else if (dateBefore.getDay() !== date.getDay()) {
+          showDay = true;
         }
-
-        return {
-          ...tx,
-          isMonthChange: showMonth,
-          isDayChange: showDay,
-        };
-      });
-      return res;
-    },
-    pageAmount(): number {
-      return Math.floor(this.txs.length / PAGE_LIMIT);
-    },
-    txsTransfer(): TransactionType[] {
-      return this.allTxs.filter((tx) => {
-        return transferTypes.has(tx.txType);
-      });
-    },
-    txsSwap(): TransactionType[] {
-      return this.allTxs.filter((tx) => {
-        return exportTypes.has(tx.txType);
-      });
-    },
-    txsStake(): TransactionType[] {
-      return this.allTxs.filter((tx) => {
-        return stakeTypes.has(tx.txType);
-      });
-    },
-  },
-  mounted() {
-    this.updateHistory();
-
-    const now = new Date();
-    this.yearNow = now.getFullYear();
-    this.monthNow = now.getMonth();
-    this.scrollToTop();
-    this.setScrollHeight();
-  },
-  methods: {
-    openGlacierCsvModal() {
-      (this.$refs.glacier_csv_modal as typeof ExportGlacierHistoryModal).open();
-    },
-    async updateHistory() {
-      this.$store.dispatch("History/updateAllTransactionHistory");
-    },
-    getTxTimestamp(tx: TransactionType) {
-      return isTransactionX(tx) || isTransactionC(tx)
-        ? tx.timestamp * 1000
-        : tx.blockTimestamp * 1000;
-    },
-    prevPage() {
-      if (this.monthNow === 0) {
-        this.yearNow = this.yearNow - 1;
-        this.monthNow = 11;
-      } else {
-        this.monthNow = this.monthNow - 1;
       }
-      this.scrollToTop();
-      this.setScrollHeight();
-    },
-    nextPage() {
-      if (this.monthNow === 11) {
-        this.yearNow = this.yearNow + 1;
-        this.monthNow = 0;
-      } else {
-        this.monthNow = this.monthNow + 1;
-      }
-      this.scrollToTop();
-      this.setScrollHeight();
-    },
-    scrollToTop() {
-      (this.$refs.vlist as typeof DynamicScroller).scrollToItem(0);
-    },
-    setScrollHeight() {
-      const h = (this.$refs.list as HTMLElement).clientHeight;
-      this.listH = h;
-    },
-  },
+    }
+
+    return {
+      ...tx,
+      isMonthChange: showMonth,
+      isDayChange: showDay,
+    };
+  });
+  return res;
 });
-export default Activity;
+
+const txsTransfer = computed(() => {
+  return allTxs.value.filter((tx) => {
+    return transferTypes.has(tx.txType);
+  });
+});
+
+const txsSwap = computed(() => {
+  return allTxs.value.filter((tx) => {
+    return exportTypes.has(tx.txType);
+  });
+});
+
+const txsStake = computed(() => {
+  return allTxs.value.filter((tx) => {
+    return stakeTypes.has(tx.txType);
+  });
+});
+
+onMounted(() => {
+  updateHistory();
+
+  const now = new Date();
+  yearNow.value = now.getFullYear();
+  monthNow.value = now.getMonth();
+  scrollToTop();
+  setScrollHeight();
+});
+
+const updateHistory = historyStore.updateAllTransactionHistory;
+
+function openGlacierCsvModal() {
+  tGlacier_csv_modal.value?.open();
+}
+
+function getTxTimestamp(tx: TransactionType) {
+  return isTransactionX(tx) || isTransactionC(tx)
+    ? tx.timestamp * 1000
+    : tx.blockTimestamp * 1000;
+}
+
+function prevPage() {
+  if (monthNow.value === 0) {
+    yearNow.value = yearNow.value - 1;
+    monthNow.value = 11;
+  } else {
+    monthNow.value = monthNow.value - 1;
+  }
+  scrollToTop();
+  setScrollHeight();
+}
+
+function nextPage() {
+  if (monthNow.value === 11) {
+    yearNow.value = yearNow.value + 1;
+    monthNow.value = 0;
+  } else {
+    monthNow.value = monthNow.value + 1;
+  }
+  scrollToTop();
+  setScrollHeight();
+}
+
+function scrollToTop() {
+  tVList.value?.scrollToItem(0);
+}
+
+function setScrollHeight() {
+  const h = tList.value?.clientHeight ?? 0;
+  listH.value = h;
+}
 </script>
 <style scoped lang="scss">
 @use "@/styles/abstracts/mixins";

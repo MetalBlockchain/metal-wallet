@@ -6,8 +6,8 @@
   </modal>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
 import ERC721View from "../misc/ERC721View.vue";

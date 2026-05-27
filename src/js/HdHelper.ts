@@ -1,10 +1,8 @@
-import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
-
-import type HDKey from "hdkey";
 import type { ChainAlias } from "./wallets/types";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type HDKey from "hdkey";
 import { Buffer } from "@metalblockchain/metaljs";
-
 import {
   KeyChain as AVMKeyChain,
   KeyPair as AVMKeyPair,
@@ -19,7 +17,7 @@ import { getPreferredHRP } from "@metalblockchain/metaljs/dist/utils";
 import { avmGetAllUTXOs, platformGetAllUTXOs } from "@/helpers/utxo_helper";
 import { listChainsForAddresses } from "@/js/Glacier/listChainsForAddresses";
 import { ava, avm, bintools, pChain } from "@/misc/AVA";
-import store from "@/stores/vuex";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
 const INDEX_RANGE = 20; // a gap of at least 20 indexes is needed to claim an index unused
 
@@ -120,8 +118,10 @@ class HdHelper {
   async findHdIndex() {
     // Check if explorer is available
 
-    const network: AvaNetwork = (store.state as any).Network.selectedNetwork;
-    const explorerUrl = network.explorerUrl;
+    const networkStore = useNetworkStore();
+
+    const network: AvaNetwork | null = networkStore.selectedNetwork;
+    const explorerUrl = network?.explorerUrl;
 
     this.hdIndex = await (explorerUrl
       ? this.findAvailableIndexExplorer()
@@ -176,7 +176,6 @@ class HdHelper {
   // Updates the helper keychain to contain keys upto the HD Index
   updateKeychain(): AVMKeyChain | PlatformVMKeyChain {
     const hrp = getPreferredHRP(ava.getNetworkID());
-    
 
     const keychain =
       this.chainId === "X"
@@ -352,7 +351,7 @@ class HdHelper {
   // TODO: Public wallet should never be using this
   getKeyForIndex(
     index: number,
-    isPrivate = true,
+    _isPrivate = true,
   ): AVMKeyPair | PlatformVMKeyPair {
     // If key is cached return that
     const cacheExternal =
@@ -412,7 +411,6 @@ class HdHelper {
     const chainId = this.chainId;
 
     // No need for PlatformKeypair because addressToString uses chainID to decode
-    const keypair = new AVMKeyPair(hrp, chainId);
     const addrBuf = AVMKeyPair.addressFromPublicKey(pkBuff);
     const addr = bintools.addressToString(hrp, chainId, addrBuf);
 

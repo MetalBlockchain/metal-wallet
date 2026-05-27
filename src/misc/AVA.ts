@@ -3,7 +3,6 @@ import type {
   KeyChain as AVMKeyChain,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { EVMAPI } from "@metalblockchain/metaljs/dist/apis/evm";
-
 import type { InfoAPI } from "@metalblockchain/metaljs/dist/apis/info";
 import type { PlatformVMAPI } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import Metal, { BinTools } from "@metalblockchain/metaljs";
@@ -26,7 +25,7 @@ const keyChain: AVMKeyChain = avm.keyChain();
 
 function isValidAddress(addr: string) {
   try {
-    const res = bintools.stringToAddress(addr);
+    bintools.stringToAddress(addr);
     return true;
   } catch {
     return false;

@@ -13,7 +13,7 @@
         </button>
         <NodeCard :node="selected"></NodeCard>
       </div>
-      <transition-group mode="out-in" name="fade">
+      <TransitionGroup name="fade">
         <div v-show="!isConfirm" key="form" class="ins_col">
           <div style="margin-bottom: 30px">
             <h4>{{ $t("earn.delegate.form.period.label") }}</h4>
@@ -99,7 +99,7 @@
           :reward-address="formRewardAddr"
           :reward-destination="rewardDestination"
         ></ConfirmPage>
-      </transition-group>
+      </TransitionGroup>
       <div>
         <div v-if="!isSuccess" class="summary">
           <CurrencySelect
@@ -205,20 +205,18 @@
   </div>
 </template>
 <script lang="ts">
+import type { ValidatorListItem } from "@/stores/types/platform";
 import type {
   AmountOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletType } from "@/js/wallets/types";
-import type { ValidatorListItem } from "@/stores/vuex/modules/platform/types";
 
 import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
-
 import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import Big from "big.js";
 import moment from "moment";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import AvaxInput from "@/components/misc/AvaxInput.vue";
 import CurrencySelect from "@/components/misc/CurrencySelect/CurrencySelect.vue";
@@ -226,7 +224,6 @@ import Expandable from "@/components/misc/Expandable.vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import QrInput from "@/components/shared/QrInput.vue";
 import DateForm from "@/components/wallet/earn/DateForm.vue";
-
 import ConfirmPage from "@/components/wallet/earn/Delegate/ConfirmPage.vue";
 import NodeCard from "@/components/wallet/earn/Delegate/NodeCard.vue";
 import NodeSelection from "@/components/wallet/earn/Delegate/NodeSelection.vue";
@@ -235,6 +232,11 @@ import { bnToBig, calculateStakingReward } from "@/helpers/helper";
 import { sortUTxoSetP } from "@/helpers/sortUTXOs";
 import { selectMaxUtxoForStaking } from "@/helpers/utxoSelection/selectMaxUtxoForStaking";
 import { bintools, pChain } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { usePlatformStore } from "@/stores/pinia/platform";
+import { useRootStore } from "@/stores/pinia/root";
 
 const MIN_MS = 60_000;
 const HOUR_MS = MIN_MS * 60;
@@ -311,33 +313,35 @@ export const AddDelegator = defineComponent({
     };
   },
   computed: {
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
-    },
+    ...mapState(useRootStore, {
+      wallet: (store) => store.activeWallet,
+      avaxPrice: (store) => {
+        return Big(store.prices.usd);
+      },
+      rewardAddressLocal: (store) => {
+        return store.activeWallet?.getPlatformRewardAddress() ?? "";
+      },
+    }),
+    ...mapState(usePlatformStore, {
+      currentSupply: "currentSupply",
+      minStake: "minStakeDelegation",
+      validatorMaxStake: "validatorMaxStake",
+    }),
     estimatedReward(): Big {
       const start = new Date(this.startDate);
       const end = new Date(this.endDate);
       const duration = end.getTime() - start.getTime(); // in ms
 
-      const currentSupply = this.$store.state.Platform.currentSupply;
-
       const estimation = calculateStakingReward(
         this.stakeAmt,
         duration / 1000,
-        currentSupply,
+        this.currentSupply,
       );
       const res = Big(estimation.toString()).div(Math.pow(10, 9));
       return res;
     },
     estimatedRewardUSD() {
       return this.estimatedReward.times(this.avaxPrice);
-    },
-    avaxPrice(): Big {
-      return Big(this.$store.state.prices.usd);
-    },
-    rewardAddressLocal() {
-      const wallet: MnemonicWallet = this.$store.state.activeWallet;
-      return wallet.getPlatformRewardAddress();
     },
     canSubmit(): boolean {
       if (this.stakeAmt.isZero()) {
@@ -363,9 +367,7 @@ export const AddDelegator = defineComponent({
       const days = Math.floor(d.asDays());
       return `${days} days ${d.hours()} hours ${d.minutes()} minutes`;
     },
-    minStake(): BN {
-      return this.$store.state.Platform.minStakeDelegation;
-    },
+
     delegationFee(): number {
       if (!this.selected) return 0;
       return this.selected.fee;
@@ -400,10 +402,7 @@ export const AddDelegator = defineComponent({
     },
     remainingAmt(): BN {
       if (!this.selected) return new BN(0);
-      // let totDel: BN = this.$store.getters["Platform/validatorTotalDelegated"](this.selected.nodeID);
-      const nodeMaxStake: BN = this.$store.getters[
-        "Platform/validatorMaxStake"
-      ](this.selected);
+      const nodeMaxStake: BN = this.validatorMaxStake(this.selected);
 
       const totDel = this.selected.delegatedStake;
       const valAmt = this.selected.validatorStake;
@@ -459,6 +458,11 @@ export const AddDelegator = defineComponent({
     this.rewardSelect("local");
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     bnToAvaxP,
     setEnd(val: string) {
       this.endDate = val;
@@ -468,13 +472,12 @@ export const AddDelegator = defineComponent({
       this.selected = val;
     },
     async submit() {
-      if (!this.formCheck()) {
-        return;
-      }
+      const wallet = this.wallet;
+      if (!wallet) return;
+      if (!this.formCheck()) return;
+
       this.isLoading = true;
       this.err = "";
-
-      const wallet: WalletType = this.$store.state.activeWallet;
 
       // Start delegation in 5 minutes
       const startDate = new Date(Date.now() + 5 * MIN_MS);
@@ -498,7 +501,7 @@ export const AddDelegator = defineComponent({
       }
     },
     onsuccess(_: string) {
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "success",
         title: "Delegator Added",
         message: "Your tokens are now locked for staking.",
@@ -506,8 +509,8 @@ export const AddDelegator = defineComponent({
 
       // Update History
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
       }, 3000);
     },
     async updateTxStatus(txId: string) {
@@ -547,7 +550,7 @@ export const AddDelegator = defineComponent({
       } else {
         this.err = e.message;
       }
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "error",
         title: "Delegation Failed",
         message: "Failed to delegate tokens.",
@@ -642,24 +645,28 @@ export const AddDelegator = defineComponent({
       const set = new UTXOSet();
       set.addArray(this.formUtxos as any);
 
-      const fromAddresses = this.wallet.getAllAddressesP();
-      const changeAddress = this.wallet.getChangeAddressPlatform();
-      const sorted = sortUTxoSetP(set, false);
-      selectMaxUtxoForStaking(
-        sorted,
-        this.maxAmt,
-        fromAddresses,
-        changeAddress,
-        changeAddress,
-        changeAddress,
-        false,
-      )
-        .then((res) => {
-          this.maxTxSizeAmount = res.amount;
-        })
-        .catch(() => {
-          this.maxTxSizeAmount = null;
-        });
+      if (this.wallet) {
+        const fromAddresses = this.wallet.getAllAddressesP();
+        const changeAddress = this.wallet.getChangeAddressPlatform();
+        const sorted = sortUTxoSetP(set, false);
+        selectMaxUtxoForStaking(
+          sorted,
+          this.maxAmt,
+          fromAddresses,
+          changeAddress,
+          changeAddress,
+          changeAddress,
+          false,
+        )
+          .then((res) => {
+            this.maxTxSizeAmount = res.amount;
+          })
+          .catch(() => {
+            this.maxTxSizeAmount = null;
+          });
+      } else {
+        this.maxTxSizeAmount = null;
+      }
     },
   },
 });

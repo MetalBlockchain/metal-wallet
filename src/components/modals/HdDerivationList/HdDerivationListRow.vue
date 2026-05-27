@@ -13,8 +13,8 @@
       <p v-if="noBalance">-</p>
       <template v-else>
         <p v-for="(bal, assetId) in cleanBalance" :key="assetId">
-          {{ bal.toLocaleString(assetsDict[assetId].denomination) }}
-          <span>{{ assetsDict[assetId].symbol }}</span>
+          {{ bal.toLocaleString(assetsDict[assetId]?.denomination) }}
+          <span>{{ assetsDict[assetId]?.symbol }}</span>
         </p>
       </template>
     </div>
@@ -22,11 +22,13 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
-import type { WalletType } from "@/js/wallets/types";
+import type { PropType } from "vue";
 import Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const HdDerivationListRow = defineComponent({
   props: {
@@ -57,15 +59,11 @@ export const HdDerivationListRow = defineComponent({
     noBalance(): boolean {
       return Object.keys(this.cleanBalance).length === 0;
     },
-    assetsDict() {
-      return this.$store.state.Assets.assetsDict;
-    },
-    wallet() {
-      return this.$store.state.activeWallet as WalletType;
-    },
-    walletType() {
-      return this.wallet.type;
-    },
+    ...mapState(useAssetsStore, ["assetsDict"]),
+    ...mapState(useRootStore, {
+      walletType: (store) =>
+        store.activeWallet ? store.activeWallet.type : null,
+    }),
   },
 });
 export default HdDerivationListRow;

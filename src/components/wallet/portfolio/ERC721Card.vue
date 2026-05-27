@@ -52,8 +52,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
 import axios from "axios";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";

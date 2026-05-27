@@ -2,8 +2,8 @@ import { Network } from "@metalblockchain/glacier-sdk";
 import Glacier from "@/js/Glacier/Glacier";
 import { splitToParts } from "@/js/Glacier/utils";
 import { ava } from "@/misc/AVA";
-import { isMainnetNetworkID } from "@/stores/vuex/modules/network/isMainnetNetworkID";
-import { isTestnetNetworkID } from "@/stores/vuex/modules/network/isTestnetNetworkID";
+import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
+import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 export async function listChainsForAddresses(addrs: string[]) {
   const addressLimit = 64;

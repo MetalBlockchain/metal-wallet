@@ -40,13 +40,14 @@
 </template>
 <script lang="ts">
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { WalletNameType } from "@/js/wallets/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
 import ExportKeys from "@/components/modals/ExportKeys.vue";
-
 import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
 import MyKeys from "@/components/wallet/manage/MyKeys.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ManageKeys = defineComponent({
   name: "Manage",
@@ -57,23 +58,24 @@ export const ManageKeys = defineComponent({
     SaveAccountModal,
   },
   computed: {
-    account() {
-      return this.$store.getters["Accounts/account"];
-    },
+    ...mapState(useAccountsStore, ["account"]),
+    ...mapState(useRootStore, {
+      walletType: (store) => {
+        return store.activeWallet?.type;
+      },
+      hasVolatile: (store) => {
+        return store.volatileWallets.length > 0;
+      },
+      allWallets: (store) => {
+        return store.wallets as MnemonicWallet[];
+      },
+      warnUpdateKeyfile: (store) => {
+        return store.warnUpdateKeyfile;
+      },
+    }),
     canEncryptWallet() {
+      if (!this.walletType) return [];
       return ["mnemonic", "singleton"].includes(this.walletType);
-    },
-    walletType(): WalletNameType {
-      return this.$store.state.activeWallet.type;
-    },
-    hasVolatile() {
-      return this.$store.state.volatileWallets.length > 0;
-    },
-    allWallets(): MnemonicWallet[] {
-      return this.$store.state.wallets;
-    },
-    warnUpdateKeyfile() {
-      return this.$store.state.warnUpdateKeyfile;
     },
   },
   methods: {

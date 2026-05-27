@@ -32,13 +32,13 @@ import type {
   ICurrencyInputDropdownValue,
   ITransaction,
 } from "@/components/wallet/transfer/types";
-
 import type AvaAsset from "@/js/AvaAsset";
-import type { AssetsDict } from "@/stores/vuex/modules/assets/types";
 import { BN } from "@metalblockchain/metaljs";
+import { mapState } from "pinia";
 import { v1 as uuidv1 } from "uuid";
 import { defineComponent } from "vue";
 import CurrencyInputDropdown from "@/components/misc/CurrencyInputDropdown.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export const TxList = defineComponent({
   components: {
@@ -60,14 +60,10 @@ export const TxList = defineComponent({
     };
   },
   computed: {
-    assets_list(): AvaAsset[] {
-      // return this.$store.getters.walletAssetsArray
-      return this.$store.getters["Assets/walletAssetsArray"];
-    },
-    assets(): AssetsDict {
-      // return this.$store.getters.walletAssetsDict
-      return this.$store.getters["Assets/walletAssetsDict"];
-    },
+    ...mapState(useAssetsStore, {
+      assets_list: "walletAssetsArray",
+      assets: "walletAssetsDict",
+    }),
     showAdd(): boolean {
       if (this.disabled) return false;
       if (

@@ -1,13 +1,12 @@
-import type { BN, Buffer } from "@metalblockchain/metaljs";
-
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type Big from "big.js";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type AvaAsset from "@/js/AvaAsset";
 import type { AllKeyFileDecryptedTypes, AllKeyFileTypes } from "@/js/IKeystore";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletNameType, WalletType } from "@/js/wallets/types";
-import type { UTXO as TxUTXO } from "@/stores/vuex/modules/history/types";
+import type { UTXO as TxUTXO } from "@/stores/types/history";
+import type { BN, Buffer } from "@metalblockchain/metaljs";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type Big from "big.js";
 
 export interface RootState {
   isAuth: boolean;
@@ -35,11 +34,6 @@ export interface ILedgerAppConfig {
 
 export interface priceDict {
   usd: number;
-}
-
-interface Modal {
-  open: () => void;
-  close: () => void;
 }
 
 export interface IWalletNftDict {
@@ -70,10 +64,6 @@ export interface IWalletAssetsDict {
 export interface IWalletNftMintDict {
   [assetId: string]: UTXO[];
 }
-
-// interface ModalDict {
-//     [key: string]: Modal
-// }
 
 export interface AssetType {
   name: string;

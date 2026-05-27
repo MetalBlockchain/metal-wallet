@@ -42,7 +42,9 @@
   </div>
 </template>
 <script>
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
+import { useRootStore } from "@/stores/pinia/root";
 export const AddressDropdown = defineComponent({
   props: {
     multiple: {
@@ -62,9 +64,9 @@ export const AddressDropdown = defineComponent({
     };
   },
   computed: {
-    items() {
-      return this.$store.state.addresses;
-    },
+    ...mapState(useRootStore, {
+      items: (store) => store.addresses,
+    }),
   },
   mounted() {
     if (this.default_val) {
@@ -76,7 +78,6 @@ export const AddressDropdown = defineComponent({
       } else {
         this.value = this.default_val;
       }
-
       this.emit();
     }
   },

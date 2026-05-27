@@ -29,14 +29,15 @@
   </modal>
 </template>
 <script lang="ts">
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { PropType } from "vue";
 
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-
+import { mapState } from "pinia";
 import printjs from "print-js";
 import QRCode from "qrcode";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 const PDF_W = 8.5;
 const PDF_H = 11;
@@ -66,20 +67,24 @@ export default defineComponent({
     };
   },
   computed: {
-    address() {
-      try {
-        const wallet: MnemonicWallet = this.$store.state.activeWallet;
-        if (!wallet) return "-";
+    ...mapState(useRootStore, {
+      address: (store) => {
+        try {
+          const wallet = store.activeWallet;
+          if (!wallet) return "-";
 
-        const key = wallet.externalHelper.getKeyForIndex(0);
-        if (!key) {
+          const key = (wallet as MnemonicWallet).externalHelper.getKeyForIndex(
+            0,
+          );
+          if (!key) {
+            return "-";
+          }
+          return key.getAddressString();
+        } catch {
           return "-";
         }
-        return key.getAddressString();
-      } catch {
-        return "-";
-      }
-    },
+      },
+    }),
     aspectRatio(): number {
       return PDF_W / PDF_H;
     },

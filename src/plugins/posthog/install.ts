@@ -34,8 +34,6 @@ export default {
       // https://github.com/PostHog/posthog-js/blob/96fa9339b9c553a1c69ec5db9d282f31a65a1c25/src/posthog-core.js#L1063-L1065
       disable_cookie: false,
     });
-
-    app.config.globalProperties.$posthog = posthogInstance;
     app.provide(posthogKey, posthogInstance);
   },
 };

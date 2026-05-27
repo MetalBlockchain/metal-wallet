@@ -27,15 +27,15 @@
   </div>
 </template>
 <script lang="ts">
-import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
-import type { PropType } from "vue";
 import type {
   TransactionType,
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
-import type { WalletType } from "@/js/wallets/types";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
+import type { PropType } from "vue";
 import moment from "moment";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";
 import ImportExport from "@/components/SidePanels/History/ViewTypes/ImportExport.vue";
@@ -45,6 +45,7 @@ import { getUrlFromTransaction } from "@/js/Glacier/getUrlFromTransaction";
 import { isOwnedUTXO } from "@/js/Glacier/isOwnedUtxo";
 import { isTransactionC, isTransactionX } from "@/js/Glacier/models";
 import { ava } from "@/misc/AVA";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const TxHistoryRow = defineComponent({
   components: {
@@ -56,6 +57,12 @@ export const TxHistoryRow = defineComponent({
     },
   },
   computed: {
+    ...mapState(useRootStore, {
+      addresses: (store) => {
+        if (!store.activeWallet) return [];
+        return store.activeWallet.getHistoryAddresses();
+      },
+    }),
     explorerUrl(): string | null {
       if (!this.transaction) return null;
       const netID = ava.getNetworkID();
@@ -74,11 +81,6 @@ export const TxHistoryRow = defineComponent({
     },
     outputUTXOs(): Utxo[] | PChainUtxo[] {
       return (this.transaction as XChainTransaction)?.emittedUtxos ?? [];
-    },
-    addresses() {
-      const wallet: WalletType | null = this.$store.state.activeWallet;
-      if (!wallet) return [];
-      return wallet.getHistoryAddresses();
     },
     ownedOutputs() {
       return (this.outputUTXOs as (Utxo | PChainUtxo)[]).filter(

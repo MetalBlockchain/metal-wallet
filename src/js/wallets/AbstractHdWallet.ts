@@ -1,10 +1,9 @@
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-
-import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import type HDKey from "hdkey";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { ChainAlias } from "@/js/wallets/types";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
+import type HDKey from "hdkey";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 import { digestMessage } from "@/helpers/helper";
 import { HdHelper } from "@/js/HdHelper";
@@ -45,13 +44,13 @@ abstract class AbstractHdWallet extends AbstractWallet {
     this.platformHelper = new HdHelper("m/0", accountHdKey, "P", isPublic);
     this.accountNodeXP = accountHdKey;
 
-    this.externalHelper.oninit().then((res) => {
+    this.externalHelper.oninit().then(() => {
       this.updateInitState();
     });
-    this.internalHelper.oninit().then((res) => {
+    this.internalHelper.oninit().then(() => {
       this.updateInitState();
     });
-    this.platformHelper.oninit().then((res) => {
+    this.platformHelper.oninit().then(() => {
       this.updateInitState();
     });
   }
@@ -106,19 +105,19 @@ abstract class AbstractHdWallet extends AbstractWallet {
   }
 
   async updateUTXOsExternal() {
-    const res = await this.externalHelper.updateUtxos();
+    const _ = await this.externalHelper.updateUtxos();
     this.updateFetchState();
     this.updateAvmUTXOSet();
   }
 
   async updateUTXOsInternal() {
-    const utxoSet = await this.internalHelper.updateUtxos();
+    const _ = await this.internalHelper.updateUtxos();
     this.updateFetchState();
     this.updateAvmUTXOSet();
   }
 
   async updateUTXOsP() {
-    const utxoSet = await this.platformHelper.updateUtxos();
+    const _ = await this.platformHelper.updateUtxos();
     this.updateFetchState();
   }
 

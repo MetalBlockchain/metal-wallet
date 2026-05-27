@@ -1,6 +1,6 @@
 <template>
   <div class="access_card">
-    <div class="content">
+    <div v-if="account" class="content">
       <Identicon :value="account.baseAddresses.join('')"></Identicon>
       <h1>{{ account.name }}</h1>
       <form @submit.prevent="access">
@@ -30,8 +30,10 @@
 </template>
 
 <script lang="ts">
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
+import { useAccountsStore } from "@/stores/pinia/accounts";
 
 export const Account = defineComponent({
   components: { Identicon },
@@ -43,17 +45,15 @@ export const Account = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAccountsStore, ["accounts"]),
     index() {
       return this.$route.params.index;
     },
-    accounts() {
-      return this.$store.state.Accounts.accounts;
-    },
     account() {
       if (this.index && !Array.isArray(this.index)) {
-        return this.accounts[this.index];
+        return this.accounts[Number.parseInt(this.index, 10)];
       }
-      return [];
+      return null;
     },
     canSubmit(): boolean {
       if (!this.password) {
@@ -69,20 +69,21 @@ export const Account = defineComponent({
     }
   },
   methods: {
+    ...mapActions(useAccountsStore, ["accessAccount"]),
     async access() {
       const { account } = this;
       if (!this.canSubmit || this.isLoading) return;
       if (account == null) return;
-
+      if (!this.index || Array.isArray(this.index)) return;
       this.error = "";
       this.isLoading = true;
 
+      const idx = Number.parseInt(this.index, 10);
       setTimeout(() => {
-        this.$store
-          .dispatch("Accounts/accessAccount", {
-            index: this.index,
-            pass: this.password,
-          })
+        this.accessAccount({
+          index: idx,
+          pass: this.password,
+        })
           .then(() => {
             this.isLoading = false;
           })

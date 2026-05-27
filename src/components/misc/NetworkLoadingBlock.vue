@@ -6,22 +6,15 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import Spinner from "@/components/misc/Spinner.vue";
+import { useNetworkStore } from "@/stores/pinia/networks";
 
-export default defineComponent({
-  components: {
-    Spinner,
-  },
-  computed: {
-    networkLoading() {
-      // return true
-      return this.$store.state.Network.status === "connecting";
-    },
-  },
-});
+const networkStore = useNetworkStore();
+
+const networkLoading = computed(() => networkStore.status === "connecting");
 </script>
+
 <style scoped lang="scss">
 .network_loading {
   position: absolute;

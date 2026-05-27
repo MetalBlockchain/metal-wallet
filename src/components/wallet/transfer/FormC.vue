@@ -123,13 +123,10 @@
   </div>
 </template>
 <script lang="ts">
-import type Big from "big.js";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
-import type { WalletType } from "@/js/wallets/types";
-
-import type { priceDict } from "@/stores/vuex/types";
-
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type Big from "big.js";
 import {
   bnToAvaxC,
   bnToBigAvaxC,
@@ -138,12 +135,18 @@ import {
   TxHelper,
 } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import EVMInputDropdown from "@/components/misc/EVMInputDropdown/EVMInputDropdown.vue";
 import QrInput from "@/components/shared/QrInput.vue";
 import { bnToBig } from "@/helpers/helper";
 import { WalletHelper } from "@/helpers/wallet_helper";
 import { web3 } from "@/misc/evm";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useErc721Store } from "@/stores/pinia/erc721";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const FormC = defineComponent({
   components: {
@@ -193,14 +196,16 @@ export const FormC = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, {
+      wallet: "activeWallet",
+      priceDict: "prices",
+    }),
+    ...mapState(useAssetsStore, ["findErc20"]),
+    ...mapState(useErc721Store, {
+      erc721Find: "find",
+    }),
     gasPriceNumber() {
       return bnToBigAvaxX(this.gasPrice).toFixed(0);
-    },
-    wallet(): WalletType | null {
-      return this.$store.state.activeWallet;
-    },
-    priceDict(): priceDict {
-      return this.$store.state.prices;
     },
     denomination(): number {
       return this.formToken === "native"
@@ -266,8 +271,8 @@ export const FormC = defineComponent({
       if (tokenAddr === "native") {
         (this.$refs.token_in as typeof EVMInputDropdown).setToken(tokenAddr);
       } else {
-        const token = this.$store.getters["Assets/findErc20"](tokenAddr);
-        const erc721 = this.$store.getters["Assets/ERC721/find"](tokenAddr);
+        const token = this.findErc20(tokenAddr as string);
+        const erc721 = this.erc721Find(tokenAddr as string);
         if (token) {
           (this.$refs.token_in as typeof EVMInputDropdown).setToken(token);
         } else if (erc721 && tokenId) {
@@ -285,6 +290,11 @@ export const FormC = defineComponent({
     }
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     async updateGasPrice() {
       this.gasPrice = await GasHelper.getAdjustedGasPrice();
     },
@@ -351,7 +361,10 @@ export const FormC = defineComponent({
             this.formAddress,
             this.formAmount,
           );
-          const estGas = await WalletHelper.estimateTxGas(this.wallet, tx);
+          const estGas = await WalletHelper.estimateTxGas(
+            this.wallet as MnemonicWallet,
+            tx,
+          );
           this.gasLimit = estGas;
         }
       }
@@ -365,7 +378,10 @@ export const FormC = defineComponent({
           toAddr,
           this.formCollectible.id,
         );
-        const estGas = await WalletHelper.estimateTxGas(this.wallet, tx);
+        const estGas = await WalletHelper.estimateTxGas(
+          this.wallet as MnemonicWallet,
+          tx,
+        );
         this.gasLimit = estGas;
       }
     },
@@ -409,7 +425,7 @@ export const FormC = defineComponent({
         if (this.isCollectible) {
           if (!this.formCollectible) throw "No collectible selected.";
           const txHash = await WalletHelper.sendErc721(
-            this.wallet,
+            this.wallet as MnemonicWallet,
             toAddress,
             gasPriceWei,
             this.gasLimit,
@@ -448,7 +464,7 @@ export const FormC = defineComponent({
       this.isSuccess = true;
       this.txHash = txId;
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         title: this.$t("transfer.success_title"),
         message: this.$t("transfer.success_msg"),
         type: "success",
@@ -457,8 +473,8 @@ export const FormC = defineComponent({
       // Refresh UTXOs
       this.canSendAgain = false;
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
         this.canSendAgain = true;
       }, 3000);
     },
@@ -468,7 +484,7 @@ export const FormC = defineComponent({
 
       console.error(err);
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         title: this.$t("transfer.error_title"),
         message: this.$t("transfer.error_msg"),
         type: "error",

@@ -1,5 +1,5 @@
-import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import type { UtxoType } from "@/js/Glacier/models";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import { PrimaryNetworkAssetType } from "@metalblockchain/glacier-sdk";
 import { describe, expect, test } from "vitest";
 import { createUtxoCsvData } from "@/js/CSV/createUtxoCsvData";

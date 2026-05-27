@@ -6,7 +6,7 @@
     >
       {{ $t("advanced.sign.desc") }}
     </p>
-    <div v-if="isHD">
+    <div v-if="isHD && wallet">
       <label>{{ $t("advanced.sign.label1") }}</label>
       <SearchAddress v-model="sourceAddress" :wallet="wallet"></SearchAddress>
     </div>
@@ -36,8 +36,10 @@
 <script lang="ts">
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletType } from "@/js/wallets/types";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import SearchAddress from "@/components/wallet/advanced/SignMessage/SearchAddress.vue";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const SignMessage = defineComponent({
   components: { SearchAddress },
@@ -50,11 +52,11 @@ export const SignMessage = defineComponent({
     };
   },
   computed: {
-    wallet(): WalletType {
-      return this.$store.state.activeWallet;
-    },
+    ...mapState(useRootStore, {
+      wallet: (store): WalletType | null => store.activeWallet as WalletType,
+    }),
     isHD() {
-      return this.wallet.type !== "singleton";
+      return this.wallet?.type !== "singleton";
     },
     canSubmit(): boolean {
       if (!this.sourceAddress && this.isHD) return false;
@@ -69,14 +71,16 @@ export const SignMessage = defineComponent({
   methods: {
     async sign() {
       this.error = "";
-      try {
-        // Convert the message to a hashed buffer
-        // let hashMsg = this.msgToHash(this.message);
-        this.signed = await (this.wallet.type === "singleton"
-          ? (this.wallet as SingletonWallet).signMessage(this.message)
-          : this.wallet.signMessage(this.message, this.sourceAddress!));
-      } catch (error: any) {
-        this.error = error;
+      if (this.wallet) {
+        try {
+          // Convert the message to a hashed buffer
+          // let hashMsg = this.msgToHash(this.message);
+          this.signed = await (this.wallet.type === "singleton"
+            ? (this.wallet as SingletonWallet).signMessage(this.message)
+            : this.wallet.signMessage(this.message, this.sourceAddress!));
+        } catch (error: any) {
+          this.error = error;
+        }
       }
     },
     clear() {

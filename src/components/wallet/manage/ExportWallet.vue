@@ -39,10 +39,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { ExportWalletsInput } from "@/stores/vuex/types";
+import type { ExportWalletsInput } from "@/stores/types";
+import type { PropType } from "vue";
+import { mapActions } from "pinia";
 import { defineComponent } from "vue";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ExportWallet = defineComponent({
   props: {
@@ -68,6 +71,10 @@ export const ExportWallet = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useRootStore, ["exportWallets"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     clear() {
       this.isLoading = false;
       this.pass = "";
@@ -89,11 +96,11 @@ export const ExportWallet = defineComponent({
         wallets: this.wallets,
       };
       setTimeout(() => {
-        this.$store.dispatch("exportWallets", input).then(() => {
+        this.exportWallets(input).then(() => {
           this.isLoading = false;
           this.pass = "";
           this.passConfirm = "";
-          this.$store.dispatch("Notifications/add", {
+          this.addNotification({
             title: "Key File Export",
             message: "Your keys are downloaded.",
           });

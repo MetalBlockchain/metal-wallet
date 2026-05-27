@@ -21,10 +21,12 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AvmTokenSelect from "@/components/modals/AvmTokenSelect.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
 
 export default defineComponent({
   components: {
@@ -42,10 +44,9 @@ export default defineComponent({
     };
   },
   computed: {
-    assetArray(): AvaAsset[] {
-      // return this.$store.getters.walletAssetsArray
-      return this.$store.getters["Assets/walletAssetsArray"];
-    },
+    ...mapState(useAssetsStore, {
+      assetArray: "walletAssetsArray",
+    }),
     disabledIds(): string[] {
       const disabledIds = this.disabledAssets.map((a) => a.id);
       return disabledIds;

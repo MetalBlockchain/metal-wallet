@@ -45,19 +45,19 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
 import type ERC721Token from "@/js/ERC721Token";
-import type { WalletType } from "@/js/wallets/types";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
-
 import Big from "big.js";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";
 import EVMAssetDropdown from "@/components/misc/EVMInputDropdown/EVMAssetDropdown.vue";
 import BigNumInputShared from "@/components/shared/BigNumInputShared.vue";
 import { bnToBig } from "@/helpers/helper";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const EVMInputDropdown = defineComponent({
   components: {
@@ -94,10 +94,11 @@ export const EVMInputDropdown = defineComponent({
     };
   },
   computed: {
+    ...mapState(useRootStore, ["prices", "activeWallet"]),
     usd_val(): Big {
       if (this.token != "native") return Big(0);
 
-      const price = this.$store.state.prices.usd;
+      const price = this.prices.usd;
       const big = bnToBig(this.amt, 18);
       return big.mul(Big(price));
     },
@@ -144,7 +145,7 @@ export const EVMInputDropdown = defineComponent({
       return res;
     },
     avaxBalanceBN(): BN {
-      const w: WalletType | null = this.$store.state.activeWallet;
+      const w = this.activeWallet;
       if (!w) return new BN(0);
       return w.ethBalance;
     },

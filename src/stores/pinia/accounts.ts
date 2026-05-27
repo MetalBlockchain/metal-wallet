@@ -1,19 +1,12 @@
-import type { Module } from "vuex";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-
-import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletType } from "@/js/wallets/types";
-import type {
-  AccountsState,
-  ChangePasswordInput,
-} from "@/stores/vuex/modules/accounts/types";
 import type {
   AccessAccountInput,
   ImportKeyfileInput,
   iUserAccountEncrypted,
-  RootState,
   SaveAccountInput,
-} from "@/stores/vuex/types";
+} from "@/stores/types";
+import type { ChangePasswordInput } from "@/stores/types/accounts";
+
 import {
   addAccountToStorage,
   getAccountByIndex,
@@ -23,24 +16,31 @@ import {
   verifyAccountPassword,
 } from "@/helpers/account_helper";
 import { makeKeyfile } from "@/js/Keystore";
+import { useNotificationsStore } from "./notifications";
+import { useRootStore } from "./root";
 
-const accounts_module: Module<AccountsState, RootState> = {
-  namespaced: true,
-  state: {
+export interface IAccountsStore {
+  accounts: iUserAccountEncrypted[];
+  accountIndex: null | number;
+}
+
+function getDefaultState(): IAccountsStore {
+  return {
     accounts: [],
     accountIndex: null,
-  },
-  mutations: {
-    loadAccounts(state) {
-      state.accounts = getLocalStorageAccounts();
-    },
-  },
+  };
+}
+
+export const useAccountsStore = defineStore("accounts", {
+  state: () => getDefaultState(),
   actions: {
-    onLogout({ state }) {
-      state.accountIndex = null;
+    onLogout() {
+      this.accountIndex = null;
     },
 
-    async accessAccount({ state, dispatch }, input: AccessAccountInput) {
+    async accessAccount(input: AccessAccountInput) {
+      const rootStore = useRootStore();
+
       const index = input.index;
       const pass = input.pass;
 
@@ -52,36 +52,30 @@ const accounts_module: Module<AccountsState, RootState> = {
         data: account.wallet,
       };
 
-      await dispatch("importKeyfile", data, { root: true });
-      state.accountIndex = index;
+      await rootStore.importKeyfile(data);
+      this.accountIndex = index;
     },
 
     // Creates a keystore file and saves to local storage
-    async saveAccount(
-      { state, dispatch, commit, getters, rootState },
-      data: SaveAccountInput,
-    ) {
+    async saveAccount(data: SaveAccountInput) {
+      const rootStore = useRootStore();
+      const notificationsStore = useNotificationsStore();
       try {
         // If this is an active account, get its index
-        const activeAccount = getters.account;
-        const accountIndex = state.accountIndex;
-        const wallet = rootState.activeWallet as
-          | MnemonicWallet
-          | SingletonWallet
-          | null;
+        const activeAccount = this.account;
+        const accountIndex = this.accountIndex;
+
+        const wallet = rootStore.activeWallet;
         const pass = data.password;
         if (!pass || wallet?.type === "ledger") return;
 
-        const wallets = rootState.wallets as (
-          | MnemonicWallet
-          | SingletonWallet
-        )[];
+        const wallets = rootStore.wallets as WalletType[];
 
         if (!wallet) throw new Error("No active wallet.");
         const activeIndex = wallets.findIndex((w) => w.id == wallet!.id);
 
         const file = await makeKeyfile(wallets, pass, activeIndex);
-        const baseAddresses = getters.baseAddresses;
+        const baseAddresses = this.baseAddresses;
         const encryptedWallet: iUserAccountEncrypted = {
           baseAddresses,
           name: activeAccount?.name || data.accountName,
@@ -96,11 +90,11 @@ const accounts_module: Module<AccountsState, RootState> = {
         }
 
         // No more volatile wallets
-        rootState.volatileWallets = [];
-        commit("loadAccounts");
-        state.accountIndex = state.accounts.length - 1;
+        rootStore.resetVolatileWallets();
+        this.loadAccounts();
+        this.accountIndex = this.accounts.length - 1;
       } catch {
-        dispatch("Notifications/add", {
+        notificationsStore.add({
           title: "Account Save",
           message: "Error Saving Account.",
           type: "error",
@@ -109,28 +103,26 @@ const accounts_module: Module<AccountsState, RootState> = {
     },
 
     // If there is an active account, will remove it from local storage
-    async deleteAccount({ state, dispatch, getters, commit }, password) {
-      const acct = getters.account;
+    async deleteAccount(password: string) {
+      const acct = this.account;
+      if (!acct) return;
 
       const passCorrect = await verifyAccountPassword(acct, password);
       if (!passCorrect) throw new Error("Invalid password.");
-      const index = state.accountIndex;
+      const index = this.accountIndex;
 
       if (!acct || !index) return;
 
       removeAccountByIndex(index);
-      state.accountIndex = null;
+      this.accountIndex = null;
 
       // Update accounts
-      commit("loadAccounts");
+      this.loadAccounts();
     },
 
-    async changePassword(
-      { state, getters, dispatch },
-      input: ChangePasswordInput,
-    ) {
-      const index = state.accountIndex;
-      const account: iUserAccountEncrypted = getters.account;
+    async changePassword(input: ChangePasswordInput) {
+      const index = this.accountIndex;
+      const account = this.account;
 
       if (!account || !index) return;
 
@@ -143,18 +135,18 @@ const accounts_module: Module<AccountsState, RootState> = {
       // Remove current wallet file
       removeAccountByIndex(index);
       // Save with new password
-      dispatch("saveAccount", {
+      this.saveAccount({
         password: input.passNew,
         accountName: account.name,
       });
     },
 
     // Used to save volatile keys into the active account
-    async saveKeys({ dispatch, getters, state }, pass: string) {
-      const index = state.accountIndex;
-      const account: iUserAccountEncrypted = getters.account;
+    async saveKeys(pass: string) {
+      const index = this.accountIndex;
+      const account = this.account;
 
-      if (!index) return;
+      if (!index || !account) return;
 
       const passCorrect = await verifyAccountPassword(account, pass);
       if (!passCorrect) throw new Error("Invalid password.");
@@ -162,18 +154,20 @@ const accounts_module: Module<AccountsState, RootState> = {
       // Remove current wallet file
       removeAccountByIndex(index);
       // Save with volatile keys
-      dispatch("saveAccount", {
+      this.saveAccount({
         password: pass,
         accountName: account.name,
       });
     },
 
     // Remove the selected key from account and update local storage
-    async deleteKey({ state, getters, rootState, commit }, wallet: WalletType) {
-      if (!getters.account) return;
-      const delIndex = rootState.wallets.indexOf(wallet);
-      const acctIndex = state.accountIndex;
-      const acct: iUserAccountEncrypted = getters.account;
+    async deleteKey(wallet: WalletType) {
+      if (!this.account) return;
+      const rootStore = useRootStore();
+
+      const delIndex = rootStore.wallets.indexOf(wallet);
+      const acctIndex = this.accountIndex;
+      const acct: iUserAccountEncrypted = this.account;
 
       if (!acctIndex) throw new Error("Account not found.");
 
@@ -181,36 +175,31 @@ const accounts_module: Module<AccountsState, RootState> = {
       acct.wallet.keys.splice(delIndex, 1);
 
       overwriteAccountAtIndex(acct, acctIndex);
-      commit("loadAccounts");
+      this.loadAccounts();
+    },
+    loadAccounts() {
+      this.accounts = getLocalStorageAccounts();
     },
   },
   getters: {
-    baseAddresses(state: AccountsState, getters, rootState: RootState) {
-      const wallets = rootState.wallets;
-      return wallets.map((w: WalletType) => {
-        return w.getEvmAddress();
-      });
+    baseAddresses() {
+      const rootStore = useRootStore();
+      const wallets = rootStore.wallets;
+      return wallets.map((w) => w.getEvmAddress());
     },
 
-    baseAddressesNonVolatile(
-      state: AccountsState,
-      getters,
-      rootState: RootState,
-    ) {
-      const wallets = rootState.wallets.filter((w) => {
-        return !rootState.volatileWallets.includes(w);
+    baseAddressesNonVolatile() {
+      const rootStore = useRootStore();
+      const wallets = rootStore.wallets.filter((w) => {
+        return !rootStore.volatileWallets.includes(w);
       });
 
-      return wallets.map((w: WalletType) => {
-        return w.getEvmAddress();
-      });
+      return wallets.map((w) => w.getEvmAddress());
     },
 
-    account(state: AccountsState, getters): iUserAccountEncrypted | null {
-      if (state.accountIndex === null) return null;
-      return state.accounts[state.accountIndex] ?? null;
+    account(): iUserAccountEncrypted | null {
+      if (this.accountIndex === null) return null;
+      return this.accounts[this.accountIndex] ?? null;
     },
   },
-};
-
-export default accounts_module;
+});

@@ -18,11 +18,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
+import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/misc/ERC721View.vue";
+import { useErc721Store } from "@/stores/pinia/erc721";
 
 export const ERC721Row = defineComponent({
   components: { ERC721View },
@@ -33,15 +35,14 @@ export const ERC721Row = defineComponent({
   },
   emits: ["select"],
   computed: {
+    ...mapState(useErc721Store, {
+      ERC721Balance: "walletBalance",
+    }),
     walletBalance(): string[] {
       if (!this.token) {
         return [];
       }
-      return (
-        this.$store.state.Assets.ERC721.walletBalance[
-          this.token.contractAddress
-        ] || []
-      );
+      return this.ERC721Balance[this.token.contractAddress] || [];
     },
     hasBalance(): boolean {
       return this.walletBalance.length > 0;

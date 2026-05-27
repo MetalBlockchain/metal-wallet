@@ -46,10 +46,14 @@
 </template>
 <script lang="ts">
 import type ERC721Token from "@/js/ERC721Token";
-import type { ERC721TokenInput } from "@/stores/vuex/modules/assets/modules/types";
+import type { ERC721TokenInput } from "@/stores/types/erc721";
 import ERC721Abi from "@openzeppelin/contracts/build/contracts/ERC721.json";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { web3 } from "@/misc/evm";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useErc721Store } from "@/stores/pinia/erc721";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
 import Modal from "./Modal.vue";
 
 export const AddERC721TokenModal = defineComponent({
@@ -66,9 +70,10 @@ export const AddERC721TokenModal = defineComponent({
     };
   },
   computed: {
-    networkTokens(): ERC721Token[] {
-      return this.$store.getters["Assets/ERC721/networkContractsCustom"];
-    },
+    ...mapState(useErc721Store, {
+      networkTokens: "networkContractsCustom",
+    }),
+    ...mapState(useAssetsStore, ["evmChainId"]),
   },
   watch: {
     tokenAddress: [
@@ -78,6 +83,13 @@ export const AddERC721TokenModal = defineComponent({
     ],
   },
   methods: {
+    ...mapActions(useErc721Store, {
+      addCustomToken: "addCustom",
+      removeCustomToken: "removeCustom",
+    }),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     async validateAddress(val: string) {
       if (val === "") {
         this.err = "";
@@ -115,18 +127,16 @@ export const AddERC721TokenModal = defineComponent({
           address: this.tokenAddress,
           name: this.name,
           symbol: this.symbol,
-          chainId: this.$store.state.Assets.evmChainId,
+          chainId: this.evmChainId,
         };
 
-        const token: ERC721Token = await this.$store.dispatch(
-          "Assets/ERC721/addCustom",
-          data,
-        );
-
-        this.$store.dispatch("Notifications/add", {
-          title: "ERC721 Token Added",
-          message: token.name,
-        });
+        const token = await this.addCustomToken(data);
+        if (token) {
+          this.addNotification({
+            title: "ERC721 Token Added",
+            message: token.name,
+          });
+        }
         this.close();
       } catch (error: any) {
         this.err = error.message;
@@ -145,7 +155,7 @@ export const AddERC721TokenModal = defineComponent({
       this.$refs.modal.close();
     },
     async removeToken(token: ERC721Token) {
-      await this.$store.dispatch("Assets/ERC721/removeCustom", token);
+      this.removeCustomToken(token);
     },
     async onAddressChange(val: string) {
       this.err = "";

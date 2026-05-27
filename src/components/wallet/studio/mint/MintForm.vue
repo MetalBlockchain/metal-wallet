@@ -124,6 +124,13 @@
 </template>
 <script lang="ts">
 import type {
+  GenericFormType,
+  JsonFormType,
+  NftMintFormType,
+  UrlFormType,
+  UtfFormType,
+} from "@/components/wallet/studio/mint/types";
+import type {
   NFTMintOutput,
   NFTTransferOutput,
   UTXO,
@@ -131,20 +138,13 @@ import type {
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type Big from "big.js";
 import type { PropType } from "vue";
-import type {
-  GenericFormType,
-  JsonFormType,
-  NftMintFormType,
-  UrlFormType,
-  UtfFormType,
-} from "@/components/wallet/studio/mint/types";
-import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
 
 import {
   JSONPayload,
   URLPayload,
   UTF8Payload,
 } from "@metalblockchain/metaljs/dist/utils";
+import { mapActions, mapState } from "pinia";
 import { defineComponent, ref } from "vue";
 import NftFamilyCardsPreview from "@/components/misc/NftFamilyCardsPreview.vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
@@ -156,6 +156,10 @@ import Utf8Form from "@/components/wallet/studio/mint/forms/Utf8Form.vue";
 import SelectMintUTXO from "@/components/wallet/studio/mint/SelectMintUtxo/SelectMintUTXO.vue";
 import { bnToBig } from "@/helpers/helper";
 import { avm, bintools } from "@/misc/AVA";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 type NftType = "utf8" | "url" | "json";
 
@@ -201,6 +205,8 @@ export const MintNft = defineComponent({
     };
   },
   computed: {
+    ...mapState(useAssetsStore, ["nftFamsDict", "walletNftDict"]),
+    ...mapState(useRootStore, ["activeWallet"]),
     typeDescription() {
       if (this.nftFormType === "generic") {
         return this.$t("studio.mint.type_col.typeDesc.generic");
@@ -213,9 +219,6 @@ export const MintNft = defineComponent({
       } else {
         return this.$t("studio.mint.type_col.typeDesc.utf8");
       }
-    },
-    nftFamsDict(): NftFamilyDict {
-      return this.$store.state.Assets.nftFamsDict;
     },
     family() {
       const idBuff = this.mintUtxo?.getAssetID();
@@ -267,8 +270,7 @@ export const MintNft = defineComponent({
       return bnToBig(avm.getTxFee(), 9);
     },
     familyUtxos(): UTXO[] {
-      const dict = this.$store.getters["Assets/walletNftDict"];
-      // return this.$store.getters.walletNftDict[this.family.id] || []
+      const dict = this.walletNftDict;
       return this.family ? dict[this.family.id] || [] : [];
     },
     groupUtxos() {
@@ -297,6 +299,11 @@ export const MintNft = defineComponent({
     },
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
     clearUtxo() {
       this.$emit("clear-utxo");
     },
@@ -341,8 +348,9 @@ export const MintNft = defineComponent({
       }
     },
     async submit() {
-      const wallet = this.$store.state.activeWallet;
+      const wallet = this.activeWallet;
       if (!wallet) return;
+      if (!this.mintUtxo || !this.payloadPreview) return;
 
       this.isLoading = true;
 
@@ -365,15 +373,15 @@ export const MintNft = defineComponent({
       this.isSuccess = true;
       this.txId = txId;
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "success",
         title: "Success",
         message: "Collectible minted and added to your wallet.",
       });
 
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
       }, 2000);
     },
     onError(_: any) {

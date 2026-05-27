@@ -3,22 +3,28 @@
     <p>{{ $t("network.not_mainnet") }}</p>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent } from "vue";
 
-export default defineComponent({
-  computed: {
-    isVisible() {
-      const network = this.$store.state.Network.selectedNetwork;
-      if (!network) return false;
-      const netId = Number.parseInt(network.networkId);
+<script lang="ts" setup>
+import { useNetworkStore } from "@/stores/pinia/networks";
 
-      if (netId == 1) return false;
-      return true;
-    },
-  },
+const networkStore = useNetworkStore();
+
+const isVisible = computed(() => {
+  const network = networkStore.selectedNetwork;
+
+  if (!network) return false;
+
+  const netId =
+    typeof network.networkId === "string"
+      ? Number.parseInt(network.networkId)
+      : network.networkId;
+
+  if (netId == 1) return false;
+
+  return true;
 });
 </script>
+
 <style scoped lang="scss">
 $h: 24px;
 .network_warning {

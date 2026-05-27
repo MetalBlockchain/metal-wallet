@@ -77,11 +77,15 @@ import type {
   ExportChainsP,
   ExportChainsX,
 } from "@metalblockchain/metal-wallet-sdk";
-import type { WalletType } from "@/js/wallets/types";
 import { avaxCtoX, GasHelper } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
+import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Spinner from "@/components/misc/Spinner.vue";
+import { useAssetsStore } from "@/stores/pinia/assets";
+import { useHistoryStore } from "@/stores/pinia/history";
+import { useNotificationsStore } from "@/stores/pinia/notifications";
+import { useRootStore } from "@/stores/pinia/root";
 
 export const ChainImport = defineComponent({
   components: { Spinner },
@@ -94,10 +98,11 @@ export const ChainImport = defineComponent({
     };
   },
   computed: {
-    wallet(): null | WalletType {
-      const wallet: null | WalletType = this.$store.state.activeWallet;
-      return wallet;
-    },
+    ...mapState(useRootStore, {
+      wallet: (store) => {
+        return store.activeWallet;
+      },
+    }),
     isEVMSupported() {
       if (!this.wallet) return false;
       return this.wallet.ethAddress;
@@ -109,6 +114,11 @@ export const ChainImport = defineComponent({
     this.isSuccess = false;
   },
   methods: {
+    ...mapActions(useAssetsStore, ["updateUTXOs"]),
+    ...mapActions(useNotificationsStore, {
+      addNotification: "add",
+    }),
+    ...mapActions(useHistoryStore, ["updateTransactionHistory"]),
     async atomicImportX(sourceChain: ExportChainsX) {
       this.beforeSubmit();
       if (!this.wallet) return;
@@ -175,15 +185,15 @@ export const ChainImport = defineComponent({
       this.isSuccess = true;
       this.txId = txId;
 
-      this.$store.dispatch("Notifications/add", {
+      this.addNotification({
         type: "success",
         title: "Import Success",
         message: txId,
       });
 
       setTimeout(() => {
-        this.$store.dispatch("Assets/updateUTXOs");
-        this.$store.dispatch("History/updateTransactionHistory");
+        this.updateUTXOs();
+        this.updateTransactionHistory();
       }, 3000);
     },
     onError(err: Error) {
