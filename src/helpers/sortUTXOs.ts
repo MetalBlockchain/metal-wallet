@@ -1,30 +1,31 @@
-import { UTXO as AVMUTXO } from '@metalblockchain/metaljs/dist/apis/avm'
-import {
-    AmountOutput,
-    UTXO as PlatformUTXO,
-    UTXOSet as PlatformUTXOSet,
-} from '@metalblockchain/metaljs/dist/apis/platformvm'
-import { UTXO as EVMUTXO } from '@metalblockchain/metaljs/dist/apis/evm'
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXO as EVMUTXO } from "@metalblockchain/metaljs/dist/apis/evm";
+import type {
+  AmountOutput,
+  UTXO as PlatformUTXO,
+} from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
 
 /**
  * @return Sorted array of UTXOs
  * @param utxos UTXOs to sort
  * @param isAscending If true, sorts lower value UTXO first.
  */
-export function sortUTXOsByAmount<UTXOType extends AVMUTXO | PlatformUTXO | EVMUTXO>(
-    utxos: UTXOType[],
-    isAscending: boolean
-) {
-    return utxos.sort((a, b) => {
-        const amtA = (a.getOutput() as AmountOutput).getAmount()
-        const amtB = (b.getOutput() as AmountOutput).getAmount()
-        if (amtA.eq(amtB)) return 0
-        if (isAscending) {
-            return amtA.gt(amtB) ? 1 : -1
-        } else {
-            return amtA.gt(amtB) ? -1 : 1
-        }
-    })
+
+export function sortUTXOsByAmount<
+  UTXOType extends AVMUTXO | PlatformUTXO | EVMUTXO,
+>(utxos: UTXOType[], isAscending: boolean) {
+  // eslint-disable-next-line unicorn/no-array-sort
+  return [...utxos].sort((a, b) => {
+    const amtA = (a.getOutput() as AmountOutput).getAmount();
+    const amtB = (b.getOutput() as AmountOutput).getAmount();
+    if (amtA.eq(amtB)) return 0;
+    if (isAscending) {
+      return amtA.gt(amtB) ? 1 : -1;
+    } else {
+      return amtA.gt(amtB) ? -1 : 1;
+    }
+  });
 }
 
 /**
@@ -34,10 +35,10 @@ export function sortUTXOsByAmount<UTXOType extends AVMUTXO | PlatformUTXO | EVMU
  * @param isAscending If true sorts lower value first
  */
 export function sortUTxoSetP(set: PlatformUTXOSet, isAscending: boolean) {
-    const utxos = set.getAllUTXOs()
-    const sorted = sortUTXOsByAmount(utxos, isAscending)
+  const utxos = set.getAllUTXOs();
+  const sorted = sortUTXOsByAmount(utxos, isAscending);
 
-    const sortedSet = new PlatformUTXOSet()
-    sortedSet.addArray(sorted)
-    return sortedSet
+  const sortedSet = new PlatformUTXOSet();
+  sortedSet.addArray(sorted);
+  return sortedSet;
 }

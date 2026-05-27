@@ -1,61 +1,65 @@
 <template>
-    <div class="families">
-        <FamilyRow
-            v-for="(utxos, assetId) in nftMintDict"
-            :key="assetId"
-            :family="nftFamsDict[assetId]"
-            @select="select"
-        ></FamilyRow>
-    </div>
+  <div class="families">
+    <FamilyRow
+      v-for="(_, assetId) in nftMintDict"
+      :key="assetId"
+      :family="nftFamsDict[assetId]"
+      @select="select"
+    ></FamilyRow>
+  </div>
 </template>
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator'
-import { IWalletNftMintDict } from '@/store/types'
-import { NftFamilyDict } from '@/store/modules/assets/types'
-import { UTXO } from '@metalblockchain/metaljs/dist/apis/avm'
-import FamilyRow from '@/components/wallet/studio/mint/SelectMintUtxo/FamilyRow.vue'
-@Component({
-    components: { FamilyRow },
-})
-export default class SelectMintUTXO extends Vue {
-    get nftFamsDict(): NftFamilyDict {
-        return this.$store.state.Assets.nftFamsDict
-    }
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { NftFamilyDict } from "@/stores/vuex/modules/assets/types";
+import type { IWalletNftMintDict } from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import FamilyRow from "@/components/wallet/studio/mint/SelectMintUtxo/FamilyRow.vue";
 
-    get nftMintDict(): IWalletNftMintDict {
-        // return this.$store.getters.walletNftMintDict
-        return this.$store.getters['Assets/nftMintDict']
-    }
-
+export const SelectMintUTXO = defineComponent({
+  components: { FamilyRow },
+  emits: ["change"],
+  computed: {
+    nftFamsDict(): NftFamilyDict {
+      return this.$store.state.Assets.nftFamsDict;
+    },
+    nftMintDict(): IWalletNftMintDict {
+      // return this.$store.getters.walletNftMintDict
+      return this.$store.getters["Assets/nftMintDict"];
+    },
+  },
+  methods: {
     select(utxo: UTXO) {
-        this.$emit('change', utxo)
-    }
-}
+      this.$emit("change", utxo);
+    },
+  },
+});
+
+export default SelectMintUTXO;
 </script>
 <style scoped lang="scss">
-@use '../../../../../main';
+@use "@/styles/abstracts/mixins";
 
 .families {
-    grid-template-columns: repeat(5, 1fr);
-    padding: 30px 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 30px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
 
-    > div {
-        width: 230px;
-    }
+  > div {
+    width: 230px;
+  }
 }
 
-@include main.medium-device {
-    .families {
-        grid-template-columns: repeat(3, 1fr);
-    }
+@include mixins.medium-device {
+  .families {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-@include main.mobile-device {
-    .families {
-        grid-template-columns: repeat(2, 1fr);
-    }
+@include mixins.mobile-device {
+  .families {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>

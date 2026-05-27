@@ -1,258 +1,251 @@
 <template>
-    <div class="asset">
-        <div class="icon" :avax="isAvaxToken">
-            <img v-if="iconUrl" :src="iconUrl" />
-            <p v-else>?</p>
-        </div>
-        <p class="name_col not_mobile">
-            {{ name }} ({{ symbol }})
-            <span v-if="!isAvaxToken">ANT</span>
-        </p>
-        <p class="name_col mobile_only">{{ symbol }}</p>
-        <router-link :to="sendLink" class="send_col" v-if="isBalance">
-            <img v-if="$root.theme === 'day'" src="@/assets/sidebar/transfer_nav.svg" />
-            <img v-else src="@/assets/sidebar/transfer_nav_night.svg" />
-        </router-link>
-        <p v-else></p>
-        <p class="balance_col" v-if="isBalance">
-            <span>{{ amtBig.toLocaleString() }} {{ symbol }}</span>
-            <br />
-            <span class="fiat" v-if="isAvaxToken">
-                {{ totalUSD.toLocaleString(2) }}
-                &nbsp;USD
-            </span>
-        </p>
-        <p class="balance_col" v-else>0</p>
+  <div class="asset">
+    <div :avax="isAvaxToken" class="icon">
+      <img v-if="iconUrl" :src="iconUrl" />
+      <p v-else>?</p>
     </div>
+    <p class="name_col not_mobile">
+      {{ name }} ({{ symbol }})
+      <span v-if="!isAvaxToken">ANT</span>
+    </p>
+    <p class="name_col mobile_only">{{ symbol }}</p>
+    <router-link v-if="isBalance" class="send_col" :to="sendLink">
+      <img v-if="isDay" src="@/assets/sidebar/transfer_nav.svg" />
+      <img v-else src="@/assets/sidebar/transfer_nav_night.svg" />
+    </router-link>
+    <p v-else></p>
+    <p v-if="isBalance" class="balance_col">
+      <span>{{ amtBig.toLocaleString() }} {{ symbol }}</span>
+      <br />
+      <span v-if="isAvaxToken" class="fiat">
+        {{ totalUSD.toLocaleString(2) }}
+        &nbsp;USD
+      </span>
+    </p>
+    <p v-else class="balance_col">0</p>
+  </div>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import type { PropType } from "vue";
+import type AvaAsset from "@/js/AvaAsset";
+import type { WalletType } from "@/js/wallets/types";
+import type { priceDict } from "@/stores/vuex/types";
+import { BN } from "@metalblockchain/metaljs";
+import Big from "big.js";
+import { defineComponent } from "vue";
 
-import AvaAsset from '../../../js/AvaAsset'
-import Hexagon from '@/components/misc/Hexagon.vue'
-import { BN } from '@metalblockchain/metaljs'
-import { bnToBig } from '../../../helpers/helper'
-import { priceDict } from '../../../store/types'
-import { WalletType } from '@/js/wallets/types'
+import { useOwnTheme } from "@/composables/use-own-theme";
+import { bnToBig } from "@/helpers/helper";
 
-import Big from 'big.js'
-
-@Component({
-    components: {
-        Hexagon,
+export const FungibleRow = defineComponent({
+  props: {
+    asset: {
+      type: Object as PropType<AvaAsset>,
     },
-})
-export default class FungibleRow extends Vue {
-    @Prop() asset!: AvaAsset
+  },
+  setup() {
+    const { isDay } = useOwnTheme();
+    return {
+      isDay,
+    };
+  },
+  computed: {
+    iconUrl(): string | null {
+      if (!this.asset) return null;
 
-    get iconUrl(): string | null {
-        if (!this.asset) return null
+      if (this.isAvaxToken) {
+        return "/img/metal_icon_circle.svg";
+      }
 
-        if (this.isAvaxToken) {
-            return '/img/metal_icon_circle.svg'
-        }
+      return null;
+    },
+    isBalance(): boolean {
+      if (!this.asset) return false;
+      if (!this.amount.isZero()) {
+        return true;
+      }
+      return false;
+    },
+    totalUSD(): Big {
+      if (!this.isAvaxToken || !this.asset) return Big(0);
+      const usdPrice = this.priceDict.usd;
+      const bigAmt = bnToBig(this.amount, this.asset.denomination);
+      const usdBig = bigAmt.times(usdPrice);
+      return usdBig;
+    },
+    priceDict(): priceDict {
+      return this.$store.state.prices;
+    },
+    sendLink(): string {
+      if (!this.asset) return `/wallet/transfer`;
+      return `/wallet/transfer?asset=${this.asset.id}&chain=X`;
+    },
+    avaxToken(): AvaAsset {
+      return this.$store.getters["Assets/AssetAVA"];
+    },
+    isAvaxToken(): boolean {
+      if (!this.asset) return false;
 
-        return null
-    }
+      return this.avaxToken.id === this.asset.id ? true : false;
+    },
+    name(): string {
+      const name = this.asset?.name ?? "";
+      // TODO: Remove this hack after network change
+      if (name === "AVA") return "AVAX";
+      return name;
+    },
+    symbol(): string {
+      const sym = this.asset?.symbol ?? "";
 
-    get isBalance(): boolean {
-        if (!this.asset) return false
-        if (!this.amount.isZero()) {
-            return true
-        }
-        return false
-    }
+      // TODO: Remove this hack after network change
+      if (sym === "AVA") return "AVAX";
+      return sym;
+    },
+    amount() {
+      if (!this.asset) return new BN(0);
+      const amt = this.asset.getTotalAmount();
+      return amt.add(this.evmAvaxBalance);
+    },
+    amtBig() {
+      return bnToBig(this.amount, this.asset?.denomination);
+    },
+    evmAvaxBalance(): BN {
+      const wallet: WalletType | null = this.$store.state.activeWallet;
 
-    get totalUSD(): Big {
-        if (!this.isAvaxToken) return Big(0)
-        let usdPrice = this.priceDict.usd
-        let bigAmt = bnToBig(this.amount, this.asset.denomination)
-        let usdBig = bigAmt.times(usdPrice)
-        return usdBig
-    }
-
-    get priceDict(): priceDict {
-        return this.$store.state.prices
-    }
-
-    get sendLink(): string {
-        if (!this.asset) return `/wallet/transfer`
-        return `/wallet/transfer?asset=${this.asset.id}&chain=X`
-    }
-
-    get avaxToken(): AvaAsset {
-        return this.$store.getters['Assets/AssetAVA']
-    }
-
-    get isAvaxToken(): boolean {
-        if (!this.asset) return false
-
-        if (this.avaxToken.id === this.asset.id) {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    get name(): string {
-        let name = this.asset.name
-        // TODO: Remove this hack after network change
-        if (name === 'AVA') return 'AVAX'
-        return name
-    }
-
-    get symbol(): string {
-        let sym = this.asset.symbol
-
-        // TODO: Remove this hack after network change
-        if (sym === 'AVA') return 'AVAX'
-        return sym
-    }
-
-    get amount() {
-        let amt = this.asset.getTotalAmount()
-        return amt.add(this.evmAvaxBalance)
-    }
-
-    get amtBig() {
-        return bnToBig(this.amount, this.asset.denomination)
-    }
-
-    get evmAvaxBalance(): BN {
-        let wallet: WalletType | null = this.$store.state.activeWallet
-
-        if (!this.isAvaxToken || !wallet) {
-            return new BN(0)
-        }
-        // Convert to 9 decimal places
-        let bal = wallet.ethBalance
-        let balRnd = bal.divRound(new BN(Math.pow(10, 9).toString()))
-        return balRnd
-    }
-}
+      if (!this.isAvaxToken || !wallet) {
+        return new BN(0);
+      }
+      // Convert to 9 decimal places
+      const bal = wallet.ethBalance;
+      const balRnd = bal.divRound(new BN(Math.pow(10, 9).toString()));
+      return balRnd;
+    },
+  },
+});
+export default FungibleRow;
 </script>
 <style scoped lang="scss">
-@use '../../../main';
+@use "@/styles/abstracts/mixins";
 
 .asset {
-    padding: 14px 0px;
-    justify-self: center;
+  padding: 14px 0px;
+  justify-self: center;
 
-    > * {
-        align-self: center;
+  > * {
+    align-self: center;
+  }
+
+  .balance_col {
+    font-size: 18px;
+    text-align: right;
+    color: var(--tertiary-color);
+
+    .fiat {
+      font-size: 12px;
+      color: var(--primary-color-light);
     }
+  }
 
-    .balance_col {
-        font-size: 18px;
-        text-align: right;
-        color: var(--tertiary-color);
+  .name_col {
+    padding-left: 15px;
+    white-space: nowrap;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+  }
 
-        .fiat {
-            font-size: 12px;
-            color: var(--primary-color-light);
-        }
+  .send_col {
+    text-align: center;
+    opacity: 0.4;
+    &:hover {
+      opacity: 1;
     }
-
-    .name_col {
-        padding-left: 15px;
-        white-space: nowrap;
-        overflow-y: hidden;
-        text-overflow: ellipsis;
+    img {
+      width: 18px;
+      object-fit: contain;
     }
-
-    .send_col {
-        text-align: center;
-        opacity: 0.4;
-        &:hover {
-            opacity: 1;
-        }
-        img {
-            width: 18px;
-            object-fit: contain;
-        }
-    }
+  }
 }
 
 $icon_w: 40px;
 .icon {
-    position: relative;
-    align-self: center;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition-duration: 1s;
-    width: $icon_w;
-    height: $icon_w;
-    border-radius: $icon_w;
-    background-color: var(--bg-light);
+  position: relative;
+  align-self: center;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition-duration: 1s;
+  width: $icon_w;
+  height: $icon_w;
+  border-radius: $icon_w;
+  background-color: var(--bg-light);
 
-    p {
-        color: var(--primary-color-light);
-    }
+  p {
+    color: var(--primary-color-light);
+  }
 
-    img {
-        width: 100%;
-        object-fit: contain;
-    }
+  img {
+    width: 100%;
+    object-fit: contain;
+  }
 }
 
 .hex_bg {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 
 .mobile_only {
-    display: none;
+  display: none;
 }
 
 .name_col {
+  span {
+    font-size: 12px;
+    color: var(--secondary-color);
+  }
+}
+
+@include mixins.medium-device {
+  .asset {
+    padding: 6px 0;
+  }
+
+  .balance_col {
     span {
-        font-size: 12px;
-        color: var(--secondary-color);
+      font-size: 15px;
     }
+    font-size: 15px;
+  }
+  .send_col {
+    img {
+      width: 14px;
+    }
+  }
+
+  .name_col {
+    font-size: 14px;
+  }
+
+  $icon_w: 30px;
+  .icon {
+    width: $icon_w;
+    height: $icon_w;
+    border-radius: $icon_w;
+  }
 }
 
-@include main.medium-device {
-    .asset {
-        padding: 6px 0;
-    }
+@include mixins.mobile-device {
+  .name_col {
+    display: none;
+  }
 
-    .balance_col {
-        span {
-            font-size: 15px;
-        }
-        font-size: 15px;
-    }
-    .send_col {
-        img {
-            width: 14px;
-        }
-    }
+  .balance_col {
+    font-size: 1rem !important;
+  }
 
-    .name_col {
-        font-size: 14px;
-    }
-
-    $icon_w: 30px;
-    .icon {
-        width: $icon_w;
-        height: $icon_w;
-        border-radius: $icon_w;
-    }
-}
-@include main.mobile-device {
-    .name_col {
-        display: none;
-    }
-
-    .balance_col {
-        font-size: 1rem !important;
-    }
-
-    .mobile_only {
-        display: initial;
-    }
+  .mobile_only {
+    display: initial;
+  }
 }
 </style>

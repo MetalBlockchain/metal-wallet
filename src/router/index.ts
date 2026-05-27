@@ -1,150 +1,35 @@
-import Vue from 'vue'
-import VueRouter, { Route } from 'vue-router'
-import Home from '../views/Home.vue'
+/**
+ * router/index.ts
+ *
+ * Automatic routes for `./src/pages/*.vue`
+ */
 
-import Transfer from '@/views/wallet/Transfer.vue'
-import ManageKeys from '@/views/wallet/ManageKeys.vue'
-import Menu from '../views/access/Menu.vue'
-import Keystore from '../views/access/Keystore.vue'
-import Mnemonic from '@/views/access/Mnemonic.vue'
-import PrivateKey from '@/views/access/PrivateKey.vue'
-import Access from '../views/access/Access.vue'
-import Create from '@/views/Create.vue'
-import Wallet from '@/views/Wallet.vue'
-import WalletHome from '@/views/wallet/Portfolio.vue'
-import Earn from '@/views/wallet/Earn.vue'
-import Advanced from '@/views/wallet/Advanced.vue' // your vuex store
-import Activity from '@/views/wallet/Activity.vue' // your vuex store
-import Account from '@/views/access/Account.vue' // your vuex store
-import Legal from '@/views/Legal.vue'
+// Composables
+import { createRouter, createWebHistory } from "vue-router";
+import { ROUTES } from "./routes";
 
-Vue.use(VueRouter)
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: ROUTES,
+});
 
-import store from '../store/index'
-import Studio from '@/views/wallet/Studio.vue'
-import Export from '@/views/wallet/CrossChain.vue'
-import Xpub from '@/views/access/Xpub.vue'
-import WalletReadonly from '@/views/WalletReadonly.vue'
-import { PublicMnemonicWallet } from '@metalblockchain/metal-wallet-sdk'
-
-const ifNotAuthenticated = (to: Route, from: Route, next: Function) => {
-    if (!store.state.isAuth) {
-        next()
-        return
+// Workaround for https://github.com/vitejs/vite/issues/11804
+router.onError((err, to) => {
+  if (err?.message?.includes?.("Failed to fetch dynamically imported module")) {
+    if (localStorage.getItem("vuetify:dynamic-reload")) {
+      console.error("Dynamic import error, reloading page did not fix it", err);
+    } else {
+      console.log("Reloading page to fix dynamic import error");
+      localStorage.setItem("vuetify:dynamic-reload", "true");
+      location.assign(to.fullPath);
     }
-    next('/wallet')
-}
+  } else {
+    console.error(err);
+  }
+});
 
-const ifAuthenticated = (to: Route, from: Route, next: Function) => {
-    if (store.state.isAuth) {
-        next()
-        return
-    }
-    next('/')
-}
+router.isReady().then(() => {
+  localStorage.removeItem("vuetify:dynamic-reload");
+});
 
-const routes = [
-    {
-        path: '/',
-        name: 'home',
-        component: Home,
-        beforeEnter: ifNotAuthenticated,
-    },
-    {
-        path: '/access',
-        children: [
-            {
-                path: '/',
-                name: 'access',
-                component: Menu,
-            },
-            {
-                path: 'keystore',
-                component: Keystore,
-            },
-            {
-                path: 'privatekey',
-                component: PrivateKey,
-            },
-            {
-                path: 'mnemonic',
-                component: Mnemonic,
-            },
-            {
-                path: 'account/:index',
-                component: Account,
-                name: 'Account',
-            },
-            {
-                path: 'xpub',
-                component: Xpub,
-            },
-        ],
-        component: Access,
-        beforeEnter: ifNotAuthenticated,
-    },
-    {
-        path: '/legal',
-        name: 'legal',
-        component: Legal,
-    },
-    {
-        path: '/create',
-        name: 'create',
-        component: Create,
-        beforeEnter: ifNotAuthenticated,
-    },
-    {
-        path: '/xpub',
-        name: 'wallet_readonly',
-        component: WalletReadonly,
-    },
-    {
-        path: '/wallet',
-        children: [
-            {
-                path: '/',
-                name: 'wallet',
-                component: WalletHome,
-            },
-            {
-                path: 'transfer',
-                component: Transfer,
-            },
-            {
-                path: 'cross_chain',
-                component: Export,
-            },
-            {
-                path: 'keys',
-                component: ManageKeys,
-            },
-            {
-                path: 'earn',
-                component: Earn,
-            },
-            {
-                path: 'studio',
-                component: Studio,
-            },
-            {
-                path: 'advanced',
-                component: Advanced,
-            },
-            {
-                path: 'activity',
-                component: Activity,
-            },
-        ],
-        component: Wallet,
-        beforeEnter: ifAuthenticated,
-    },
-]
-
-const router = new VueRouter({
-    mode: 'history',
-    base: process.env.BASE_URL,
-    routes,
-})
-
-export default router
+export default router;

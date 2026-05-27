@@ -1,122 +1,151 @@
 <template>
-    <div class="nft_payload_view" v-if="isBanned"></div>
-    <NftPayloadAllow
-        v-model="isShow"
-        v-else-if="!isShow"
-        :is-small="small"
-        :nft-i-d="payloadID"
-    ></NftPayloadAllow>
+  <div v-if="isBanned" class="nft_payload_view"></div>
+  <NftPayloadAllow
+    v-else-if="!isShow"
+    v-model="isShow"
+    :is-small="small"
+    :nft-i-d="payloadID"
+  ></NftPayloadAllow>
+  <Component
+    :is="viewer"
+    v-else-if="!small"
+    class="nft_payload_view"
+    :payload="payload"
+  ></Component>
+  <template v-else>
     <Component
-        :is="viewer"
-        :payload="payload"
-        class="nft_payload_view"
-        v-else-if="!small"
+      :is="viewer"
+      v-if="!small"
+      class="nft_payload_view"
+      :payload="payload"
     ></Component>
     <Component
-        v-else-if="!small"
-        :is="viewer"
-        :payload="payload"
-        class="nft_payload_view"
+      :is="viewerSmall"
+      v-else
+      class="nft_payload_view"
+      :payload="payload"
     ></Component>
-    <Component v-else :is="viewerSmall" :payload="payload" class="nft_payload_view"></Component>
+  </template>
 </template>
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
-import { PayloadBase } from '@metalblockchain/metaljs/dist/utils'
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 
-import UrlPayloadView from '@/components/misc/NftPayloadView/views/UrlPayloadView.vue'
-import UtfPayloadView from '@/components/misc/NftPayloadView/views/UtfPayloadView.vue'
-import JsonPayloadView from '@/components/misc/NftPayloadView/views/JsonPayloadView.vue'
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
+import { isUrlBanned } from "@/components/misc/NftPayloadView/blacklist";
+import NftPayloadAllow from "@/components/misc/NftPayloadView/NftPayloadAllow.vue";
 
-import UrlPayloadViewSmall from '@/components/misc/NftPayloadView/views_small/UrlPayloadView.vue'
-import UtfPayloadViewSmall from '@/components/misc/NftPayloadView/views_small/UtfPayloadView.vue'
-import JsonPayloadViewSmall from '@/components/misc/NftPayloadView/views_small/JsonPayloadView.vue'
-import NftPayloadAllow from '@/components/misc/NftPayloadView/NftPayloadAllow.vue'
-import { isUrlBanned } from '@/components/misc/NftPayloadView/blacklist'
-import { payloadToHash } from '@/utils/payloadToHash'
+import JsonPayloadView from "@/components/misc/NftPayloadView/views/JsonPayloadView.vue";
+import UrlPayloadView from "@/components/misc/NftPayloadView/views/UrlPayloadView.vue";
+import UtfPayloadView from "@/components/misc/NftPayloadView/views/UtfPayloadView.vue";
+import JsonPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/JsonPayloadViewSmall.vue";
+import UrlPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/UrlPayloadViewSmall.vue";
+import UtfPayloadViewSmall from "@/components/misc/NftPayloadView/views_small/UtfPayloadViewSmall.vue";
+import { payloadToHash } from "@/utils/payloadToHash";
 
-@Component({
-    components: {
-        NftPayloadAllow,
-        UrlPayloadView,
-        UtfPayloadView,
-        JsonPayloadView,
-        UrlPayloadViewSmall,
-        UtfPayloadViewSmall,
-        JsonPayloadViewSmall,
+export default defineComponent({
+  components: {
+    NftPayloadAllow,
+    UrlPayloadView,
+    UtfPayloadView,
+    JsonPayloadView,
+    UrlPayloadViewSmall,
+    UtfPayloadViewSmall,
+    JsonPayloadViewSmall,
+  },
+  props: {
+    payload: {
+      type: Object as PropType<PayloadBase>,
     },
-})
-export default class NftPayloadView extends Vue {
-    @Prop() payload!: PayloadBase
-    @Prop({ default: false }) small!: boolean
+    small: { default: false, type: Boolean },
+  },
+  data() {
+    return {
+      isShow: false,
+    };
+  },
+  computed: {
+    nftWhitelist() {
+      return this.$store.state.Assets.nftWhitelist;
+    },
+    payloadID() {
+      const str = this.content;
+      return payloadToHash(str);
+    },
 
-    isShow = false
-
-    get nftWhitelist() {
-        return this.$store.state.Assets.nftWhitelist
+    content() {
+      return this.payload?.getContent().toString() ?? "";
+    },
+    isBanned() {
+      return isUrlBanned(this.content);
+    },
+    typeID() {
+      return this.payload?.typeID() ?? "";
+    },
+    viewer(): any {
+      const typeID = this.typeID;
+      switch (typeID) {
+        case 1: {
+          // UTF 8
+          return UtfPayloadView;
+        }
+        case 27: {
+          // url
+          return UrlPayloadView;
+        }
+        case 24: {
+          // JSON
+          return JsonPayloadView;
+        }
+        default: {
+          return UtfPayloadView;
+        }
+      }
+    },
+    viewerSmall(): any {
+      const typeID = this.typeID;
+      switch (typeID) {
+        case 1: {
+          // UTF 8
+          return UtfPayloadViewSmall;
+        }
+        case 27: {
+          // url
+          return UrlPayloadViewSmall;
+        }
+        case 24: {
+          // JSON
+          return JsonPayloadViewSmall;
+        }
+        default: {
+          return UtfPayloadViewSmall;
+        }
+      }
+    },
+  },
+  watch: {
+    nftWhitelist: [
+      {
+        handler: "onListChange",
+      },
+    ],
+  },
+  mounted() {
+    if (this.nftWhitelist) {
+      this.onListChange();
     }
-
-    get payloadID() {
-        const str = this.payload.getContent().toString()
-        return payloadToHash(str)
-    }
-
-    @Watch('nftWhitelist')
+  },
+  methods: {
     onListChange() {
-        if (this.nftWhitelist.includes(this.payloadID)) {
-            this.isShow = true
-        }
-    }
-
-    mounted() {
-        if (this.nftWhitelist) {
-            this.onListChange()
-        }
-    }
-
-    get viewer() {
-        let typeID = this.typeID
-        switch (typeID) {
-            case 1: // UTF 8
-                return UtfPayloadView
-            case 27: // url
-                return UrlPayloadView
-            case 24: // JSON
-                return JsonPayloadView
-            default:
-                return UtfPayloadView
-        }
-    }
-
-    get content() {
-        return this.payload.getContent().toString()
-    }
-
-    get isBanned() {
-        return isUrlBanned(this.content)
-    }
-
-    get typeID() {
-        return this.payload.typeID()
-    }
-
-    get viewerSmall() {
-        let typeID = this.typeID
-        switch (typeID) {
-            case 1: // UTF 8
-                return UtfPayloadViewSmall
-            case 27: // url
-                return UrlPayloadViewSmall
-            case 24: // JSON
-                return JsonPayloadViewSmall
-            default:
-                return UtfPayloadViewSmall
-        }
-    }
-}
+      if (this.nftWhitelist.includes(this.payloadID)) {
+        this.isShow = true;
+      }
+    },
+  },
+});
 </script>
 <style scoped>
 .nft_payload_view {
-    overflow: auto;
+  overflow: auto;
 }
 </style>

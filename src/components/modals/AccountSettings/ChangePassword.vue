@@ -1,93 +1,102 @@
 <template>
-    <form @submit.prevent="submit" class="change_pass_form">
-        <input
-            placeholder="Old Password"
-            type="password"
-            class="single_line_input"
-            v-model="passOld"
-        />
-        <input
-            placeholder="New Password"
-            type="password"
-            class="single_line_input"
-            v-model="pass"
-        />
-        <input
-            placeholder="Confirm Password"
-            type="password"
-            class="single_line_input"
-            v-model="passConfirm"
-        />
-        <p class="err">{{ error }}</p>
-        <v-btn class="button_secondary" small block depressed :disabled="!canSubmit" type="submit">
-            Submit
-        </v-btn>
-    </form>
+  <form class="change_pass_form" @submit.prevent="submit">
+    <input
+      v-model="passOld"
+      class="single_line_input"
+      placeholder="Old Password"
+      type="password"
+    />
+    <input
+      v-model="pass"
+      class="single_line_input"
+      placeholder="New Password"
+      type="password"
+    />
+    <input
+      v-model="passConfirm"
+      class="single_line_input"
+      placeholder="Confirm Password"
+      type="password"
+    />
+    <p class="err">{{ error }}</p>
+    <v-btn
+      block
+      class="button_secondary"
+      depressed
+      :disabled="!canSubmit"
+      small
+      type="submit"
+    >
+      Submit
+    </v-btn>
+  </form>
 </template>
 <script lang="ts">
-import { Vue, Component } from 'vue-property-decorator'
-import AccountSettingsModal from '@/components/modals/AccountSettings/AccountSettingsModal.vue'
-import { ChangePasswordInput } from '@/store/modules/accounts/types'
+import type { ChangePasswordInput } from "@/stores/vuex/modules/accounts/types";
+import { defineComponent } from "vue";
 
-@Component
-export default class ChangePassword extends Vue {
-    pass = ''
-    passOld = ''
-    passConfirm = ''
-    error = ''
-
-    $parent!: AccountSettingsModal
-
+export const ChangePassword = defineComponent({
+  data() {
+    return {
+      pass: "",
+      passOld: "",
+      passConfirm: "",
+      error: "",
+    };
+  },
+  computed: {
+    canSubmit() {
+      if (this.pass.length === 0) return false;
+      if (this.passConfirm.length === 0) return false;
+      return true;
+    },
+  },
+  methods: {
     errCheck() {
-        if (this.pass.length < 9) {
-            return 'Password must be at least 9 characters.'
-        }
+      if (this.pass.length < 9) {
+        return "Password must be at least 9 characters.";
+      }
 
-        if (this.pass != this.passConfirm) {
-            return 'Passwords do not match.'
-        }
+      if (this.pass != this.passConfirm) {
+        return "Passwords do not match.";
+      }
 
-        if (this.pass === this.passOld) {
-            return 'Your new password must be different from your previous password.'
-        }
+      if (this.pass === this.passOld) {
+        return "Your new password must be different from your previous password.";
+      }
 
-        return false
-    }
-
-    get canSubmit() {
-        if (this.pass.length < 1) return false
-        if (this.passConfirm.length < 1) return false
-        return true
-    }
-
+      return false;
+    },
     async submit() {
-        this.error = ''
-        let err = this.errCheck()
-        if (err) {
-            this.error = err
-            return
-        }
+      this.error = "";
+      const err = this.errCheck();
+      if (err) {
+        this.error = err;
+        return;
+      }
 
-        let input: ChangePasswordInput = {
-            passOld: this.passOld,
-            passNew: this.pass,
-        }
+      const input: ChangePasswordInput = {
+        passOld: this.passOld,
+        passNew: this.pass,
+      };
 
-        this.$store
-            .dispatch('Accounts/changePassword', input)
-            .then(() => {
-                this.$store.dispatch('Notifications/add', {
-                    title: 'Password Changed',
-                    message: 'You can now use your account with your new password.',
-                })
-                this.$parent.close()
-            })
-            .catch((err) => {
-                this.error = err
-            })
-    }
-}
+      this.$store
+        .dispatch("Accounts/changePassword", input)
+        .then(() => {
+          this.$store.dispatch("Notifications/add", {
+            title: "Password Changed",
+            message: "You can now use your account with your new password.",
+          });
+          (this.$parent as any)?.close();
+        })
+        .catch((error) => {
+          this.error = error;
+        });
+    },
+  },
+});
+export default ChangePassword;
 </script>
 <style scoped lang="scss">
-@use './style';
+@use "./style";
 </style>

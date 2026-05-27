@@ -1,38 +1,40 @@
 <template>
-    <modal ref="modal" title="HD Addresses" class="modal_main">
-        <div class="hd_deriv_modal_body">
-            <HDDerivationList :wallet="wallet"></HDDerivationList>
-        </div>
-    </modal>
+  <modal ref="modal" class="modal_main" title="HD Addresses">
+    <div class="hd_deriv_modal_body">
+      <HDDerivationList :wallet="wallet"></HDDerivationList>
+    </div>
+  </modal>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import type { PropType } from "vue";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import { defineComponent } from "vue";
+import HDDerivationList from "@/components/modals/HdDerivationList/HDDerivationList.vue";
+import Modal from "@/components/modals/Modal.vue";
 
-import Modal from '@/components/modals/Modal.vue'
-import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import HDDerivationList from '@/components/modals/HdDerivationList/HDDerivationList.vue'
-
-@Component({
-    components: {
-        Modal,
-        HDDerivationList,
+export default defineComponent({
+  components: {
+    Modal,
+    HDDerivationList,
+  },
+  props: {
+    wallet: {
+      type: Object as PropType<MnemonicWallet>,
     },
-})
-export default class HdDerivationList extends Vue {
-    @Prop() wallet!: MnemonicWallet
-
+  },
+  methods: {
     open(): void {
-        let modal = this.$refs.modal as Modal
-        // @ts-ignore
-        modal.open()
-    }
-}
+      const modal = this.$refs.modal as typeof Modal;
+      // @ts-ignore
+      modal.open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .hd_deriv_modal_body {
-    //width: 600px;
-    max-width: 100%;
-    padding: 0px;
+  //width: 600px;
+  max-width: 100%;
+  padding: 0px;
 }
 </style>

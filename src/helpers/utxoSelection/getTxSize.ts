@@ -1,18 +1,12 @@
-import {
-    UnsignedTx as UnsignedTxX,
-    TransferableInput as TransferableInputX,
-} from '@metalblockchain/metaljs/dist/apis/avm'
-import {
-    UnsignedTx as UnsignedTxP,
-    TransferableInput as TransferableInputP,
-} from '@metalblockchain/metaljs/dist/apis/platformvm'
-import { getCredentialBytes } from '@/helpers/utxoSelection/getCredentialBytes'
-import { bintools } from '@/AVA'
+import type { UnsignedTx as UnsignedTxX } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UnsignedTx as UnsignedTxP } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import { getCredentialBytes } from "@/helpers/utxoSelection/getCredentialBytes";
+import { bintools } from "@/misc/AVA";
 
 export function getTxSize(tx: UnsignedTxX | UnsignedTxP) {
-    // Calculate number of credentials
-    const credsSize = getCredentialBytes(tx)
+  // Calculate number of credentials
+  const credsSize = getCredentialBytes(tx);
 
-    // What is to total size of the transaction
-    return bintools.addChecksum(tx.toBuffer()).length + credsSize // returns in bytes
+  // What is to total size of the transaction
+  return bintools.addChecksum(tx.toBuffer()).length + credsSize; // returns in bytes
 }

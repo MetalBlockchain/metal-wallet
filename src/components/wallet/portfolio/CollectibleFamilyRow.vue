@@ -1,155 +1,153 @@
 <template>
-    <div class="nft_family_row" v-if="allUtxos.length">
-        <div class="fam_header">
-            <p class="name">{{ family.name }}</p>
-            <p class="symbol">{{ family.symbol }}</p>
-            <p class="fam_id">{{ family.id }}</p>
-        </div>
-        <div class="list">
-            <CollectibleFamilyGroup
-                v-for="(group, id) in groupDict"
-                :key="id"
-                :utxos="group"
-                class="group"
-            ></CollectibleFamilyGroup>
-            <div v-if="canMint" class="group mint_card">
-                <p>
-                    {{ $t('portfolio.collectibles.mint_more') }}
-                </p>
-                <v-btn class="button_secondary" small depressed :to="mintUrl">
-                    {{ $t('portfolio.collectibles.mint_submit') }}
-                </v-btn>
-            </div>
-        </div>
+  <div v-if="allUtxos.length > 0" class="nft_family_row">
+    <div class="fam_header">
+      <p class="name">{{ family?.name }}</p>
+      <p class="symbol">{{ family?.symbol }}</p>
+      <p class="fam_id">{{ family?.id }}</p>
     </div>
+    <div class="list">
+      <CollectibleFamilyGroup
+        v-for="(group, id) in groupDict"
+        :key="id"
+        class="group"
+        :utxos="group"
+      ></CollectibleFamilyGroup>
+      <div v-if="canMint" class="group mint_card">
+        <p>
+          {{ $t("portfolio.collectibles.mint_more") }}
+        </p>
+        <v-btn class="button_secondary" depressed small :to="mintUrl">
+          {{ $t("portfolio.collectibles.mint_submit") }}
+        </v-btn>
+      </div>
+    </div>
+  </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator'
-import { AvaNftFamily } from '@/js/AvaNftFamily'
-import NFTCard from './NftCard.vue'
-import { IWalletNftDict, IWalletNftMintDict } from '@/store/types'
-import {
-    NFTTransferOutput,
-    UTXO,
-    AVMConstants,
-    NFTMintOutput,
-} from '@metalblockchain/metaljs/dist/apis/avm'
-import { NftGroupDict } from '@/components/wallet/portfolio/types'
-import CollectibleFamilyGroup from '@/components/wallet/portfolio/CollectibleFamilyGroup.vue'
-@Component({
-    components: {
-        NFTCard,
-        CollectibleFamilyGroup,
+import type {
+  NFTMintOutput,
+  NFTTransferOutput,
+  UTXO,
+} from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
+import type { NftGroupDict } from "@/components/wallet/portfolio/types";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
+import type { IWalletNftDict, IWalletNftMintDict } from "@/stores/vuex/types";
+import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
+import { defineComponent } from "vue";
+import CollectibleFamilyGroup from "@/components/wallet/portfolio/CollectibleFamilyGroup.vue";
+
+export const CollectibleFamilyRow = defineComponent({
+  components: {
+    CollectibleFamilyGroup,
+  },
+  props: {
+    family: {
+      type: Object as PropType<AvaNftFamily>,
     },
-})
-export default class CollectibleFamilyRow extends Vue {
-    @Prop() family!: AvaNftFamily
+  },
+  computed: {
+    nftDict(): IWalletNftDict {
+      // return this.$store.getters.walletNftDict
+      return this.$store.getters["Assets/walletNftDict"];
+    },
+    nftMintDict(): IWalletNftMintDict {
+      // return this.$store.getters.walletNftMintDict
+      return this.$store.getters["Assets/nftMintDict"];
+    },
+    utxos(): UTXO[] {
+      const id = this.family?.id;
+      return id && this.nftDict ? (this.nftDict[id] ?? []) : [];
+    },
+    mintUtxos(): UTXO[] {
+      const id = this.family?.id;
+      return id && this.nftMintDict ? (this.nftMintDict[id] ?? []) : [];
+    },
+    canMint() {
+      return this.mintUtxos.length > 0;
+    },
+    groupDict(): NftGroupDict {
+      const dict: NftGroupDict = {};
+      for (let i = 0; i < this.utxos.length; i++) {
+        const utxo = this.utxos[i];
+        if (utxo) {
+          const out = utxo.getOutput() as NFTTransferOutput;
+          const groupId = out.getGroupID();
 
-    // get groups() {}
-    get nftDict(): IWalletNftDict {
-        // return this.$store.getters.walletNftDict
-        return this.$store.getters['Assets/walletNftDict']
-    }
-
-    get nftMintDict(): IWalletNftMintDict {
-        // return this.$store.getters.walletNftMintDict
-        return this.$store.getters['Assets/nftMintDict']
-    }
-
-    get utxos(): UTXO[] {
-        return this.nftDict[this.family.id] || []
-    }
-
-    get mintUtxos(): UTXO[] {
-        return this.nftMintDict[this.family.id] || []
-    }
-
-    get canMint() {
-        return this.mintUtxos.length > 0
-    }
-
-    get groupDict(): NftGroupDict {
-        let dict: NftGroupDict = {}
-        for (var i = 0; i < this.utxos.length; i++) {
-            let utxo = this.utxos[i]
-            let out = utxo.getOutput() as NFTTransferOutput
-            let groupId = out.getGroupID()
-
-            let target = dict[groupId]
-            if (target) {
-                target.push(utxo)
-            } else {
-                dict[groupId] = [utxo]
-            }
+          const target = dict[groupId];
+          if (target) {
+            target.push(utxo);
+          } else {
+            dict[groupId] = [utxo];
+          }
         }
-        return dict
-    }
-    get allUtxos(): UTXO[] {
-        return this.utxos.concat(this.mintUtxos)
-    }
+      }
+      return dict;
+    },
+    allUtxos(): UTXO[] {
+      return this.utxos.concat(this.mintUtxos);
+    },
+    mintUrl() {
+      if (this.mintUtxos.length === 0) return "";
+      const mintUtxo = this.mintUtxos[0];
+      if (!mintUtxo) return "";
 
-    get mintUrl() {
-        if (this.mintUtxos.length === 0) return ''
-        let mintUtxo = this.mintUtxos[0]
+      return `/wallet/studio?utxo=${mintUtxo.getUTXOID()}`;
+    },
+    groupIds(): number[] {
+      const ids: number[] = this.allUtxos.map((val) => {
+        const id = val.getOutput().getOutputID();
+        if (id === AVMConstants.NFTMINTOUTPUTID) {
+          const out = val.getOutput() as NFTMintOutput;
+          return out.getGroupID();
+        } else {
+          const out = val.getOutput() as NFTTransferOutput;
+          return out.getGroupID();
+        }
+      });
 
-        return `/wallet/studio?utxo=${mintUtxo.getUTXOID()}`
-    }
+      const idsUnique = ids.filter((val, index) => {
+        return ids.indexOf(val) === index;
+      });
 
-    get groupIds(): number[] {
-        let ids: number[] = this.allUtxos.map((val) => {
-            let id = val.getOutput().getOutputID()
-            if (id === AVMConstants.NFTMINTOUTPUTID) {
-                let out = val.getOutput() as NFTMintOutput
-                return out.getGroupID()
-            } else {
-                let out = val.getOutput() as NFTTransferOutput
-                return out.getGroupID()
-            }
-        })
+      idsUnique.sort((a, b) => {
+        return a - b;
+      });
 
-        let idsUnique = ids.filter((val, index) => {
-            return ids.indexOf(val) === index
-        })
-
-        idsUnique.sort((a, b) => {
-            return a - b
-        })
-
-        return idsUnique
-    }
-}
+      return idsUnique;
+    },
+  },
+});
+export default CollectibleFamilyRow;
 </script>
 <style scoped lang="scss">
-@use '../../../main';
+@use "@/styles/abstracts/mixins";
 @use "tokens";
 
 .mint_card {
-    font-size: 13px;
-    border: 1px dashed var(--primary-color-light);
-    padding: 12px 12px;
-    color: var(--primary-color);
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: space-between;
+  font-size: 13px;
+  border: 1px dashed var(--primary-color-light);
+  padding: 12px 12px;
+  color: var(--primary-color);
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-@include main.medium-device {
-}
-
-@include main.mobile-device {
-    .fam_header {
-        grid-template-columns: max-content 1fr;
-    }
-    .fam_id {
-        grid-column: 1/3;
-        text-align: left;
-    }
-    .mint_card {
-        height: max-content;
-    }
-    .list {
-        grid-template-columns: 1fr;
-    }
+@include mixins.mobile-device {
+  .fam_header {
+    grid-template-columns: max-content 1fr;
+  }
+  .fam_id {
+    grid-column: 1/3;
+    text-align: left;
+  }
+  .mint_card {
+    height: max-content;
+  }
+  .list {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

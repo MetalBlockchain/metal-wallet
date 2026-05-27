@@ -1,11 +1,11 @@
-import { BN } from '@metalblockchain/metaljs'
+import type { BN } from "@metalblockchain/metaljs";
 export interface TransactionValueDict {
-    [address: string]: number
+  [address: string]: number;
 }
 
 export interface TransactionAssetsDict {
-    [assetId: string]: {
-        amount: BN
-        addresses: Set<string>
-    }
+  [assetId: string]: {
+    amount: BN;
+    addresses: Set<string>;
+  };
 }

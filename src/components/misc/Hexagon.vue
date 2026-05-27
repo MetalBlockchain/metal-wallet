@@ -1,27 +1,28 @@
 <template>
-    <div class="hex_img">
-        <img src="@/assets/hex.svg" class="hex_img" v-if="!isAva" />
-        <img src="@/assets/hex_ava.svg" class="hex_img" v-else />
-    </div>
+  <div class="hex_img">
+    <img v-if="!isAva" class="hex_img" src="@/assets/hex.svg" />
+    <img v-else class="hex_img" src="@/assets/hex_ava.svg" />
+  </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import { defineComponent } from "vue";
 
-@Component
-export default class FungibleRow extends Vue {
-    @Prop({ default: false }) isAva?: boolean
-}
+export default defineComponent({
+  props: {
+    isAva: { default: false, type: Boolean },
+  },
+});
 </script>
 <style scoped lang="scss">
 .hex_img {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 img.hex_img {
-    width: 100% !important;
-    object-position: center;
-    object-fit: contain;
+  width: 100% !important;
+  object-position: center;
+  object-fit: contain;
 }
 </style>

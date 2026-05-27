@@ -1,150 +1,150 @@
 <template>
-    <div class="sel_locale">
-        <country-flag :country="flag" size="small" class="flag"></country-flag>
-        <select v-model="locale">
-            <option v-for="item in items" :key="item.code" :value="item.code">
-                {{ item.nativeName }}
-            </option>
-        </select>
-    </div>
+  <div>
+    <v-menu>
+      <template #activator="{ props }">
+        <div class="sel_locale" v-bind="props">
+          <span class="flag fi" :class="flag"></span>
+          <span class="lang-label">
+            {{ currentLang?.nativeName }}
+          </span>
+        </div>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="(item, index) in items"
+          :key="index"
+          :active="item.code === currentLang?.code"
+          :value="index"
+        >
+          <v-list-item-title @click="onSelectedChange(item.code)">
+            {{ item.nativeName }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
-<script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
+<script lang="ts" setup>
+import type { LanguageItem } from "@/components/misc/LanguageSelect/types";
 
-//@ts-ignore
-import langMap from '@/locales/lang_map'
-//@ts-ignore
-import CountryFlag from 'vue-country-flag'
+import { manageLocalization } from '@/composables/manage-localizations';
+import { SUPPORTED_LANGS } from "@/constants";
+import ISO_LANGS_MAP from "@/constants/iso-lang-map";
 
-import { LanguageItem } from '@/components/misc/LanguageSelect/types'
+const { currentLocale, loadLocalization } = manageLocalization()
 
 interface FLAG_DICT {
-    [key: string]: string
+  [key: string]: string;
 }
 const FLAGS_OVERRIDE: FLAG_DICT = {
-    en: 'us',
-    zh_hant: 'cn',
-    zh_hans: 'cn',
-    cs: 'cz',
-    ca: 'es-ca',
-    uk: 'ua',
-    af: 'za',
-    ar: 'ae',
-    da: 'dk',
-    el: 'gr',
-    he: 'il',
-    nb: 'no',
-    sr: 'rs',
-    sv: 'se',
-    ja: 'jp',
-}
+  en: "us",
+  zh_hant: "cn",
+  zh_hans: "cn",
+  cs: "cz",
+  ca: "es-ca",
+  uk: "ua",
+  af: "za",
+  ar: "ae",
+  da: "dk",
+  el: "gr",
+  he: "il",
+  nb: "no",
+  sr: "rs",
+  sv: "se",
+  ja: "jp",
+};
 
-@Component({
-    components: {
-        CountryFlag,
-    },
-})
-export default class LanguageSelect extends Vue {
-    locale = 'en'
+const locale = computed(() => currentLocale.value);
 
-    mounted() {
-        this.locale = this.$root.$i18n.locale
+const flag = computed(() => {
+  const selCode = locale.value;
+  return `fi-${FLAGS_OVERRIDE[selCode] ?? selCode}`;
+});
+
+const items = computed(() =>
+  SUPPORTED_LANGS.reduce((accum: LanguageItem[], langCode) => {
+    const data = ISO_LANGS_MAP[langCode];
+    if (data) {
+      accum.push({
+        code: langCode,
+        name: data.name,
+        nativeName: data.nativeName,
+      });
     }
+    return accum;
+  }, []),
+);
 
-    @Watch('locale')
-    onSelectedChange(val: string) {
-        this.$root.$i18n.locale = val
-        localStorage.setItem('lang', val)
-    }
+const currentLang = computed<LanguageItem | undefined>(() => {
+  return items.value.find((_) => _.code === locale.value);
+});
 
-    get flag() {
-        let selCode = this.locale
+function onSelectedChange(val: string) {
+  loadLocalization(val);
 
-        if (FLAGS_OVERRIDE[selCode]) {
-            return FLAGS_OVERRIDE[selCode]
-        } else {
-            return selCode
-        }
-    }
-
-    get items(): LanguageItem[] {
-        let res = []
-
-        let messages = this.$root.$i18n.messages
-        for (var langCode in messages) {
-            let data = langMap[langCode]
-
-            res.push({
-                code: langCode,
-                name: data.name,
-                nativeName: data.nativeName,
-            })
-        }
-        return res
-    }
+  localStorage.setItem("lang", val);
 }
 </script>
+
 <style scoped lang="scss">
-.sel_locale {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 4px 12px;
-    border: 1px solid transparent;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-
-    &:hover {
-        opacity: 0.5;
-    }
-}
-
 .flag {
-    flex-shrink: 0;
-}
-.sel_locale p.selected {
-    margin: 0;
-    padding-left: 8px;
-    color: var(--primary-color);
+  flex-shrink: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .sel_outlined {
-    border-color: #1d82bb !important;
-    color: #1d82bb !important;
+  border-color: #1d82bb !important;
+  color: #1d82bb !important;
 }
 
-.selected {
-    //font-size: 13px;
+.lang-label {
+  flex-grow: 1;
+  margin-left: 10px;
+  color: var(--primary-color);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--primary-color);
+  }
 }
 
 select {
-    outline: none;
-    flex-grow: 1;
-    margin-left: 10px;
+  outline: none;
+  flex-grow: 1;
+  margin-left: 10px;
+  color: var(--primary-color);
+  cursor: pointer;
+
+  &:hover {
     color: var(--primary-color);
-    cursor: pointer;
-    //font-size: 13px;
+  }
+
+  option {
+    color: red;
 
     &:hover {
-        color: var(--primary-color);
+      color: blue;
     }
+  }
 }
 
 @media only screen and (max-width: 600px) {
-    .sel_locale {
-        width: min-content;
-    }
-    p.selected {
-        display: none;
-    }
+  .sel_locale {
+    width: min-content;
+  }
+
+  p.selected {
+    display: none;
+  }
 }
 </style>
+
 <style lang="scss">
 .sel_locale {
-    .vs__dropdown-toggle {
-        border-color: var(--primary-color-light) !important;
-    }
+  .vs__dropdown-toggle {
+    border-color: var(--primary-color-light) !important;
+  }
 }
 </style>

@@ -1,42 +1,46 @@
-import { UTXO } from '@metalblockchain/metaljs/dist/apis/avm'
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 
 export interface UrlFormType {
-    url: string
+  url: string;
 }
 
 export interface UtfFormType {
-    text: string
+  text: string;
 }
 
 export interface JsonFormType {
-    data: string
+  data: string;
 }
 
 export interface GenericFormType {
-    data: {
-        avalanche: IGenericNft
-    }
+  data: {
+    avalanche: IGenericNft;
+  };
 }
 
 export interface IGenericNft {
-    version: number
-    type: GenericNftTypes
-    title: string
-    radius?: number // to set border radius of the card
-    desc?: string
-    img: string
-    img_b?: string // back image
-    img_m?: string // mask image (for 3d layering)
+  version: number;
+  type: GenericNftTypes;
+  title: string;
+  radius?: number; // to set border radius of the card
+  desc?: string;
+  img: string;
+  img_b?: string; // back image
+  img_m?: string; // mask image (for 3d layering)
 }
 
 export interface IGroupQuantity {
-    id: string
-    utxos: UTXO[]
+  id: string;
+  utxos: UTXO[];
 }
 
 export interface IGroupDict {
-    [key: string]: UTXO[]
+  [key: string]: UTXO[];
 }
-type GenericNftTypes = 'generic'
+type GenericNftTypes = "generic";
 
-export type NftMintFormType = UrlFormType | UtfFormType | JsonFormType | GenericFormType
+export type NftMintFormType =
+  | UrlFormType
+  | UtfFormType
+  | JsonFormType
+  | GenericFormType;

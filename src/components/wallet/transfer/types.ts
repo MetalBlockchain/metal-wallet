@@ -1,19 +1,13 @@
-import AvaAsset from '@/js/AvaAsset'
-import Big from 'big.js'
-import { BN } from '@metalblockchain/metaljs'
-// import {UTXO} from "avalanche";
-
-// type AssetType = "fungible" | "collectible"
+import type { BN } from "@metalblockchain/metaljs";
+import type AvaAsset from "@/js/AvaAsset";
 
 export interface ITransaction {
-    uuid: string
-    asset: AvaAsset
-    amount: BN
+  uuid: string;
+  asset: AvaAsset;
+  amount: BN;
 }
 
-export interface INftTransaction {}
-
 export interface ICurrencyInputDropdownValue {
-    asset: AvaAsset | null
-    amount: BN
+  asset: AvaAsset | null;
+  amount: BN;
 }

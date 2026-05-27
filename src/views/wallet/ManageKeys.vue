@@ -1,191 +1,171 @@
 <template>
+  <div>
     <div>
-        <div>
-            <div class="card_body">
-                <header>
-                    <div class="header_title">
-                        <h1>{{ $t('keys.title') }}</h1>
-                        <hr />
-                    </div>
-                </header>
-                <div class="button_container" v-if="canEncryptWallet">
-                    <button
-                        v-if="!account"
-                        @click="openSaveAccount"
-                        class="save_account ava_button_secondary"
-                    >
-                        <fa icon="exclamation-triangle"></fa>
-                        {{ $t('keys.button1') }}
-                    </button>
-                    <button
-                        v-if="hasVolatile && account"
-                        @click="openAccountSettings"
-                        class="save_account ava_button_secondary"
-                    >
-                        <fa icon="exclamation-triangle"></fa>
-                        {{ $t('keys.button1') }}
-                    </button>
-                    <button class="but_primary ava_button_secondary" @click="exportKeys">
-                        <img src="@/assets/upload.svg" class="key_logo" />
-                        {{ $t('keys.button3') }}
-                    </button>
-                    <SaveAccountModal ref="account_modal"></SaveAccountModal>
-                    <AccountSettingsModal ref="account_settings"></AccountSettingsModal>
-                    <ExportKeys ref="export" :wallets="allWallets"></ExportKeys>
-                </div>
-                <my-keys></my-keys>
-            </div>
+      <div class="card_body">
+        <header>
+          <div class="header_title">
+            <h1>{{ $t("keys.title") }}</h1>
+            <hr />
+          </div>
+        </header>
+        <div v-if="canEncryptWallet" class="button_container">
+          <button
+            v-if="!account"
+            class="save_account ava_button_secondary"
+            @click="openSaveAccount"
+          >
+            <fa icon="exclamation-triangle"></fa>
+            {{ $t("keys.button1") }}
+          </button>
+          <button
+            v-if="hasVolatile && account"
+            class="save_account ava_button_secondary"
+            @click="openAccountSettings"
+          >
+            <fa icon="exclamation-triangle"></fa>
+            {{ $t("keys.button1") }}
+          </button>
+          <button class="but_primary ava_button_secondary" @click="exportKeys">
+            <img class="key_logo" src="@/assets/upload.svg" />
+            {{ $t("keys.button3") }}
+          </button>
+          <SaveAccountModal ref="account_modal"></SaveAccountModal>
+          <AccountSettingsModal ref="account_settings"></AccountSettingsModal>
+          <ExportKeys ref="export" :wallets="allWallets"></ExportKeys>
         </div>
+        <my-keys></my-keys>
+      </div>
     </div>
+  </div>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop } from 'vue-property-decorator'
-import MyKeys from '@/components/wallet/manage/MyKeys.vue'
-import ImportKeys from '@/components/modals/ImportKeys.vue'
-import ExportKeys from '@/components/modals/ExportKeys.vue'
-import MnemonicWallet from '@/js/wallets/MnemonicWallet'
-import SaveAccountModal from '@/components/modals/SaveAccount/SaveAccountModal.vue'
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { WalletNameType } from "@/js/wallets/types";
+import { defineComponent } from "vue";
+import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
+import ExportKeys from "@/components/modals/ExportKeys.vue";
 
-import { WalletNameType } from '@/js/wallets/types'
-import { iUserAccountEncrypted } from '@/store/types'
-import AccountSettingsModal from '@/components/modals/AccountSettings/AccountSettingsModal.vue'
+import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
+import MyKeys from "@/components/wallet/manage/MyKeys.vue";
 
-@Component({
-    name: 'manage',
-    components: {
-        AccountSettingsModal,
-        MyKeys,
-        ImportKeys,
-        ExportKeys,
-        SaveAccountModal,
+export const ManageKeys = defineComponent({
+  name: "Manage",
+  components: {
+    AccountSettingsModal,
+    MyKeys,
+    ExportKeys,
+    SaveAccountModal,
+  },
+  computed: {
+    account() {
+      return this.$store.getters["Accounts/account"];
     },
-})
-export default class ManageKeys extends Vue {
-    $refs!: {
-        import: ImportKeys
-        export: ExportKeys
-        account_modal: SaveAccountModal
-        account_settings: AccountSettingsModal
-    }
-
-    get account() {
-        return this.$store.getters['Accounts/account']
-    }
-
-    importKeys() {
-        this.$refs.import.open()
-    }
-
+    canEncryptWallet() {
+      return ["mnemonic", "singleton"].includes(this.walletType);
+    },
+    walletType(): WalletNameType {
+      return this.$store.state.activeWallet.type;
+    },
+    hasVolatile() {
+      return this.$store.state.volatileWallets.length > 0;
+    },
+    allWallets(): MnemonicWallet[] {
+      return this.$store.state.wallets;
+    },
+    warnUpdateKeyfile() {
+      return this.$store.state.warnUpdateKeyfile;
+    },
+  },
+  methods: {
     exportKeys() {
-        this.$refs.export.open()
-    }
-
+      (this.$refs.export as typeof ExportKeys).open();
+    },
     openSaveAccount() {
-        this.$refs.account_modal.open()
-    }
-
+      (this.$refs.account_modal as typeof SaveAccountModal).open();
+    },
     openAccountSettings() {
-        this.$refs.account_settings.open()
-    }
-
-    get canEncryptWallet() {
-        return ['mnemonic', 'singleton'].includes(this.walletType)
-    }
-
-    get walletType(): WalletNameType {
-        return this.$store.state.activeWallet.type
-    }
-
-    get hasVolatile() {
-        return this.$store.state.volatileWallets.length > 0
-    }
-
-    get allWallets(): MnemonicWallet[] {
-        return this.$store.state.wallets
-    }
-
-    get warnUpdateKeyfile() {
-        return this.$store.state.warnUpdateKeyfile
-    }
-}
+      (this.$refs.account_settings as typeof AccountSettingsModal).open();
+    },
+  },
+});
+export default ManageKeys;
 </script>
 <style scoped lang="scss">
-@use '../../main';
+@use "@/styles/abstracts/mixins";
 
 .button_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+
+  button {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tertiary-color);
+    display: flex;
+    align-items: center;
+
+    img {
+      height: 20px;
+      width: 20px;
+      margin-right: 10px;
+    }
+  }
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .header_title {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
+    margin-bottom: 18px;
+    width: 100%;
 
-    button {
-        font-size: 14px;
-        font-weight: 500;
-        color: var(--tertiary-color);
-        display: flex;
-        align-items: center;
-
-        img {
-            height: 20px;
-            width: 20px;
-            margin-right: 10px;
-        }
+    h1 {
+      font-size: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+      margin-right: 12px;
+      color: var(--tertiary-color);
     }
-}
-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 
-    .header_title {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        margin-bottom: 18px;
-        width: 100%;
-
-        h1 {
-            font-size: 20px;
-            font-weight: 500;
-            white-space: nowrap;
-            margin-right: 12px;
-            color: var(--tertiary-color);
-        }
-
-        hr {
-            flex: 0 1 100%;
-            border: 1px solid var(--border-secondary-light);
-        }
+    hr {
+      flex: 0 1 100%;
+      border: 1px solid var(--border-secondary-light);
     }
+  }
 }
 
 h1 {
-    font-size: 20px;
-    font-weight: 500;
-    white-space: nowrap;
-    color: var(--tertiary-color);
+  font-size: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--tertiary-color);
 }
 
 .save_account {
-    color: var(--warning);
+  color: var(--warning);
 }
 
-@include main.mobile-device {
-    header {
-        display: block;
-    }
+@include mixins.mobile-device {
+  header {
+    display: block;
+  }
 
-    .button_container {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        /*flex-wrap: wrap;*/
+  .button_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    /*flex-wrap: wrap;*/
 
-        button {
-            padding: 8px 0;
-        }
+    button {
+      padding: 8px 0;
     }
+  }
 }
 </style>

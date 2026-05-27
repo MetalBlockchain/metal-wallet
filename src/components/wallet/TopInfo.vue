@@ -1,136 +1,128 @@
 <template>
-    <div class="top_cards">
-        <balance-card class="top_card balance_card"></balance-card>
-        <address-card class="top_card addr_card"></address-card>
-    </div>
+  <div class="top_cards">
+    <balance-card class="top_card balance_card"></balance-card>
+    <address-card class="top_card addr_card"></address-card>
+  </div>
 </template>
-<script>
-import BalanceCard from './TopCards/BalanceCard/BalanceCard'
-import AddressCard from './TopCards/AddressCard/AddressCard'
+<script lang="ts">
+import { defineComponent } from "vue";
+import AddressCard from "./TopCards/AddressCard/AddressCard.vue";
+import BalanceCard from "./TopCards/BalanceCard/BalanceCard.vue";
 
-export default {
-    components: {
-        BalanceCard,
-        AddressCard,
-    },
-}
+export const TopInfo = defineComponent({
+  components: {
+    BalanceCard,
+    AddressCard,
+  },
+});
+export default TopInfo;
 </script>
 <style scoped lang="scss">
-@use '../../main';
+@use "@/styles/abstracts/mixins";
+@use "@/styles/abstracts/vars";
 
 .top_cards {
-    display: grid;
-    grid-template-columns: 1fr 360px;
-    grid-gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  grid-gap: 15px;
 }
+
 .top_card {
-    flex-grow: 1;
-    color: var(--primary-color);
-    flex-shrink: 0;
-    //display: flex;
-    background-color: var(--bg-wallet-light);
-    padding: 12px 20px;
-    overflow: hidden;
-    border-radius: 5px;
-    animation-name: fade;
-    animation-duration: 0.6s;
-    animation-timing-function: ease-out;
+  flex-grow: 1;
+  color: var(--primary-color);
+  flex-shrink: 0;
+  //display: flex;
+  background-color: var(--bg-wallet-light);
+  padding: 12px 20px;
+  overflow: hidden;
+  border-radius: 5px;
+  animation-name: fade;
+  animation-duration: 0.6s;
+  animation-timing-function: ease-out;
 }
 
-.balance_card {
-}
-
-.addr_card {
-}
 .card_left {
-    background-color: #f4efff;
-    flex-basis: 70px;
-    flex-shrink: 0;
-    padding: 15px;
-    border-bottom-right-radius: 5px;
+  background-color: #f4efff;
+  flex-basis: 70px;
+  flex-shrink: 0;
+  padding: 15px;
+  border-bottom-right-radius: 5px;
 
-    img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: center;
-        fill: #ddd;
-    }
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    fill: #ddd;
+  }
 }
 
 .card_right {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    padding: 20px 18px;
-    padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 20px 18px;
+  padding-bottom: 8px;
 }
 
 .top_card h4 {
-    color: main.$primary-color;
-    font-weight: bold;
-    text-align: left;
+  color: vars.$primary-color;
+  font-weight: bold;
+  text-align: left;
 }
 .top_card p {
-    word-break: break-all;
-    text-align: left;
-    flex-grow: 1;
-    margin: 0;
-    font-size: 14px;
-    font-family: Inconsolata, monospace;
+  word-break: break-all;
+  text-align: left;
+  flex-grow: 1;
+  margin: 0;
+  font-size: 14px;
+  font-family: Inconsolata, monospace;
 }
 
 .balance {
-    font-size: 24px !important;
-    font-family: Rubik !important;
+  font-size: 24px !important;
+  font-family: Rubik !important;
 }
 
 .top_card .buts {
-    width: 100%;
-    text-align: right;
+  width: 100%;
+  text-align: right;
 }
 .top_card .buts button {
-    font-size: 18px;
-    margin: 0px 18px;
-    margin-right: 0px;
-    position: relative;
-    outline: none;
+  font-size: 18px;
+  margin: 0px 18px;
+  margin-right: 0px;
+  position: relative;
+  outline: none;
 }
 
 .buts img {
-    height: 20px;
-    width: 20px;
-    object-fit: contain;
+  height: 20px;
+  width: 20px;
+  object-fit: contain;
 }
 
-@media only screen and (max-width: main.$mobile_width) {
+@include mixins.medium-device {
+  .top_cards {
+    grid-template-columns: 1fr 320px;
+    grid-gap: 9px;
+  }
 }
 
-@include main.medium-device {
-    .top_cards {
-        grid-template-columns: 1fr 320px;
-        grid-gap: 9px;
-    }
-}
+@include mixins.mobile-device {
+  .top_cards {
+    grid-template-columns: none;
+    grid-template-rows: min-content;
+    grid-gap: 9px;
+  }
 
-@include main.mobile-device {
-    .top_cards {
-        grid-template-columns: none;
-        grid-template-rows: min-content;
-        grid-gap: 9px;
-    }
+  .balance_card {
+    grid-column: unset;
+  }
 
-    .top_card {
-        /*padding: ;*/
-    }
-
-    .balance_card {
-        grid-column: unset;
-    }
-
-    .addr_card {
-        grid-column: unset;
-    }
+  .addr_card {
+    grid-column: unset;
+  }
 }
 
 //@media only screen and (max-width: main.$width_m) {

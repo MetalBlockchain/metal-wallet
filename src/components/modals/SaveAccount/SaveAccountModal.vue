@@ -1,180 +1,181 @@
 <template>
-    <div>
-        <Modal ref="modal" :title="$t('keys.save_account.title')">
-            <div class="remember_modal">
-                <form @submit.prevent="submit">
-                    <div class="flex-row" style="justify-content: center">
-                        <Identicon :value="baseAddresses.join('')"></Identicon>
-                    </div>
-                    <p>{{ $t('keys.save_account.desc') }}</p>
+  <div>
+    <Modal ref="modal" :title="$t('keys.save_account.title')">
+      <div class="remember_modal">
+        <form @submit.prevent="submit">
+          <div class="flex-row" style="justify-content: center">
+            <Identicon :value="baseAddresses.join('')"></Identicon>
+          </div>
+          <p>{{ $t("keys.save_account.desc") }}</p>
 
-                    <input
-                        v-model="accountName"
-                        :name="$t('keys.save_account.placeholder_1')"
-                        placeholder="Account Name"
-                        :disabled="existsInLocalStorage"
-                    />
-                    <input
-                        type="password"
-                        :placeholder="$t('keys.save_account.placeholder_2')"
-                        v-model="password"
-                    />
-                    <input
-                        type="password"
-                        :placeholder="$t('keys.save_account.placeholder_3')"
-                        v-model="password_confirm"
-                    />
-                    <p class="err">{{ err }}</p>
-                    <p class="err small" style="text-align: center">
-                        Clearing your browser cache will remove this account. Make sure you have
-                        your
-                        <b>{{ walletType == 'mnemonic' ? 'mnemonic phrase' : 'private key' }}</b>
-                        saved.
-                    </p>
-                    <v-btn
-                        class="button_primary"
-                        :disabled="!canSubmit"
-                        type="submit"
-                        :loading="isLoading"
-                    >
-                        {{ $t('keys.save_account.submit') }}
-                    </v-btn>
-                </form>
-            </div>
-        </Modal>
-    </div>
+          <input
+            v-model="accountName"
+            :disabled="existsInLocalStorage"
+            :name="$t('keys.save_account.placeholder_1').toString()"
+            placeholder="Account Name"
+          />
+          <input
+            v-model="password"
+            :placeholder="$t('keys.save_account.placeholder_2').toString()"
+            type="password"
+          />
+          <input
+            v-model="password_confirm"
+            :placeholder="$t('keys.save_account.placeholder_3').toString()"
+            type="password"
+          />
+          <p class="err">{{ err }}</p>
+          <p class="err small" style="text-align: center">
+            Clearing your browser cache will remove this account. Make sure you
+            have your
+            <b>{{
+              walletType == "mnemonic" ? "mnemonic phrase" : "private key"
+            }}</b>
+            saved.
+          </p>
+          <v-btn
+            class="button_primary"
+            :disabled="!canSubmit"
+            :loading="isLoading"
+            type="submit"
+          >
+            {{ $t("keys.save_account.submit") }}
+          </v-btn>
+        </form>
+      </div>
+    </Modal>
+  </div>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import type {
+  iUserAccountEncrypted,
+  SaveAccountInput,
+} from "@/stores/vuex/types";
+import { defineComponent } from "vue";
+import Identicon from "@/components/misc/Identicon.vue";
+import Modal from "../Modal.vue";
 
-import Modal from '../Modal.vue'
-import { SaveAccountInput } from '@/store/types'
-import { iUserAccountEncrypted } from '@/store/types'
-import Identicon from '@/components/misc/Identicon.vue'
+export const SaveAccountModal = defineComponent({
+  components: {
+    Identicon,
+    Modal,
+  },
+  data() {
+    const foundAccount: iUserAccountEncrypted | null = null;
+    const err: any = "";
 
-@Component({
-    components: {
-        Identicon,
-        Modal,
+    return {
+      password: "",
+      password_confirm: "",
+      isLoading: false,
+      err,
+      accountName: "",
+      existsInLocalStorage: false,
+      index: 0,
+      foundAccount,
+    };
+  },
+  computed: {
+    walletType() {
+      return this.$store.state.activeWallet.type;
     },
-})
-export default class SaveAccountModal extends Vue {
-    password: string = ''
-    password_confirm: string = ''
-    isLoading: boolean = false
-    err: any = ''
-    accountName = ''
-    existsInLocalStorage: boolean = false
-    index: number = 0
-    foundAccount: iUserAccountEncrypted | null = null
-    $refs!: {
-        modal: Modal
-    }
+    canSubmit() {
+      if (this.error !== null) return false;
+      return true;
+    },
+    error() {
+      if (!this.password) return this.$t("keys.password_validation");
+      if (!this.password_confirm) return this.$t("keys.password_validation2");
+      if (this.accountName.length === 0)
+        return this.$t("keys.account_name_required");
+      if (this.password.length < 9) return this.$t("keys.password_validation");
+      if (this.password !== this.password_confirm)
+        return this.$t("keys.password_validation2");
 
-    get walletType() {
-        return this.$store.state.activeWallet.type
-    }
-
-    get canSubmit() {
-        if (this.error !== null) return false
-        return true
-    }
-
-    get error() {
-        if (!this.password) return this.$t('keys.password_validation')
-        if (!this.password_confirm) return this.$t('keys.password_validation2')
-        if (this.accountName.length < 1) return this.$t('keys.account_name_required')
-        if (this.password.length < 9) return this.$t('keys.password_validation')
-        if (this.password !== this.password_confirm) return this.$t('keys.password_validation2')
-
-        return null
-    }
-
+      return null;
+    },
+    baseAddresses(): string[] {
+      return this.$store.getters["Accounts/baseAddresses"];
+    },
+  },
+  methods: {
     async submit(): Promise<void> {
-        this.isLoading = true
-        let pass = this.password
-        let accountName = this.accountName
+      this.isLoading = true;
+      const pass = this.password;
+      const accountName = this.accountName;
 
-        let input: SaveAccountInput = {
-            accountName: accountName,
-            password: pass,
-        }
-        await this.$store.dispatch('Accounts/saveAccount', input)
+      const input: SaveAccountInput = {
+        accountName: accountName,
+        password: pass,
+      };
+      await this.$store.dispatch("Accounts/saveAccount", input);
 
-        this.isLoading = false
-        this.onsuccess()
-    }
-
+      this.isLoading = false;
+      this.onsuccess();
+    },
     onsuccess() {
-        this.$store.dispatch('Notifications/add', {
-            title: 'Account Saved',
-            message: 'Your keys are now stored under a new local account.',
-            type: 'info',
-        })
-        this.close()
-    }
-
+      this.$store.dispatch("Notifications/add", {
+        title: "Account Saved",
+        message: "Your keys are now stored under a new local account.",
+        type: "info",
+      });
+      this.close();
+    },
     clear() {
-        this.password = ''
-        this.password_confirm = ''
-        this.accountName = ''
-        this.err = ''
-    }
+      this.password = "";
+      this.password_confirm = "";
+      this.accountName = "";
+      this.err = "";
+    },
     close() {
-        this.clear()
-        this.$refs.modal.close()
-    }
-
+      this.clear();
+      (this.$refs.modal as typeof Modal).close();
+    },
     open() {
-        this.$refs.modal.open()
-    }
-
-    get baseAddresses(): string[] {
-        return this.$store.getters['Accounts/baseAddresses']
-    }
-}
+      (this.$refs.modal as typeof Modal).open();
+    },
+  },
+});
+export default SaveAccountModal;
 </script>
 <style scoped lang="scss">
-@use '../../../main';
-
 .remember_modal {
-    width: 320px;
-    max-width: 100%;
-    padding: 12px 30px;
+  width: 320px;
+  max-width: 100%;
+  padding: 12px 30px;
 }
 
 form {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    > * {
-        margin: 6px 0px;
-    }
+  > * {
+    margin: 6px 0px;
+  }
 }
 
 input {
-    background-color: var(--bg-light);
-    color: var(--primary-color);
-    padding: 6px 14px;
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+  padding: 6px 14px;
 }
 
 .cancel_but {
-    color: #999;
-    font-size: 0.9rem;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .password {
-    background-color: var(--bg-light);
-    color: var(--primary-color);
-    padding: 6px 14px;
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+  padding: 6px 14px;
 }
 
 .submit {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 
 .err {
-    color: var(--error);
+  color: var(--error);
 }
 </style>

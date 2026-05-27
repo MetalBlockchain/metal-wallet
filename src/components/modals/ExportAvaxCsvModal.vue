@@ -1,107 +1,109 @@
 <template>
-    <modal ref="modal" title="Export AVAX Transfers" class="modal_main">
-        <div class="csv_modal_body">
-            <p>Export AVAX transactions including cross chain transfers on X,P and C chains.</p>
-            <p class="err" v-if="error">{{ error }}</p>
-            <v-btn
-                class="button_secondary"
-                small
-                @click="submit"
-                :disabled="!canSubmit"
-                :loading="isLoading"
-                depressed
-                block
-                style="margin-top: 12px"
-            >
-                Download CSV File
-            </v-btn>
-        </div>
-    </modal>
+  <modal ref="modal" class="modal_main" title="Export AVAX Transfers">
+    <div class="csv_modal_body">
+      <p>
+        Export AVAX transactions including cross chain transfers on X,P and C
+        chains.
+      </p>
+      <p v-if="error" class="err">{{ error }}</p>
+      <v-btn
+        block
+        class="button_secondary"
+        depressed
+        :disabled="!canSubmit"
+        :loading="isLoading"
+        small
+        style="margin-top: 12px"
+        @click="submit"
+      >
+        Download CSV File
+      </v-btn>
+    </div>
+  </modal>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import type { ITransactionData } from "@/stores/vuex/modules/history/types";
+import {
+  createCsvNormal,
+  getHistoryForOwnedAddresses,
+} from "@metalblockchain/metal-wallet-sdk";
 
-import Modal from '@/components/modals/Modal.vue'
-import { CsvRowAvaxTransferData, ITransactionData, UTXO } from '@/store/modules/history/types'
-import { bnToBig } from '@/helpers/helper'
-const generate = require('csv-generate')
-import { downloadCSVFile } from '@/store/modules/history/history_utils'
-import { createCsvNormal, getHistoryForOwnedAddresses } from '@metalblockchain/metal-wallet-sdk'
+import { defineComponent } from "vue";
+import Modal from "@/components/modals/Modal.vue";
+import { downloadCSVFile } from "@/stores/vuex/modules/history/history_utils";
 
-@Component({
-    components: {
-        Modal,
+export const ExportAvaxCsvModal = defineComponent({
+  components: {
+    Modal,
+  },
+  data() {
+    const error: Error | null = null;
+
+    return {
+      error,
+      isLoading: false,
+    };
+  },
+  computed: {
+    canSubmit() {
+      return true;
     },
-})
-export default class ExportAvaxCsvModal extends Vue {
-    error: Error | null = null
-    isLoading = false
-
+    transactions(): ITransactionData[] {
+      return this.$store.state.History.allTransactions;
+    },
+    wallet() {
+      return this.$store.state.activeWallet;
+    },
+    xAddresses(): string[] {
+      return this.wallet.getAllAddressesX();
+    },
+    xAddressesStripped(): string[] {
+      return this.xAddresses.map((addr: string) => addr.split("-")[1] ?? "");
+    },
+    avaxID() {
+      return this.$store.state.Assets.AVA_ASSET_ID;
+    },
+  },
+  methods: {
     open(): void {
-        this.error = null
-        let modal = this.$refs.modal as Modal
-        modal.open()
-    }
-
-    get canSubmit() {
-        return true
-    }
-
-    get transactions(): ITransactionData[] {
-        return this.$store.state.History.allTransactions
-    }
-
-    get wallet() {
-        return this.$store.state.activeWallet
-    }
-
-    get xAddresses(): string[] {
-        return this.wallet.getAllAddressesX()
-    }
-
-    get xAddressesStripped(): string[] {
-        return this.xAddresses.map((addr: string) => addr.split('-')[1])
-    }
-
-    get avaxID() {
-        return this.$store.state.Assets.AVA_ASSET_ID
-    }
-
+      this.error = null;
+      (this.$refs.modal as typeof Modal).open();
+    },
     async generateCSVFile() {
-        this.isLoading = true
+      this.isLoading = true;
 
-        try {
-            const hist = await getHistoryForOwnedAddresses(
-                this.wallet.getAllAddressesX(),
-                this.wallet.getAllAddressesP(),
-                this.wallet.getEvmAddressBech(),
-                this.wallet.getEvmAddress()
-            )
+      try {
+        const hist = await getHistoryForOwnedAddresses(
+          this.wallet.getAllAddressesX(),
+          this.wallet.getAllAddressesP(),
+          this.wallet.getEvmAddressBech(),
+          this.wallet.getEvmAddress(),
+        );
 
-            const encoding = 'data:text/csv;charset=utf-8,'
-            const csvContent = createCsvNormal(hist)
-            downloadCSVFile(encoding + csvContent, 'avax_transfers')
-        } catch (e: any) {
-            this.error = e
-        }
-        this.isLoading = false
-    }
-
+        const encoding = "data:text/csv;charset=utf-8,";
+        const csvContent = createCsvNormal(hist);
+        downloadCSVFile(encoding + csvContent, "avax_transfers");
+      } catch (error: any) {
+        this.error = error;
+      }
+      this.isLoading = false;
+    },
     submit() {
-        try {
-            this.error = null
-            this.generateCSVFile()
-        } catch (e: any) {
-            this.error = e
-        }
-    }
-}
+      try {
+        this.error = null;
+        this.generateCSVFile();
+      } catch (error: any) {
+        this.error = error;
+      }
+    },
+  },
+});
+export default ExportAvaxCsvModal;
 </script>
 <style scoped lang="scss">
 .csv_modal_body {
-    width: 420px;
-    max-width: 100%;
-    padding: 10px 20px;
+  width: 420px;
+  max-width: 100%;
+  padding: 10px 20px;
 }
 </style>

@@ -1,151 +1,155 @@
 <template>
-    <div class="evm_dropdown hover_border" :active="isPopup" :disabled="disabled">
-        <button @click="showPopup" :disabled="disabled">
-            {{ symbol }}
-        </button>
-        <EVMTokenSelectModal
-            ref="select_modal"
-            @select="select"
-            @selectCollectible="selectERC721"
-        ></EVMTokenSelectModal>
-    </div>
+  <div :active="isPopup" class="evm_dropdown hover_border" :disabled="disabled">
+    <button :disabled="disabled" @click="showPopup">
+      {{ symbol }}
+    </button>
+    <EVMTokenSelectModal
+      ref="select_modal"
+      @select="select"
+      @select-collectible="selectERC721"
+    ></EVMTokenSelectModal>
+  </div>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator'
-import Erc20Token from '@/js/Erc20Token'
-import { WalletType } from '@/js/wallets/types'
+import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
+import type Erc20Token from "@/js/Erc20Token";
 
-import { bnToBig } from '@/helpers/helper'
-import Big from 'big.js'
-import EVMTokenSelectModal from '@/components/modals/EvmTokenSelect/EVMTokenSelectModal.vue'
-import { iErc721SelectInput } from '@/components/misc/EVMInputDropdown/types'
-import ERC721Token from '@/js/ERC721Token'
-@Component({
-    components: { EVMTokenSelectModal },
-})
-export default class EVMAssetDropdown extends Vue {
-    isPopup = false
-    selected: Erc20Token | ERC721Token | 'native' = 'native'
+import type ERC721Token from "@/js/ERC721Token";
+import type { WalletType } from "@/js/wallets/types";
+import Big from "big.js";
+import { defineComponent } from "vue";
+import EVMTokenSelectModal from "@/components/modals/EvmTokenSelect/EVMTokenSelectModal.vue";
+import { bnToBig } from "@/helpers/helper";
 
-    @Prop({ default: false }) disabled!: boolean
+export const EVMAssetDropdown = defineComponent({
+  components: { EVMTokenSelectModal },
+  props: {
+    disabled: { default: false, type: Boolean },
+  },
+  emits: ["change", "change-collectible"],
+  data(): {
+    isPopup: boolean;
+    selected: Erc20Token | ERC721Token | "native";
+  } {
+    const selected: Erc20Token | ERC721Token | "native" = "native";
 
-    $refs!: {
-        select_modal: EVMTokenSelectModal
-    }
-
-    get symbol() {
-        if (this.selected === 'native') return 'METAL'
-        else return this.selected.data.symbol
-    }
-
+    return {
+      isPopup: false,
+      selected,
+    };
+  },
+  computed: {
+    symbol() {
+      return this.selected === "native" ? "METAL" : this.selected.data.symbol;
+    },
+    avaxBalance(): Big {
+      const w: WalletType | null = this.$store.state.activeWallet;
+      if (!w) return Big(0);
+      const balBN = w.ethBalance;
+      return bnToBig(balBN, 18);
+    },
+  },
+  methods: {
     showPopup() {
-        this.$refs.select_modal.open()
-    }
-
-    get avaxBalance(): Big {
-        let w: WalletType | null = this.$store.state.activeWallet
-        if (!w) return Big(0)
-        let balBN = w.ethBalance
-        return bnToBig(balBN, 18)
-    }
-
-    select(token: Erc20Token | 'native') {
-        this.selected = token
-        this.$emit('change', token)
-    }
-
+      (this.$refs.select_modal as typeof EVMTokenSelectModal).open();
+    },
+    select(token: Erc20Token | "native") {
+      this.selected = token;
+      this.$emit("change", token);
+    },
     clear() {
-        this.select('native')
-    }
-
+      this.select("native");
+    },
     selectERC721(val: iErc721SelectInput) {
-        this.selected = val.token
-        this.$emit('changeCollectible', val)
-    }
-}
+      this.selected = val.token;
+      this.$emit("change-collectible", val);
+    },
+  },
+});
+export default EVMAssetDropdown;
 </script>
 <style scoped lang="scss">
-@use "../../../main";
+@use "@/styles/abstracts/mixins";
 .evm_dropdown {
-    position: relative;
+  position: relative;
 }
 
 button {
-    text-align: center;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .list {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    width: 260px;
-    max-height: 0px;
-    overflow: scroll;
-    z-index: 2;
-    border-radius: 4px;
-    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
-    background-color: var(--bg);
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 260px;
+  max-height: 0px;
+  overflow: scroll;
+  z-index: 2;
+  border-radius: 4px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg);
 }
 
 .token_row {
-    font-size: 13px;
-    padding: 8px 18px;
-    display: grid;
-    grid-template-columns: max-content max-content 1fr;
-    column-gap: 12px;
-    cursor: pointer;
-    user-select: none;
+  font-size: 13px;
+  padding: 8px 18px;
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  column-gap: 12px;
+  cursor: pointer;
+  user-select: none;
 
-    > * {
-        align-self: center;
-    }
+  > * {
+    align-self: center;
+  }
 
-    img {
-        height: 24px;
-        object-fit: contain;
-    }
+  img {
+    height: 24px;
+    object-fit: contain;
+  }
 
-    &:hover {
-        //background-color: rgba(var(--bg-1), 0.5);
-        background-color: var(--bg-light);
-    }
+  &:hover {
+    //background-color: rgba(var(--bg-1), 0.5);
+    background-color: var(--bg-light);
+  }
 }
 
 .evm_dropdown[active] {
-    .list {
-        max-height: 240px;
-    }
+  .list {
+    max-height: 240px;
+  }
 }
 
 .col_bal {
-    text-align: right;
+  text-align: right;
 }
 
-@include main.mobile-device {
-    .list {
-        border-top-right-radius: 14px;
-        border-top-left-radius: 14px;
-        position: fixed;
-        width: 100%;
-        bottom: 0;
-        left: 0;
-        top: unset;
-        height: 40vh;
-    }
+@include mixins.mobile-device {
+  .list {
+    border-top-right-radius: 14px;
+    border-top-left-radius: 14px;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    top: unset;
+    height: 40vh;
+  }
 
-    .token_row {
-        font-size: 16px;
-        border-bottom: 1px solid var(--bg-light);
-        padding-top: 14px;
-        padding-bottom: 14px;
-        img {
-            height: 30px;
-        }
+  .token_row {
+    font-size: 16px;
+    border-bottom: 1px solid var(--bg-light);
+    padding-top: 14px;
+    padding-bottom: 14px;
+    img {
+      height: 30px;
     }
+  }
 }
 </style>

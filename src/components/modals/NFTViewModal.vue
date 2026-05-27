@@ -1,38 +1,39 @@
 <template>
-    <modal :title="$t('modal.nft.title')" ref="modal">
-        <div class="nft_view_body">
-            <NftPayloadView :payload="payload" class="view"></NftPayloadView>
-        </div>
-    </modal>
+  <modal ref="modal" :title="$t('modal.nft.title')">
+    <div class="nft_view_body">
+      <NftPayloadView class="view" :payload="payload"></NftPayloadView>
+    </div>
+  </modal>
 </template>
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator'
-import Modal from '@/components/modals/Modal.vue'
-import NftPayloadView from '@/components/misc/NftPayloadView/NftPayloadView.vue'
-import { PayloadBase } from '@metalblockchain/metaljs/dist/utils'
-@Component({
-    components: { NftPayloadView, Modal },
-})
-export default class NFTViewModal extends Vue {
-    @Prop() payload!: PayloadBase
+import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
+import type { PropType } from "vue";
+import { defineComponent } from "vue";
+import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";
+import Modal from "@/components/modals/Modal.vue";
 
-    $refs!: {
-        modal: Modal
-    }
-
+export default defineComponent({
+  components: { NftPayloadView, Modal },
+  props: {
+    payload: {
+      type: Object as PropType<PayloadBase>,
+    },
+  },
+  methods: {
     open() {
-        this.$refs.modal.open()
-    }
-}
+      (this.$refs.modal as typeof Modal).open();
+    },
+  },
+});
 </script>
 <style scoped lang="scss">
 .nft_view_body {
-    width: 80vw;
-    height: 80vh;
+  width: 80vw;
+  height: 80vh;
 }
 
 .view {
-    height: 100%;
-    width: 100%;
+  height: 100%;
+  width: 100%;
 }
 </style>

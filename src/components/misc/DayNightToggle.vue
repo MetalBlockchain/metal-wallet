@@ -1,58 +1,74 @@
 <template>
-    <button @click="toggle">
-        <img v-if="val" src="@/assets/theme_toggle/night.svg" />
-        <img v-else src="@/assets/theme_toggle/day.svg" />
-    </button>
+  <button @click="toggle">
+    <img v-if="val" src="@/assets/theme_toggle/night.svg" />
+    <img v-else src="@/assets/theme_toggle/day.svg" />
+  </button>
 </template>
-<script>
-export default {
-    data() {
-        return {
-            val: false,
-        }
-    },
-    methods: {
-        setNight() {
-            this.val = true
-            localStorage.setItem('theme', 'night')
-            document.documentElement.setAttribute('data-theme', 'night')
-            this.$root.theme = 'night'
-        },
-        setDay() {
-            this.val = false
-            localStorage.setItem('theme', 'day')
-            document.documentElement.setAttribute('data-theme', 'day')
-            this.$root.theme = 'day'
-        },
-        toggle() {
-            this.val = !this.val
-            if (this.val) {
-                this.setNight()
-            } else {
-                this.setDay()
-            }
-        },
-    },
-    mounted() {
-        let theme = localStorage.getItem('theme')
+<script lang="ts">
+import { defineComponent } from "vue";
+import { useOwnTheme } from "@/composables/use-own-theme";
 
-        if (!theme) {
-            this.setDay()
-            return
-        }
+export const DayNightToggle = defineComponent({
+  setup() {
+    const { setNight, setDay } = useOwnTheme();
+    return {
+      setNight,
+      setDay,
+    };
+  },
+  data() {
+    return {
+      val: false,
+    };
+  },
+  mounted() {
+    const theme = localStorage.getItem("theme");
 
-        if (theme === 'night') {
-            this.setNight()
-        }
+    if (!theme) {
+      this.setOwnDay();
+      return;
+    }
+
+    if (theme === "dark") {
+      this.setOwnNight();
+    }
+  },
+  methods: {
+    setOwnNight() {
+      this.val = true;
+      this.setValue("dark");
+      this.setNight();
     },
-}
+    setOwnDay() {
+      this.val = false;
+      this.setValue("light");
+      this.setDay();
+    },
+    toggle() {
+      this.val = !this.val;
+      if (this.val) {
+        this.setOwnNight();
+      } else {
+        this.setOwnDay();
+      }
+    },
+    setValue(value: string) {
+      localStorage.setItem("theme", value);
+      document.documentElement.dataset.theme = value;
+    },
+  },
+});
+
+export default DayNightToggle;
 </script>
+
 <style scoped lang="scss">
 button {
-    display: flex;
-    align-items: center;
-    img {
-        max-height: 18px;
-    }
+  display: flex;
+  align-items: center;
+
+  img {
+    max-height: 18px;
+  }
 }
 </style>

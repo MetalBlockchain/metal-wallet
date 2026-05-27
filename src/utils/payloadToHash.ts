@@ -1,4 +1,4 @@
-import * as CryptoJS from 'crypto-js/core'
+import * as CryptoJS from "crypto-js/core";
 
 /**
  * Used to generate ids from payloads in NFTs.
@@ -6,5 +6,5 @@ import * as CryptoJS from 'crypto-js/core'
  * @param payload Payload contents as a string.
  */
 export function payloadToHash(payload: string) {
-    return CryptoJS.MD5(payload).toString()
+  return CryptoJS.MD5(payload).toString();
 }

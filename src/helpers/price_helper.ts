@@ -1,30 +1,30 @@
-const axios = require('axios')
+import axios from "axios";
 
-const COIN_ID = 'metal-blockchain'
+const COIN_ID = "metal-blockchain";
 const COINGECKO_URL =
-    'https://api.coingecko.com/api/v3/simple/price?ids=metal-blockchain&vs_currencies=usd'
+  "https://api.coingecko.com/api/v3/simple/price?ids=metal-blockchain&vs_currencies=usd";
 
 const coingeckoApi = axios.create({
-    baseURL: 'https://api.coingecko.com/api/v3',
-    timeout: 10000,
-})
+  baseURL: "https://api.coingecko.com/api/v3",
+  timeout: 10_000,
+});
 
 export async function getAvaxPriceUSD(): Promise<number> {
-    const res = await axios.get(COINGECKO_URL)
-    return res.data['metal-blockchain']['usd']
+  const res = await axios.get(COINGECKO_URL);
+  return res.data["metal-blockchain"]["usd"];
 }
 
-let priceHistory: [number, number][] = []
+let priceHistory: [number, number][] = [];
 async function getPriceHistory() {
-    const res = await coingeckoApi.get(`/coins/${COIN_ID}/market_chart`, {
-        params: {
-            vs_currency: 'usd',
-            days: 'max',
-            interval: 'daily',
-        },
-    })
+  const res = await coingeckoApi.get(`/coins/${COIN_ID}/market_chart`, {
+    params: {
+      vs_currency: "usd",
+      days: "max",
+      interval: "daily",
+    },
+  });
 
-    priceHistory = res.data.prices
+  priceHistory = res.data.prices;
 }
 
 /**
@@ -32,15 +32,15 @@ async function getPriceHistory() {
  * @param time
  */
 export function getPriceAtUnixTime(time: number): number | undefined {
-    const remainder = time % (24 * 60 * 60 * 1000)
-    const dayTimestamp = time - remainder
+  const remainder = time % (24 * 60 * 60 * 1000);
+  const dayTimestamp = time - remainder;
 
-    const pricePair = priceHistory.find((value) => {
-        return value[0] == dayTimestamp
-    })
+  const pricePair = priceHistory.find((value) => {
+    return value[0] == dayTimestamp;
+  });
 
-    if (!pricePair) return undefined
-    return pricePair[1]
+  if (!pricePair) return undefined;
+  return pricePair[1];
 }
 
-getPriceHistory()
+getPriceHistory();

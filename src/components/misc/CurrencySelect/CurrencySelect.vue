@@ -1,47 +1,55 @@
 <template>
-    <div class="currency_select">
-        <button @click="setType('AVAX')" :active="currency === 'AVAX'">METAL</button>
-        <button @click="setType('USD')" :active="currency === 'USD'">USD</button>
-    </div>
+  <div class="currency_select">
+    <button :data-active="modelValue === 'AVAX'" @click="setType('AVAX')">
+      METAL
+    </button>
+    <button :data-active="modelValue === 'USD'" @click="setType('USD')">
+      USD
+    </button>
+  </div>
 </template>
 <script lang="ts">
-import 'reflect-metadata'
-import { Vue, Component, Prop, Watch, Model } from 'vue-property-decorator'
-import { CurrencyType } from '@/components/misc/CurrencySelect/types'
+import type { CurrencyType } from "@/components/misc/CurrencySelect/types";
+import { defineComponent } from "vue";
 
-@Component
-export default class CurrencySelect extends Vue {
-    @Model('change', { type: String }) readonly currency!: CurrencyType
+export const CurrencySelect = defineComponent({
+  props: {
+    modelValue: { type: String },
+  },
+  emits: ["update:modelValue"],
+  methods: {
     setType(val: CurrencyType) {
-        this.$emit('change', val)
-    }
-}
+      this.$emit("update:modelValue", val);
+    },
+  },
+});
+export default CurrencySelect;
 </script>
 <style scoped lang="scss">
 .currency_select {
-    display: flex;
-    width: max-content;
-    background-color: var(--bg-light);
-    border-radius: 4px;
-    overflow: hidden;
+  display: flex;
+  width: max-content;
+  background-color: var(--bg-light);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 button {
-    margin: 0;
-    border-radius: 0;
-    padding: 3px 6px;
-    font-size: 12px;
-    color: var(--primary-color-light);
-    transition-duration: 0.2s;
+  margin: 0;
+  border-radius: 0;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: var(--primary-color-light);
+  transition-duration: 0.2s;
 
-    &:hover {
-        background-color: var(--primary-color-light);
-        color: var(--bg);
-    }
+  &:hover {
+    background-color: var(--primary-color-light);
+    color: var(--bg);
+  }
 
-    &[active] {
-        background-color: var(--primary-color);
-        color: var(--bg);
-    }
+  &[data-active="true"] {
+    background-color: var(--primary-color);
+    color: var(--bg);
+  }
 }
 </style>
