@@ -33,10 +33,9 @@
 </template>
 
 <script lang="ts">
+import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import type { PropType } from "vue";
-
-import type { TransactionType, TransactionTypeName } from "@/js/Glacier/models";
 import moment from "moment";
 import { defineComponent } from "vue";
 import BaseTx from "@/components/SidePanels/History/ViewTypes/BaseTx.vue";

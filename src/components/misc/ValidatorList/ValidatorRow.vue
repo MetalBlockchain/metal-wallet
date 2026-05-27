@@ -17,8 +17,8 @@
   </tr>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { ValidatorListItem } from "@/stores/types/platform";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
 import moment from "moment";
 import { defineComponent } from "vue";

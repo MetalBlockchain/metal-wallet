@@ -12,10 +12,10 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type { TransactionType } from "@/stores/types/history";
+import type { PropType } from "vue";
 import Big from "big.js";
 import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";

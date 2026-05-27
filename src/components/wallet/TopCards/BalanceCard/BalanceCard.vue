@@ -94,7 +94,6 @@
 </template>
 <script lang="ts">
 import { BN } from "@metalblockchain/metaljs/dist";
-
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import Big from "big.js";
 import { mapActions, mapState } from "pinia";

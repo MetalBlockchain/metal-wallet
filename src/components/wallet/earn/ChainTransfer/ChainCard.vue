@@ -18,8 +18,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { ChainIdType } from "@/constants";
+import type { PropType } from "vue";
 
 import { BN } from "@metalblockchain/metaljs";
 import { mapState } from "pinia";

@@ -47,7 +47,6 @@ import type {
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
-
 import {
   PlatformVMConstants,
   UTXOSet,

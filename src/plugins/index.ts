@@ -7,10 +7,8 @@
 import type { App } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-
 import { faBtc, faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { faSquare } from "@fortawesome/free-regular-svg-icons";
-
 import {
   faAngleLeft,
   faAngleRight,
@@ -74,14 +72,11 @@ import {
   faUsers,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-
 // Plugins
-
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createHead } from "@unhead/vue/client";
 // Composables
 import { createVuetify } from "vuetify";
-
 import { aliases, fa } from "vuetify/iconsets/fa-svg";
 
 import router from "@/router";

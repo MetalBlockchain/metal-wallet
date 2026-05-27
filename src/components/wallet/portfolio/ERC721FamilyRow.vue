@@ -20,8 +20,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import ERC721View from "@/components/wallet/portfolio/ERC721Card.vue";

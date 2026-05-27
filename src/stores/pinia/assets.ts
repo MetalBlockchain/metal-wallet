@@ -1,13 +1,3 @@
-// import ERC721Module from "./modules/erc721";
-import type {
-  AmountOutput,
-  UTXOSet as AVMUTXOSet,
-  NFTMintOutput,
-  UTXO,
-} from "@metalblockchain/metaljs/dist/apis/avm";
-import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-import type { StakeableLockOut } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type {
   IWalletAssetsDict,
@@ -22,15 +12,23 @@ import type {
   TokenList,
   TokenListToken,
 } from "@/stores/types/assets";
+// import ERC721Module from "./modules/erc721";
+import type {
+  AmountOutput,
+  UTXOSet as AVMUTXOSet,
+  NFTMintOutput,
+  UTXO,
+} from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+import type { StakeableLockOut } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
 import { BN } from "@metalblockchain/metaljs";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
-
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";
 import axios from "axios";
 import cloneDeep from "lodash-es/cloneDeep";
 import { isUrlBanned } from "@/components/misc/NftPayloadView/blacklist";
 import { getPayloadFromUTXO } from "@/helpers/helper";
-
 import AvaAsset from "@/js/AvaAsset";
 import { AvaNftFamily } from "@/js/AvaNftFamily";
 import Erc20Token from "@/js/Erc20Token";

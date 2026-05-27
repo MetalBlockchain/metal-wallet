@@ -25,7 +25,6 @@
 </template>
 <script lang="ts">
 import type { Buffer } from "@metalblockchain/metaljs";
-
 import type {
   NFTTransferOutput,
   UTXO,

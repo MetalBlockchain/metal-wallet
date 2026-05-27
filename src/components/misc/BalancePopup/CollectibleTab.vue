@@ -18,7 +18,6 @@
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
 import { mapState } from "pinia";
-
 import { defineComponent } from "vue";
 import CollectibleFamily from "@/components/misc/BalancePopup/CollectibleFamily.vue";
 import { useAssetsStore } from "@/stores/pinia/assets";

@@ -28,13 +28,13 @@
 
 <script lang="ts">
 import type {
-  NFTTransferOutput,
-  UTXO,
-} from "@metalblockchain/metaljs/dist/apis/avm";
-import type {
   IGroupDict,
   IGroupQuantity,
 } from "@/components/wallet/studio/mint/types";
+import type {
+  NFTTransferOutput,
+  UTXO,
+} from "@metalblockchain/metaljs/dist/apis/avm";
 import { mapState } from "pinia";
 import { defineComponent, ref } from "vue";
 import AvmNftSelectModal from "@/components/modals/AvmNftSelectModal.vue";

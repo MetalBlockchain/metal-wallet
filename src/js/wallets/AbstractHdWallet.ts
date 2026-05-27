@@ -1,10 +1,9 @@
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-
-import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import type HDKey from "hdkey";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { ChainAlias } from "@/js/wallets/types";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
+import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
+import type HDKey from "hdkey";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 import { digestMessage } from "@/helpers/helper";
 import { HdHelper } from "@/js/HdHelper";

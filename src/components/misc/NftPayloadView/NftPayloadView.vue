@@ -29,12 +29,10 @@
 </template>
 <script lang="ts">
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-
 import type { PropType } from "vue";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import { isUrlBanned } from "@/components/misc/NftPayloadView/blacklist";
-
 import NftPayloadAllow from "@/components/misc/NftPayloadView/NftPayloadAllow.vue";
 import JsonPayloadView from "@/components/misc/NftPayloadView/views/JsonPayloadView.vue";
 import UrlPayloadView from "@/components/misc/NftPayloadView/views/UrlPayloadView.vue";

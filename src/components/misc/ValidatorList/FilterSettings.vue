@@ -96,9 +96,9 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { ValidatorListFilter } from "@/components/wallet/earn/Delegate/types";
 import type { ValidatorListItem } from "@/stores/types/platform";
+import type { PropType } from "vue";
 import moment from "moment";
 import { defineComponent } from "vue";
 import { filterValidatorList } from "@/components/wallet/earn/Delegate/helper";

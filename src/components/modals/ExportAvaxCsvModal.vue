@@ -26,7 +26,6 @@ import {
   createCsvNormal,
   getHistoryForOwnedAddresses,
 } from "@metalblockchain/metal-wallet-sdk";
-
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Modal from "@/components/modals/Modal.vue";

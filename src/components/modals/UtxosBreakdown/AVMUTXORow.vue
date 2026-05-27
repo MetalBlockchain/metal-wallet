@@ -23,6 +23,7 @@
   </tr>
 </template>
 <script lang="ts">
+import type AvaAsset from "@/js/AvaAsset";
 import type {
   AmountOutput,
   UTXO as AVMUTXO,
@@ -32,7 +33,6 @@ import type {
   StakeableLockOut,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { PropType } from "vue";
-import type AvaAsset from "@/js/AvaAsset";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { UnixNow } from "@metalblockchain/metaljs/dist/utils";

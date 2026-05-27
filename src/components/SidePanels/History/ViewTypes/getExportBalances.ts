@@ -1,6 +1,6 @@
-import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import type AvaAsset from "@/js/AvaAsset";
 import type { TransactionType } from "@/js/Glacier/models";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
 import { UtxoType } from "@metalblockchain/glacier-sdk";
 import { BN } from "@metalblockchain/metaljs";
 import {

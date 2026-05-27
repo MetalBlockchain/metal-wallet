@@ -1,10 +1,8 @@
-import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
-
-import type HDKey from "hdkey";
 import type { ChainAlias } from "./wallets/types";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { KeyPair as PlatformVMKeyPair } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type HDKey from "hdkey";
 import { Buffer } from "@metalblockchain/metaljs";
-
 import {
   KeyChain as AVMKeyChain,
   KeyPair as AVMKeyPair,

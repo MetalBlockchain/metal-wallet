@@ -16,8 +16,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { TransactionType, XChainTransaction } from "@/js/Glacier/models";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

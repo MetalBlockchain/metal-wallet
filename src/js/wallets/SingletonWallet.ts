@@ -1,3 +1,7 @@
+import type { AvaWalletCore, UnsafeWallet } from "./types";
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type { WalletNameType } from "@/js/wallets/types";
 import type { Transaction } from "@ethereumjs/tx";
 import type {
   KeyPair as AVMKeyPair,
@@ -8,7 +12,6 @@ import type {
   UnsignedTx as AVMUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/avm/tx";
 import type { UTXO as AVMUTXO } from "@metalblockchain/metaljs/dist/apis/avm/utxos";
-
 import type {
   Tx as EvmTx,
   UnsignedTx as EVMUnsignedTx,
@@ -19,10 +22,6 @@ import type {
   UnsignedTx as PlatformUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { AvaWalletCore, UnsafeWallet } from "./types";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-import type Erc20Token from "@/js/Erc20Token";
-import type { WalletNameType } from "@/js/wallets/types";
 import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
 import {
   KeyChain as AVMKeyChain,

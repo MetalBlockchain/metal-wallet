@@ -1,5 +1,8 @@
 // A simple wrapper thar combines avalanche.js, bip39 and HDWallet
 
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type { IAvaHdWallet, WalletNameType } from "@/js/wallets/types";
 import type { Transaction } from "@ethereumjs/tx";
 import type {
   KeyPair as AVMKeyPair,
@@ -7,7 +10,6 @@ import type {
   UnsignedTx as AVMUnsignedTx,
   UTXO as AVMUTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import type {
   Tx as EvmTx,
   UnsignedTx as EVMUnsignedTx,
@@ -17,11 +19,7 @@ import type {
   UnsignedTx as PlatformUnsignedTx,
   KeyChain as PlatformVMKeyChain,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-import type Erc20Token from "@/js/Erc20Token";
-import type { IAvaHdWallet, WalletNameType } from "@/js/wallets/types";
 import { BN, Buffer as BufferAvalanche } from "@metalblockchain/metaljs";
 import { KeyChain as AVMKeyChain } from "@metalblockchain/metaljs/dist/apis/avm";
 import { KeyChain as EVMKeyChain } from "@metalblockchain/metaljs/dist/apis/evm";

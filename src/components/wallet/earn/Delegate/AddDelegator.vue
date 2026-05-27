@@ -205,15 +205,14 @@
   </div>
 </template>
 <script lang="ts">
+import type { ValidatorListItem } from "@/stores/types/platform";
 import type {
   AmountOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { ValidatorListItem } from "@/stores/types/platform";
 
 import { bnToAvaxP } from "@metalblockchain/metal-wallet-sdk";
 import { BN } from "@metalblockchain/metaljs";
-
 import { UTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import Big from "big.js";
 import moment from "moment";
@@ -224,7 +223,6 @@ import CurrencySelect from "@/components/misc/CurrencySelect/CurrencySelect.vue"
 import Expandable from "@/components/misc/Expandable.vue";
 import Spinner from "@/components/misc/Spinner.vue";
 import QrInput from "@/components/shared/QrInput.vue";
-
 import DateForm from "@/components/wallet/earn/DateForm.vue";
 import ConfirmPage from "@/components/wallet/earn/Delegate/ConfirmPage.vue";
 import NodeCard from "@/components/wallet/earn/Delegate/NodeCard.vue";

@@ -15,7 +15,6 @@ import App from "./App.vue";
 
 // Styles
 import "@/styles/main.scss";
-
 // Fixes and extensions
 import "@/fixes/big_js";
 

@@ -50,8 +50,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { PropType } from "vue";
 import punycode from "punycode";
 import { mapActions } from "pinia";
 import { defineComponent } from "vue";

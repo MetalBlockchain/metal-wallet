@@ -11,11 +11,10 @@
   </div>
 </template>
 <script lang="ts">
+import type { UTXO } from "@/stores/types/history";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type { PropType } from "vue";
-import type { UTXO } from "@/stores/types/history";
 import { Buffer } from "@metalblockchain/metaljs";
-
 import { PayloadTypes } from "@metalblockchain/metaljs/dist/utils";
 import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";

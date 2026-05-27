@@ -39,9 +39,9 @@
 </template>
 
 <script lang="ts">
+import type { ITransaction } from "./types";
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { ITransaction } from "./types";
 import { BN } from "@metalblockchain/metaljs";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";

@@ -135,11 +135,10 @@
   </div>
 </template>
 <script lang="ts" setup>
-import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { ITransaction } from "@/components/wallet/transfer/types";
 import type { ChainIdType } from "@/constants";
-
 import type { IssueBatchTxInput } from "@/stores/types";
+import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
 import { useI18n } from "vue-i18n";

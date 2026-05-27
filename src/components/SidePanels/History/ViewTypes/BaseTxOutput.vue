@@ -14,10 +14,10 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { BaseTxAssetSummary } from "@/helpers/history_helper";
 import type AvaAsset from "@/js/AvaAsset";
 import type { AvaNftFamily } from "@/js/AvaNftFamily";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

@@ -1,9 +1,9 @@
+import type { GetBalancesParams } from "@/js/Glacier/models";
 import type {
   ListCChainAtomicBalancesResponse,
   ListPChainBalancesResponse,
   ListXChainBalancesResponse,
 } from "@metalblockchain/glacier-sdk";
-import type { GetBalancesParams } from "@/js/Glacier/models";
 import { BN } from "@metalblockchain/metaljs";
 import Glacier from "@/js/Glacier/Glacier";
 import { splitToParts } from "@/js/Glacier/utils";

@@ -43,7 +43,6 @@ import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AccountSettingsModal from "@/components/modals/AccountSettings/AccountSettingsModal.vue";
-
 import ExportKeys from "@/components/modals/ExportKeys.vue";
 import SaveAccountModal from "@/components/modals/SaveAccount/SaveAccountModal.vue";
 import MyKeys from "@/components/wallet/manage/MyKeys.vue";

@@ -32,7 +32,6 @@ import type {
   ICurrencyInputDropdownValue,
   ITransaction,
 } from "@/components/wallet/transfer/types";
-
 import type AvaAsset from "@/js/AvaAsset";
 import { BN } from "@metalblockchain/metaljs";
 import { mapState } from "pinia";

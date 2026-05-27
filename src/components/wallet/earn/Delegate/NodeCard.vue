@@ -45,8 +45,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { ValidatorListItem } from "@/stores/types/platform";
+import type { PropType } from "vue";
 import Big from "big.js";
 import BN from "bn.js";
 import { mapState } from "pinia";

@@ -123,11 +123,10 @@
   </div>
 </template>
 <script lang="ts">
-import type Big from "big.js";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
-
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type Big from "big.js";
 import {
   bnToAvaxC,
   bnToBigAvaxC,

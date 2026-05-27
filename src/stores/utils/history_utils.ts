@@ -1,10 +1,10 @@
-import type moment from "moment";
 import type {
   CsvRowAvaxTransferData,
   CsvRowStakingData,
   ITransactionData,
   UTXO,
 } from "@/stores/types/history";
+import type moment from "moment";
 import { BN, Buffer } from "@metalblockchain/metaljs";
 
 function isArraysOverlap(arr1: any[], arr2: any[]): boolean {

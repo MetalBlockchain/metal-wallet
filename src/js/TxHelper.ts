@@ -1,4 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-literal-enum-member */
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type ERC721Token from "@/js/ERC721Token";
 import type { Buffer } from "@metalblockchain/metaljs";
 import type {
   UTXO as AVMUTXO,
@@ -8,15 +11,10 @@ import type {
   UTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-
-import type Erc20Token from "@/js/Erc20Token";
-import type ERC721Token from "@/js/ERC721Token";
 
 import EthereumjsCommon from "@ethereumjs/common";
 import { Transaction } from "@ethereumjs/tx";
 import { BN } from "@metalblockchain/metaljs";
-
 import {
   AssetAmountDestination,
   AVMConstants,
@@ -25,7 +23,6 @@ import {
   BaseTx,
   MinterSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import { EVMConstants } from "@metalblockchain/metaljs/dist/apis/evm";
 import { PlatformVMConstants } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import { OutputOwners } from "@metalblockchain/metaljs/dist/common";
@@ -93,7 +90,9 @@ export async function buildUnsignedTransaction(
 
   const success: Error = utxoset.getMinimumSpendable(aad);
 
+  // eslint-disable-next-line no-useless-assignment
   let ins: TransferableInput[] = [];
+  // eslint-disable-next-line no-useless-assignment
   let outs: TransferableOutput[] = [];
   if (success === undefined) {
     ins = aad.getInputs();

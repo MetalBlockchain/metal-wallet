@@ -1,5 +1,4 @@
 import type { AllKeyFileDecryptedTypes } from "@/js/IKeystore";
-
 import type { WalletType } from "@/js/wallets/types";
 import type {
   AccessWalletMultipleInput,
@@ -18,9 +17,7 @@ import {
   makeKeyfile,
   readKeyFile,
 } from "@/js/Keystore";
-
 import MnemonicWallet from "@/js/wallets/MnemonicWallet";
-
 import { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import { bintools } from "@/misc/AVA";
 import router from "@/router";

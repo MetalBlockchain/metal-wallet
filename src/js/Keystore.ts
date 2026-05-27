@@ -1,5 +1,3 @@
-import type { Buffer } from "buffer/";
-
 // Functions to manage import/export of keystore files
 import type {
   AllKeyFileDecryptedTypes,
@@ -30,6 +28,7 @@ import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletType } from "@/js/wallets/types";
 import type { AccessWalletMultipleInput } from "@/stores/types";
+import type { Buffer } from "buffer/";
 import { Buffer as AjsBuffer } from "@metalblockchain/metaljs";
 import * as bip39 from "bip39";
 import { keyToKeypair } from "@/helpers/helper";

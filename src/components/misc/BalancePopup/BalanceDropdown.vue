@@ -21,8 +21,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import AvmTokenSelect from "@/components/modals/AvmTokenSelect.vue";

@@ -124,6 +124,13 @@
 </template>
 <script lang="ts">
 import type {
+  GenericFormType,
+  JsonFormType,
+  NftMintFormType,
+  UrlFormType,
+  UtfFormType,
+} from "@/components/wallet/studio/mint/types";
+import type {
   NFTMintOutput,
   NFTTransferOutput,
   UTXO,
@@ -131,13 +138,6 @@ import type {
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
 import type Big from "big.js";
 import type { PropType } from "vue";
-import type {
-  GenericFormType,
-  JsonFormType,
-  NftMintFormType,
-  UrlFormType,
-  UtfFormType,
-} from "@/components/wallet/studio/mint/types";
 
 import {
   JSONPayload,

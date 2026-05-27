@@ -1,3 +1,4 @@
+import type { AvmImportChainType } from "@/js/wallets/types";
 import type { BlockchainId } from "@metalblockchain/glacier-sdk";
 import type {
   ExportChainsC,
@@ -18,7 +19,6 @@ import type {
   UnsignedTx as PlatformUnsignedTx,
 } from "@metalblockchain/metaljs/dist/apis/platformvm/tx";
 import type { UTXO as PlatformUTXO } from "@metalblockchain/metaljs/dist/apis/platformvm/utxos";
-import type { AvmImportChainType } from "@/js/wallets/types";
 
 import {
   chainIdFromAlias,
@@ -46,7 +46,6 @@ import glacier from "@/js/Glacier/Glacier";
 import { ava, avm, bintools, cChain, pChain } from "@/misc/AVA";
 import { web3 } from "@/misc/evm";
 import { isMainnetNetworkID } from "@/stores/utils/isMainnetNetworkID";
-
 import { isTestnetNetworkID } from "@/stores/utils/isTestnetNetworkID";
 
 abstract class AbstractWallet {

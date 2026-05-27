@@ -1,10 +1,13 @@
+import type { ITransaction } from "@/components/wallet/transfer/types";
+import type Erc20Token from "@/js/Erc20Token";
+import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { Transaction } from "@ethereumjs/tx";
 import type {
   ExportChainsC,
   ExportChainsP,
   ExportChainsX,
 } from "@metalblockchain/metal-wallet-sdk";
-
 import type { BN, Buffer } from "@metalblockchain/metaljs";
 import type {
   KeyChain as AVMKeyChain,
@@ -14,7 +17,6 @@ import type {
   UTXO as AVMUTXO,
   UTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/avm";
-
 import type {
   KeyChain as EVMKeyChain,
   Tx as EVMTx,
@@ -28,12 +30,7 @@ import type {
   UTXOSet as PlatformUTXOSet,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
 import type { PayloadBase } from "@metalblockchain/metaljs/dist/utils";
-
 import type HDKey from "hdkey";
-import type { ITransaction } from "@/components/wallet/transfer/types";
-import type Erc20Token from "@/js/Erc20Token";
-import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
-import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 
 export interface IIndexKeyCache {
   [index: number]: AVMKeyPair;

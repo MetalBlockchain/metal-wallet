@@ -23,8 +23,8 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import RadioButtons from "@/components/misc/RadioButtons.vue";
 import Modal from "@/components/modals/Modal.vue";

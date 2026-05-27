@@ -29,9 +29,8 @@
   </modal>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
-
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
 
 import { mapState } from "pinia";
 import printjs from "print-js";

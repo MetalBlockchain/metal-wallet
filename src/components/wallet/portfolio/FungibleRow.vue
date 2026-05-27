@@ -26,12 +26,11 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type AvaAsset from "@/js/AvaAsset";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
 import Big from "big.js";
 import { mapState } from "pinia";
-
 import { defineComponent } from "vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
 import { bnToBig } from "@/helpers/helper";

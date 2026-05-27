@@ -19,7 +19,6 @@
 import type { UTXO } from "@metalblockchain/metaljs/dist/apis/avm";
 import type Big from "big.js";
 import { mapState } from "pinia";
-
 import { defineComponent } from "vue";
 import MintForm from "@/components/wallet/studio/mint/MintForm.vue";
 import SelectMintUTXO from "@/components/wallet/studio/mint/SelectMintUtxo/SelectMintUTXO.vue";

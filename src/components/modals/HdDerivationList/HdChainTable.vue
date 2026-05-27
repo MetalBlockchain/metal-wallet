@@ -37,10 +37,10 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
 import type { HdHelper } from "@/js/HdHelper";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import HdDerivationListRow from "@/components/modals/HdDerivationList/HdDerivationListRow.vue";
 import HdEmptyAddressRow from "@/components/modals/HdDerivationList/HdEmptyAddressRow.vue";

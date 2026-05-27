@@ -116,7 +116,6 @@ import * as bip39 from "bip39";
 import { defineComponent, ref } from "vue";
 import MnemonicCopied from "@/components/CreateWalletWorkflow/MnemonicCopied.vue";
 import MnemonicDisplay from "@/components/misc/MnemonicDisplay.vue";
-
 import Spinner from "@/components/misc/Spinner.vue";
 import ToS from "@/components/misc/ToS.vue";
 import VerifyMnemonic2 from "@/components/modals/VerifyMnemonic2.vue";

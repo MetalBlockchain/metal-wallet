@@ -20,9 +20,9 @@
   </div>
 </template>
 <script lang="ts">
+import type { IGenericNft } from "@/components/wallet/studio/mint/types";
 import type { JSONPayload } from "@metalblockchain/metaljs/dist/utils";
 import type { PropType } from "vue";
-import type { IGenericNft } from "@/components/wallet/studio/mint/types";
 import { defineComponent } from "vue";
 
 export const UtfPayloadView = defineComponent({

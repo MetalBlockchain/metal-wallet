@@ -22,8 +22,8 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
+import type { PropType } from "vue";
 import Big from "big.js";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

@@ -116,18 +116,17 @@
 </template>
 
 <script lang="ts">
-import type { AmountOutput } from "@metalblockchain/metaljs/dist/apis/avm";
-import type { PropType } from "vue";
 import type { AbstractHdWallet } from "@/js/wallets/AbstractHdWallet";
 import type MnemonicPhrase from "@/js/wallets/MnemonicPhrase";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { SingletonWallet } from "@/js/wallets/SingletonWallet";
 import type { WalletNameType, WalletType } from "@/js/wallets/types";
+import type { AmountOutput } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { PropType } from "vue";
 
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import Tooltip from "@/components/misc/Tooltip.vue";
-
 import ExportKeys from "@/components/modals/ExportKeys.vue";
 import HdDerivationListModal from "@/components/modals/HdDerivationList/HdDerivationListModal.vue";
 import MnemonicPhraseModal from "@/components/modals/MnemonicPhraseModal.vue";

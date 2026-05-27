@@ -28,14 +28,12 @@ import { onMounted, useTemplateRef } from "vue";
 import AnalyticsCmp from "@/components/Analytics/Analytics.vue";
 import NetworkLoadingBlock from "@/components/misc/NetworkLoadingBlock.vue";
 import UrlBanner from "@/components/misc/UrlBanner.vue";
-
 import LedgerBlock from "@/components/modals/LedgerBlock.vue";
 import LedgerUpgrade from "@/components/modals/LedgerUpgrade.vue";
 import LedgerWalletLoading from "@/components/modals/LedgerWalletLoading.vue";
 import UpgradeToAccountModal from "@/components/modals/SaveAccount/UpgradeToAccountModal.vue";
 import Navbar from "@/components/Navbar.vue";
 import Notifications from "@/components/Notifications.vue";
-
 import TestNetBanner from "@/components/TestNetBanner.vue";
 import { themeKey } from "@/constants/injection_tokens";
 import { manageLocalization } from "./composables/manage-localizations";

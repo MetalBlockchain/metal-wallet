@@ -79,12 +79,11 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
-
 import type {
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
+import type { PropType } from "vue";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 // import TxHistoryValueFunctional from "@/components/SidePanels/History/TxHistoryValueFunctional.vue";

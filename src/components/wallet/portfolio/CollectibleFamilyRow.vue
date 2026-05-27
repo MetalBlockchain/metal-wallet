@@ -24,14 +24,14 @@
   </div>
 </template>
 <script lang="ts">
+import type { NftGroupDict } from "@/components/wallet/portfolio/types";
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type {
   NFTMintOutput,
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { NftGroupDict } from "@/components/wallet/portfolio/types";
-import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import { AVMConstants } from "@metalblockchain/metaljs/dist/apis/avm";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

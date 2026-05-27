@@ -10,7 +10,6 @@ import type {
 } from "@/stores/types/platform";
 
 import { BN } from "@metalblockchain/metaljs";
-
 import { ONEAVAX } from "@metalblockchain/metaljs/dist/utils";
 import { pChain } from "@/misc/AVA";
 

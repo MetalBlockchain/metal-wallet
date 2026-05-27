@@ -16,8 +16,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type Erc20Token from "@/js/Erc20Token";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import { useOwnTheme } from "@/composables/use-own-theme";
 

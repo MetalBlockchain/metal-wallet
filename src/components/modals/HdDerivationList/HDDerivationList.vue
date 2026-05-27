@@ -37,13 +37,12 @@
   </div>
 </template>
 <script lang="ts">
-import type { BN } from "@metalblockchain/metaljs";
-import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm";
-
-import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { PropType } from "vue";
 import type { DerivationListBalanceDict } from "@/components/modals/HdDerivationList/types";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
+import type { BN } from "@metalblockchain/metaljs";
+import type { UTXOSet as AVMUTXOSet } from "@metalblockchain/metaljs/dist/apis/avm";
+import type { UTXOSet as PlatformUTXOSet } from "@metalblockchain/metaljs/dist/apis/platformvm";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 import HdChainTable from "@/components/modals/HdDerivationList/HdChainTable.vue";
 import { bnToBig } from "@/helpers/helper";

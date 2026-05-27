@@ -17,12 +17,12 @@
   </div>
 </template>
 <script lang="ts">
+import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { IGroupQuantity } from "@/components/wallet/studio/mint/types";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
 import NftPayloadView from "@/components/misc/NftPayloadView/NftPayloadView.vue";

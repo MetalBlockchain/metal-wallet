@@ -52,7 +52,6 @@ import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import Identicon from "@/components/misc/Identicon.vue";
 import { useAccountsStore } from "@/stores/pinia/accounts";
-
 import { useNotificationsStore } from "@/stores/pinia/notifications";
 import { useRootStore } from "@/stores/pinia/root";
 import Modal from "../Modal.vue";

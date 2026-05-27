@@ -125,6 +125,8 @@
   </div>
 </template>
 <script lang="ts">
+import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
+import type { ChainIdType } from "@/constants";
 import type {
   ExportChainsC,
   ExportChainsP,
@@ -134,8 +136,6 @@ import type {
   FeeConfig,
   FeeState,
 } from "@metalblockchain/metaljs/dist/apis/platformvm";
-import type { ChainSwapFormData } from "@/components/wallet/earn/ChainTransfer/types";
-import type { ChainIdType } from "@/constants";
 import {
   avaxCtoX,
   Big,

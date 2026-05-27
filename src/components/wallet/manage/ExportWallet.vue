@@ -39,9 +39,9 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { ExportWalletsInput } from "@/stores/types";
+import type { PropType } from "vue";
 import { mapActions } from "pinia";
 import { defineComponent } from "vue";
 import { useNotificationsStore } from "@/stores/pinia/notifications";

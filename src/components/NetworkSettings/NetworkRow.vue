@@ -26,8 +26,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type { AvaNetwork } from "@/js/AvaNetwork";
+import type { PropType } from "vue";
 import { mapActions, mapState } from "pinia";
 import { defineComponent } from "vue";
 import { useNetworkStore } from "@/stores/pinia/networks";

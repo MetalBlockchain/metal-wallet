@@ -9,8 +9,8 @@
   </div>
 </template>
 <script lang="ts">
-import type { PropType } from "vue";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
 import { defineComponent } from "vue";
 
 // If an image url is hosted on one of these urls, reroute through cloudflare.

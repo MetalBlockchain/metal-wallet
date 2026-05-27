@@ -1,6 +1,5 @@
 import * as bip39 from "bip39";
 import AES from "crypto-js/aes";
-
 import CryptoJS from "crypto-js/core";
 import randomstring from "randomstring";
 

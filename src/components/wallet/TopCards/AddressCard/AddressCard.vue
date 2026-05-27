@@ -63,9 +63,7 @@ import type { ChainIdType } from "@/constants";
 import type MnemonicWallet from "@/js/wallets/MnemonicWallet";
 import type { WalletNameType } from "@/js/wallets/types";
 import { mapState } from "pinia";
-
 import QRCode from "qrcode";
-
 import { defineComponent } from "vue";
 
 import CopyText from "@/components/misc/CopyText.vue";

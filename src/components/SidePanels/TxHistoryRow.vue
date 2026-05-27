@@ -27,13 +27,13 @@
   </div>
 </template>
 <script lang="ts">
-import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
-import type { PropType } from "vue";
 import type {
   TransactionType,
   TransactionTypeName,
   XChainTransaction,
 } from "@/js/Glacier/models";
+import type { PChainUtxo, Utxo } from "@metalblockchain/glacier-sdk";
+import type { PropType } from "vue";
 import moment from "moment";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

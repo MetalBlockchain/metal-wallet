@@ -37,7 +37,6 @@
 import type AvaAsset from "@/js/AvaAsset";
 
 import { BN } from "@metalblockchain/metaljs";
-
 import Big from "big.js";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

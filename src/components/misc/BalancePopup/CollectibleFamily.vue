@@ -19,12 +19,12 @@
   </div>
 </template>
 <script lang="ts">
+import type { AvaNftFamily } from "@/js/AvaNftFamily";
 import type {
   NFTTransferOutput,
   UTXO,
 } from "@metalblockchain/metaljs/dist/apis/avm";
 import type { PropType } from "vue";
-import type { AvaNftFamily } from "@/js/AvaNftFamily";
 
 import { mapState } from "pinia";
 import { defineComponent } from "vue";

@@ -45,12 +45,11 @@
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
 import type { iErc721SelectInput } from "@/components/misc/EVMInputDropdown/types";
 import type Erc20Token from "@/js/Erc20Token";
 import type ERC721Token from "@/js/ERC721Token";
+import type { PropType } from "vue";
 import { BN } from "@metalblockchain/metaljs";
-
 import Big from "big.js";
 import { mapState } from "pinia";
 import { defineComponent } from "vue";
