@@ -380,7 +380,12 @@ export const ChainTransfer = defineComponent({
             )
           : GasHelper.estimateImportGasFeeFromMockTx(1, 1);
 
-        const totFeeWei = this.baseFee.mul(new BN(fee));
+        let totFeeWei = this.baseFee.mul(new BN(fee));
+
+        if (totFeeWei.lt(new BN("1000000000"))) {
+          totFeeWei = new BN("1000000000");
+        }
+
         return bnToBigAvaxC(totFeeWei);
       }
     },

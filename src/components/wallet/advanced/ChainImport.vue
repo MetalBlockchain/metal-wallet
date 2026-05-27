@@ -163,7 +163,10 @@ export const ChainImport = defineComponent({
 
         const gas = GasHelper.estimateImportGasFeeFromMockTx(numIns, numSigs);
 
-        const totFee = baseFee.mul(new BN(gas));
+        let totFee = baseFee.mul(new BN(gas));
+        if (totFee.lt(new BN("1000000000"))) {
+          totFee = new BN("1000000000");
+        }
         const txId = await this.wallet.importToCChain(source, avaxCtoX(totFee));
         this.onSuccess(txId);
       } catch (error: any) {
